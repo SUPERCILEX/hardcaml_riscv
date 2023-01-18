@@ -26,8 +26,9 @@ module State = struct
   [@@deriving sexp_of, compare, enumerate]
 end
 
-let create (i : _ I.t) =
+let create (scope : Scope.t) (i : _ I.t) =
   let open Signal in
+  let ( -- ) = Scope.naming scope in
   let spec = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
   let sm = Always.State_machine.create (module State) spec in
   let num = Always.Variable.reg ~width:(width i.num) spec in
@@ -54,7 +55,14 @@ let create (i : _ I.t) =
   { O.num_ones = num_ones.value; done_ = sm.is Done }
 ;;
 
-let circuit () = Circuit.create_with_interface (module I) (module O) ~name:"cpu" create
+let circuit scope =
+  let module H = Hierarchy.In_scope (I) (O) in
+  H.hierarchical ~scope ~name:"playground" create
+;;
+
+let root scope =
+  Circuit.create_with_interface (module I) (module O) ~name:"cpu" (circuit scope)
+;;
 
 module Tests = struct
   open Core
@@ -121,7 +129,8 @@ module Tests = struct
         ]
     in
     let waves =
-      let sim = Simulator.create ~config:Cyclesim.Config.trace_all create in
+      let scope = Scope.create ~flatten_design:true () in
+      let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
       let waves, sim = Waveform.create sim in
       test_bench sim;
       waves

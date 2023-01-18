@@ -1,3 +1,6 @@
 open Hardcaml
 
-let () = Rtl.print Verilog (Cpu.circuit ())
+let () =
+  let scope = Scope.create () in
+  Rtl.print ~database:(Scope.circuit_database scope) Verilog (Cpu.root scope)
+;;
