@@ -1,3 +1,3 @@
 (executable
  (public_name cli)
- (libraries cpu))
+ (libraries cpu hardcaml_waveterm.interactive))

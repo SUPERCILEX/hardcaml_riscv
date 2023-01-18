@@ -111,6 +111,14 @@ module Tests = struct
     run ()
   ;;
 
+  let waves =
+    let scope = Scope.create ~flatten_design:true () in
+    let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+    let waves, sim = Waveform.create sim in
+    test_bench sim;
+    waves
+  ;;
+
   let%expect_test "Simple" =
     let open Hardcaml_waveterm.Display_rule in
     let input_rules =
@@ -128,13 +136,6 @@ module Tests = struct
                  (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
         ]
     in
-    let waves =
-      let scope = Scope.create ~flatten_design:true () in
-      let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-      let waves, sim = Waveform.create sim in
-      test_bench sim;
-      waves
-    in
     Waveform.print
       waves
       ~display_height:25
@@ -142,20 +143,6 @@ module Tests = struct
       ~display_rules:(input_rules @ output_rules @ [ default ]);
     [%expect
       {|
-      (Idle ((done_ 0) (num_ones 0)))
-      (Idle ((done_ 0) (num_ones 0)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 2)))
-      (Compute ((done_ 0) (num_ones 3)))
-      (Compute ((done_ 0) (num_ones 3)))
-      (Compute ((done_ 0) (num_ones 4)))
-      (Compute ((done_ 1) (num_ones 4)))
-      (Done ((done_ 0) (num_ones 4)))
-      (Idle ((done_ 0) (num_ones 0)))
-      (Idle ((done_ 0) (num_ones 0)))
       ┌Signals───────────┐┌Waves───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
       │clock             ││┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   │
       │                  ││    └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───│
