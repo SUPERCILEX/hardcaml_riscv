@@ -28,13 +28,10 @@ end
 
 let create (i : _ I.t) =
   let open Signal in
-  let reg_spec () = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
-  let sm =
-    let state = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
-    Always.State_machine.create (module State) state
-  in
-  let num = Always.Variable.reg ~width:(width i.num) (reg_spec ()) in
-  let num_ones = Always.Variable.reg ~width:4 (reg_spec ()) in
+  let spec = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
+  let sm = Always.State_machine.create (module State) spec in
+  let num = Always.Variable.reg ~width:(width i.num) spec in
+  let num_ones = Always.Variable.reg ~width:4 spec in
   let _ = num.value -- "num_internal" in
   let _ = sm.current -- "state" in
   Always.(
@@ -67,7 +64,18 @@ module Tests = struct
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state_and_outputs () =
-      Stdio.print_s ([%sexp_of: int O.t] (O.map outputs ~f:(fun p -> Bits.to_int !p)))
+      let state =
+        List.nth_exn
+          State.all
+          (Bits.to_int
+             !(List.Assoc.find_exn
+                 (Cyclesim.internal_ports sim)
+                 "state"
+                 ~equal:String.equal))
+      in
+      Stdio.print_s
+        ([%sexp_of: State.t * int O.t]
+           (state, O.map outputs ~f:(fun p -> Bits.to_int !p)))
     in
     let reset () =
       Cyclesim.reset sim;
@@ -125,20 +133,20 @@ module Tests = struct
       ~display_rules:(input_rules @ output_rules @ [ default ]);
     [%expect
       {|
-      ((done_ 0) (num_ones 0))
-      ((done_ 0) (num_ones 0))
-      ((done_ 0) (num_ones 1))
-      ((done_ 0) (num_ones 1))
-      ((done_ 0) (num_ones 1))
-      ((done_ 0) (num_ones 1))
-      ((done_ 0) (num_ones 2))
-      ((done_ 0) (num_ones 3))
-      ((done_ 0) (num_ones 3))
-      ((done_ 0) (num_ones 4))
-      ((done_ 1) (num_ones 4))
-      ((done_ 0) (num_ones 4))
-      ((done_ 0) (num_ones 0))
-      ((done_ 0) (num_ones 0))
+      (Idle ((done_ 0) (num_ones 0)))
+      (Idle ((done_ 0) (num_ones 0)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 2)))
+      (Compute ((done_ 0) (num_ones 3)))
+      (Compute ((done_ 0) (num_ones 3)))
+      (Compute ((done_ 0) (num_ones 4)))
+      (Compute ((done_ 1) (num_ones 4)))
+      (Done ((done_ 0) (num_ones 4)))
+      (Idle ((done_ 0) (num_ones 0)))
+      (Idle ((done_ 0) (num_ones 0)))
       ┌Signals───────────┐┌Waves───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
       │clock             ││┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   │
       │                  ││    └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───│
