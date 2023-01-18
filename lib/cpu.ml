@@ -12,7 +12,7 @@ end
 
 module O = struct
   type 'a t =
-    { done_ : 'a
+    { done_ : 'a [@rltname "done"]
     ; num_ones : 'a [@bits 4]
     }
   [@@deriving sexp_of, hardcaml]
@@ -67,9 +67,7 @@ module Tests = struct
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state_and_outputs () =
-      let done_ = Bits.is_vdd !(outputs.done_) in
-      let result = Bits.to_int !(outputs.num_ones) in
-      Stdio.print_s [%message (done_ : bool) (result : int)]
+      Stdio.print_s ([%sexp_of: int O.t] (O.map outputs ~f:(fun p -> Bits.to_int !p)))
     in
     let reset () =
       Cyclesim.reset sim;
@@ -127,20 +125,20 @@ module Tests = struct
       ~display_rules:(input_rules @ output_rules @ [ default ]);
     [%expect
       {|
-      ((done_ false) (result 0))
-      ((done_ false) (result 0))
-      ((done_ false) (result 1))
-      ((done_ false) (result 1))
-      ((done_ false) (result 1))
-      ((done_ false) (result 1))
-      ((done_ false) (result 2))
-      ((done_ false) (result 3))
-      ((done_ false) (result 3))
-      ((done_ false) (result 4))
-      ((done_ true) (result 4))
-      ((done_ false) (result 4))
-      ((done_ false) (result 0))
-      ((done_ false) (result 0))
+      ((done_ 0) (num_ones 0))
+      ((done_ 0) (num_ones 0))
+      ((done_ 0) (num_ones 1))
+      ((done_ 0) (num_ones 1))
+      ((done_ 0) (num_ones 1))
+      ((done_ 0) (num_ones 1))
+      ((done_ 0) (num_ones 2))
+      ((done_ 0) (num_ones 3))
+      ((done_ 0) (num_ones 3))
+      ((done_ 0) (num_ones 4))
+      ((done_ 1) (num_ones 4))
+      ((done_ 0) (num_ones 4))
+      ((done_ 0) (num_ones 0))
+      ((done_ 0) (num_ones 0))
       ┌Signals───────────┐┌Waves───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
       │clock             ││┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   │
       │                  ││    └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───│
