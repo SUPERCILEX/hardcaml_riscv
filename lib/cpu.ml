@@ -28,39 +28,33 @@ end
 
 let create (i : _ I.t) =
   let open Signal in
-  let c_init_regs = wire 1 -- "c_init_regs" in
-  let c_load_num = wire 1 -- "c_load_num" in
-  let c_shift = wire 1 -- "c_shift" in
-  let c_inc = wire 1 -- "c_inc" in
-  let s_num_zero = wire 1 -- "s_num_zero" in
-  let s_bit_high = wire 1 -- "s_bit_high" in
-  let ns = wire 2 -- "ns" in
-  let ps = reg (Reg_spec.create ~clock:i.clock ~clear:i.clear ()) ns -- "ps" in
-  let num_ones_d = wire 4 -- "num_ones_d" in
-  let num_ones = reg (Reg_spec.create ~clock:i.clock ~clear:i.clear ()) num_ones_d in
-  let done_ = ps ==:. 2 in
-  let num_internal_d = wire (width i.num) -- "num_internal" in
-  let num_internal =
-    reg (Reg_spec.create ~clock:i.clock ~clear:i.clear ()) num_internal_d
+  let reg_spec () = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
+  let sm =
+    let state = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
+    Always.State_machine.create (module State) state
   in
-  c_init_regs <== (ps ==:. 0);
-  c_load_num <== (ps ==:. 0 &&: ~:(i.start));
-  c_shift <== (ps ==:. 1);
-  c_inc <== (ps ==:. 1 &&: ~:s_num_zero &&: s_bit_high);
-  s_num_zero <== (num_internal ==:. 0);
-  s_bit_high <== lsb num_internal;
-  ns
-  <== mux
-        ps
-        [ mux2 i.start (uresize vdd 2) (uresize gnd 2)
-        ; mux2 s_num_zero (of_decimal_string ~width:2 "2") (uresize vdd 2)
-        ; mux2 i.start (of_decimal_string ~width:2 "2") (uresize gnd 2)
-        ; uresize gnd 2
-        ];
-  num_ones_d <== mux2 c_init_regs (uresize gnd 4) (mux2 c_inc (num_ones +:. 1) num_ones);
-  num_internal_d
-  <== mux2 c_load_num i.num (mux2 c_shift (srl num_internal 1) num_internal);
-  { O.num_ones; done_ }
+  let num = Always.Variable.reg ~width:(width i.num) (reg_spec ()) in
+  let num_ones = Always.Variable.reg ~width:4 (reg_spec ()) in
+  let _ = num.value -- "num_internal" in
+  let _ = sm.current -- "state" in
+  Always.(
+    compile
+      [ sm.switch
+          [ ( Idle
+            , [ num_ones <-- zero (width num_ones.value)
+              ; if_ i.start [ sm.set_next Compute ] [ num <-- i.num ]
+              ] )
+          ; ( Compute
+            , [ num <-- srl num.value 1
+              ; when_ (num.value ==:. 0) [ sm.set_next Done ]
+              ; when_
+                  (num.value <>:. 0 &&: lsb num.value)
+                  [ num_ones <-- num_ones.value +:. 1 ]
+              ] )
+          ; Done, [ when_ ~:(i.start) [ sm.set_next Idle ] ]
+          ]
+      ]);
+  { O.num_ones = num_ones.value; done_ = sm.is Done }
 ;;
 
 let circuit () = Circuit.create_with_interface (module I) (module O) ~name:"cpu" create
@@ -73,31 +67,34 @@ module Tests = struct
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state_and_outputs () =
-      (* let state =
-        List.nth_exn States.all (Bits.to_int !(outputs.state))
-      in *)
       let done_ = Bits.is_vdd !(outputs.done_) in
       let result = Bits.to_int !(outputs.num_ones) in
       Stdio.print_s [%message (done_ : bool) (result : int)]
     in
-    (* Start by resetting simulation and clearing the circuit. *)
-    Cyclesim.reset sim;
-    inputs.clear := Bits.vdd;
-    Cyclesim.cycle sim;
-    inputs.clear := Bits.gnd;
-    (* Cycle 0 *)
-    print_state_and_outputs ();
-    (* Cycle 1 *)
-    inputs.num := Bits.of_bit_string "10110001";
-    Cyclesim.cycle sim;
-    inputs.start := Bits.vdd;
-    Cyclesim.cycle sim;
-    print_state_and_outputs ();
-    inputs.start := Bits.gnd;
-    for _ = 0 to 11 do
+    let reset () =
+      Cyclesim.reset sim;
+      inputs.clear := Bits.vdd;
+      Cyclesim.cycle sim;
+      inputs.clear := Bits.gnd;
+      print_state_and_outputs ()
+    in
+    let init bits =
+      inputs.num := Bits.of_bit_string bits;
+      Cyclesim.cycle sim;
+      inputs.start := Bits.vdd;
       Cyclesim.cycle sim;
       print_state_and_outputs ()
-    done
+    in
+    let run () =
+      inputs.start := Bits.gnd;
+      for _ = 0 to 11 do
+        Cyclesim.cycle sim;
+        print_state_and_outputs ()
+      done
+    in
+    reset ();
+    init "10110001";
+    run ()
   ;;
 
   let%expect_test "Simple" =
@@ -109,15 +106,13 @@ module Tests = struct
       O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
     in
     let output_rules =
-      (* { output_rules with
-        O.state =
-          port_name_is
+      (output_rules |> O.to_list)
+      @ [ port_name_is
             "state"
             ~wave_format:
               (Index
-                 (List.map States.all ~f:(fun t -> States.sexp_of_t t |> Sexp.to_string)))
-      } *)
-      output_rules |> O.to_list
+                 (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
+        ]
     in
     let waves =
       let sim = Simulator.create ~config:Cyclesim.Config.trace_all create in
@@ -127,7 +122,7 @@ module Tests = struct
     in
     Waveform.print
       waves
-      ~display_height:45
+      ~display_height:25
       ~display_width:150
       ~display_rules:(input_rules @ output_rules @ [ default ]);
     [%expect
@@ -161,34 +156,14 @@ module Tests = struct
       │                  ││────────────────────────────────────────┬───────────────────────────────┬───────┬───────────────┬───────────────────────┬───────│
       │num_ones          ││ 0                                      │1                              │2      │3              │4                      │0      │
       │                  ││────────────────────────────────────────┴───────────────────────────────┴───────┴───────────────┴───────────────────────┴───────│
-      │c_inc             ││                                ┌───────┐                       ┌───────────────┐       ┌───────┐                               │
-      │                  ││────────────────────────────────┘       └───────────────────────┘               └───────┘       └───────────────────────────────│
-      │c_init_regs       ││        ┌───────────────────────┐                                                                               ┌───────────────│
-      │                  ││────────┘                       └───────────────────────────────────────────────────────────────────────────────┘               │
-      │c_load_num        ││        ┌───────────────┐                                                                                       ┌───────────────│
-      │                  ││────────┘               └───────────────────────────────────────────────────────────────────────────────────────┘               │
-      │c_shift           ││                                ┌───────────────────────────────────────────────────────────────────────┐                       │
-      │                  ││────────────────────────────────┘                                                                       └───────────────────────│
-      │                  ││────────────────────────┬───────────────────────────────────────────────────────────────────────┬───────┬───────────────────────│
-      │ns                ││ 0                      │1                                                                      │2      │0                      │
-      │                  ││────────────────────────┴───────────────────────────────────────────────────────────────────────┴───────┴───────────────────────│
-      │                  ││────────────────┬───────────────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────────────────────┬───────────────│
-      │num_internal      ││ 00             │B1             │58     │2C     │16     │0B     │05     │02     │01     │00                     │B1             │
-      │                  ││────────────────┴───────────────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────────────────────┴───────────────│
-      │                  ││────────────────────────────────┬───────────────────────────────┬───────┬───────────────┬───────────────────────┬───────────────│
-      │num_ones_d        ││ 0                              │1                              │2      │3              │4                      │0              │
-      │                  ││────────────────────────────────┴───────────────────────────────┴───────┴───────────────┴───────────────────────┴───────────────│
       │                  ││────────────────────────────────┬───────────────────────────────────────────────────────────────────────┬───────┬───────────────│
-      │ps                ││ 0                              │1                                                                      │2      │0              │
+      │state             ││ Idle                           │Compute                                                                │Done   │Idle           │
       │                  ││────────────────────────────────┴───────────────────────────────────────────────────────────────────────┴───────┴───────────────│
-      │s_bit_high        ││                        ┌───────────────┐                       ┌───────────────┐       ┌───────┐                       ┌───────│
-      │                  ││────────────────────────┘               └───────────────────────┘               └───────┘       └───────────────────────┘       │
-      │s_num_zero        ││        ┌───────────────┐                                                                       ┌───────────────────────┐       │
-      │                  ││────────┘               └───────────────────────────────────────────────────────────────────────┘                       └───────│
+      │                  ││────────────────────────┬───────────────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────────────────────┬───────│
+      │num_internal      ││ 00                     │B1             │58     │2C     │16     │0B     │05     │02     │01     │00                     │B1     │
+      │                  ││────────────────────────┴───────────────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────────────────────┴───────│
       │vdd               ││        ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
       │                  ││────────┘                                                                                                                       │
-      │                  ││                                                                                                                                │
-      │                  ││                                                                                                                                │
       │                  ││                                                                                                                                │
       └──────────────────┘└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ |}]
   ;;
