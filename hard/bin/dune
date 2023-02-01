@@ -1,3 +1,5 @@
 (executable
  (public_name cli)
- (libraries cpu hardcaml_waveterm.interactive))
+ (libraries cpu core_unix.command_unix hardcaml_waveterm.interactive)
+ (preprocess
+  (pps ppx_jane)))

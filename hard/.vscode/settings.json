@@ -1,6 +1,5 @@
 {
   "emeraldwalk.runonsave": {
-  
     "commands": [
       {
         "match": "\\.ml$",

@@ -111,7 +111,7 @@ module Tests = struct
     run ()
   ;;
 
-  let waves =
+  let waves () =
     let scope = Scope.create ~flatten_design:true () in
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
     let waves, sim = Waveform.create sim in
@@ -137,12 +137,26 @@ module Tests = struct
         ]
     in
     Waveform.print
-      waves
+      (waves ())
       ~display_height:25
       ~display_width:150
       ~display_rules:(input_rules @ output_rules @ [ default ]);
     [%expect
       {|
+      (Idle ((done_ 0) (num_ones 0)))
+      (Idle ((done_ 0) (num_ones 0)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 1)))
+      (Compute ((done_ 0) (num_ones 2)))
+      (Compute ((done_ 0) (num_ones 3)))
+      (Compute ((done_ 0) (num_ones 3)))
+      (Compute ((done_ 0) (num_ones 4)))
+      (Compute ((done_ 1) (num_ones 4)))
+      (Done ((done_ 0) (num_ones 4)))
+      (Idle ((done_ 0) (num_ones 0)))
+      (Idle ((done_ 0) (num_ones 0)))
       ┌Signals───────────┐┌Waves───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
       │clock             ││┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   │
       │                  ││    └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───│
