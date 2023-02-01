@@ -1,22 +1,24 @@
 use core::arch::global_asm;
 
 #[cfg(not(target_arch = "x86_64"))]
-global_asm!(include_str!("strchr.s"));
+global_asm!(include_str!("fibonacci.s"));
 #[cfg(target_arch = "x86_64")]
-global_asm!("my_strchr:");
+global_asm!("fib:");
 
 extern "C" {
-    fn my_strchr(a: *const u8, b: u8) -> *const u8;
+    fn fib(n: u32) -> u32;
 }
 
 fn main() {
-    debug(core::ptr::null(), 42);
-    debug(b"abc\x42def\0".as_ptr(), 0x42);
-    debug(b"abcdef\0".as_ptr(), 0x42);
+    for n in 0..25 {
+        assert_eq!(fib_rust(n), unsafe { fib(n) });
+    }
 }
 
-fn debug(ptr: *const u8, target: u8) {
-    println!("start: {ptr:?}, end: {:?}", unsafe {
-        my_strchr(ptr, target)
-    });
+fn fib_rust(n: u32) -> u32 {
+    if n <= 1 {
+        n
+    } else {
+        fib_rust(n - 1) + fib_rust(n - 2)
+    }
 }
