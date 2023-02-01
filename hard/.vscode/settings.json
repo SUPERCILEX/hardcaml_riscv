@@ -9,6 +9,10 @@
         "match": "\\.ml$",
         "cmd": "dune runtest --auto-promote"
       },
+      {
+        "match": "\\.ml$",
+        "cmd": "dune exec cli -- compile cpu.v"
+      },
     ]
   }
 }
