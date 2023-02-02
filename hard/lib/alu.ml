@@ -8,6 +8,9 @@ module Op = struct
       | And
       | Or
       | Xor
+      | Shift_left_logical
+      | Shift_right_logical
+      | Shift_right_arithmetic
     [@@deriving sexp_of, compare, enumerate]
   end
 
@@ -29,6 +32,7 @@ end
 
 let create (_scope : Scope.t) (i : _ I.t) =
   let open Signal in
+  let shift_mux ~f = mux (sel_bottom i.b 5) (List.init 32 (fun shift -> f i.a shift)) in
   { O.result =
       Op.Binary.Of_signal.match_
         i.op
@@ -37,6 +41,9 @@ let create (_scope : Scope.t) (i : _ I.t) =
         ; And, i.a &: i.b
         ; Or, i.a |: i.b
         ; Xor, i.a ^: i.b
+        ; Shift_left_logical, shift_mux ~f:sll
+        ; Shift_right_logical, shift_mux ~f:srl
+        ; Shift_right_arithmetic, shift_mux ~f:sra
         ]
   }
 ;;
@@ -75,14 +82,18 @@ module Tests = struct
       Cyclesim.cycle sim;
       match op with
       | Add | Sub -> print_state_ints ()
-      | And | Or | Xor -> print_state_bits ()
+      | And | Or | Xor | Shift_left_logical | Shift_right_logical | Shift_right_arithmetic
+        -> print_state_bits ()
     in
     let bit_num = Bits.of_int ~width:Parameters.word_size in
     run Add (bit_num 69) (bit_num 42);
     run Sub (bit_num 69) (bit_num 42);
     run And (bit_num 69) (bit_num 42);
     run Or (bit_num 69) (bit_num 42);
-    run Xor (bit_num 69) (bit_num 438)
+    run Xor (bit_num 69) (bit_num 438);
+    run Shift_left_logical (bit_num 2147483776) (bit_num 5);
+    run Shift_right_logical (bit_num 2147483776) (bit_num 5);
+    run Shift_right_arithmetic (bit_num 2147483776) (bit_num 5)
   ;;
 
   let sim () =
@@ -105,6 +116,15 @@ module Tests = struct
        (result 00000000000000000000000001101111))
       ((op Xor) (a 00000000000000000000000001000101)
        (b 00000000000000000000000110110110)
-       (result 00000000000000000000000111110011)) |}]
+       (result 00000000000000000000000111110011))
+      ((op Shift_left_logical) (a 10000000000000000000000010000000)
+       (b 00000000000000000000000000000101)
+       (result 00000000000000000001000000000000))
+      ((op Shift_right_logical) (a 10000000000000000000000010000000)
+       (b 00000000000000000000000000000101)
+       (result 00000100000000000000000000000100))
+      ((op Shift_right_arithmetic) (a 10000000000000000000000010000000)
+       (b 00000000000000000000000000000101)
+       (result 11111100000000000000000000000100)) |}]
   ;;
 end
