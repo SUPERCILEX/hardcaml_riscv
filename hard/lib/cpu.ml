@@ -1,3 +1,4 @@
+open! Core
 open Hardcaml
 
 module I = struct

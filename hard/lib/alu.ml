@@ -1,3 +1,4 @@
+open! Core
 open Hardcaml
 
 module Op = struct
@@ -32,7 +33,9 @@ end
 
 let create (_scope : Scope.t) (i : _ I.t) =
   let open Signal in
-  let shift_mux ~f = mux (sel_bottom i.b 5) (List.init 32 (fun shift -> f i.a shift)) in
+  let shift_mux ~f =
+    mux (sel_bottom i.b 5) (List.init 32 ~f:(fun shift -> f i.a shift))
+  in
   { O.result =
       Op.Binary.Of_signal.match_
         i.op
