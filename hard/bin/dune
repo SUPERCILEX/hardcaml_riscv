@@ -1,5 +1,6 @@
 (executable
  (public_name cli)
+ (promote)
  (libraries cpu core_unix.command_unix hardcaml_waveterm.interactive)
  (preprocess
   (pps ppx_jane)))

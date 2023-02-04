@@ -11,7 +11,7 @@
       },
       {
         "match": "\\.ml$",
-        "cmd": "dune exec cli -- compile cpu.v"
+        "cmd": "./bin/cli.exe compile cpu.v"
       },
     ]
   }
