@@ -18,7 +18,7 @@ end
 
 let create (scope : Scope.t) (i : _ I.t) =
   let open Signal in
-  let instruction = Instruction.Binary.Of_always.wire ones in
+  let instruction = Instruction.Binary.Of_always.wire zero in
   let rd = Always.Variable.wire ~default:(zero 5) in
   let rs1 = Always.Variable.wire ~default:(zero 5) in
   let rs2 = Always.Variable.wire ~default:(zero 5) in
@@ -215,7 +215,8 @@ module Tests = struct
        srl s6, s5, s2\n\
        sra s6, s5, s2\n\
        or s6, s5, s2\n\
-       and s6, s5, s2"
+       and s6, s5, s2\n\
+       invalid"
   ;;
 
   let test_instruction_bytes () =
@@ -226,7 +227,7 @@ module Tests = struct
        f3 ff 83 5f fe ff 23 85 78 02 23 99 c2 4d a3 24 d3 07 13 84 be 3d 93 24 ef 23 13 \
        b9 ff ff 93 49 84 12 13 ea 44 1a 93 7a a9 2b 93 1a 89 00 93 5a 59 01 93 5a 19 41 \
        33 8b 2a 01 33 8b 2a 41 33 9b 2a 01 33 ab 2a 01 33 bb 2a 01 33 cb 2a 01 33 db 2a \
-       01 33 db 2a 41 33 eb 2a 01 33 fb 2a 01"
+       01 33 db 2a 41 33 eb 2a 01 33 fb 2a 01 00 00 00 00"
     |> List.chunks_of ~length:4
     |> List.map ~f:(fun bytes -> String.concat ~sep:"" (List.rev bytes))
     |> List.map ~f:(Bits.of_hex ~width:32)
@@ -422,6 +423,9 @@ module Tests = struct
 
       ((instruction "and s6, s5, s2")
        (instruction_bits 00000001001010101111101100110011) (id And) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0)) |}]
+       (rs1 21) (rs2 18) (immediate 0))
+
+      ((instruction invalid) (instruction_bits 00000000000000000000000000000000)
+       (id Invalid) (rd 0) (rs1 0) (rs2 0) (immediate 0)) |}]
   ;;
 end

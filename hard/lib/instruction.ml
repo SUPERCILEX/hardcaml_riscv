@@ -1,5 +1,6 @@
 module RV32I = struct
   type t =
+    | Invalid (* Not a real instruction, indicates a decode error *)
     | Lui (* Load upper immediate *)
     | Auipc (* Add upper immediate to program counter *)
     | Jal (* Jump and link *)

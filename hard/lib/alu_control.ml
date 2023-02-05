@@ -94,6 +94,9 @@ let create (scope : Scope.t) (i : _ I.t) =
           ; Lw, [ rd <-- i.rs1 ]
           ; Lbu, [ rd <-- uresize (sel_bottom i.rs1 8) 32 ]
           ; Lhu, [ rd <-- uresize (sel_bottom i.rs1 16) 32 ]
+          ; Sb, [ rd <-- uresize (sel_bottom i.rs2 8) 32 ]
+          ; Sh, [ rd <-- uresize (sel_bottom i.rs2 16) 32 ]
+          ; Sw, [ rd <-- i.rs2 ]
           ; Addi, [ rd <-- i.rs1 +: i.immediate ]
           ; Slti, [ rd <-- uresize (i.rs1 <: i.immediate) 32 ]
           ; Sltiu, [ rd <-- uresize (i.rs1 <+ i.immediate) 32 ]
@@ -361,7 +364,7 @@ module Tests = struct
        (rs1_bits 00000000000000000000000001000101)
        (rs2_bits 00000000000000000000000000101010)
        (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
+       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
        (jump_target_bits 00000000000000000000000000000000))
 
       ((instruction Sh) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
@@ -369,7 +372,7 @@ module Tests = struct
        (rs1_bits 00000000000000000000000001000101)
        (rs2_bits 00000000000000000000000000101010)
        (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
+       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
        (jump_target_bits 00000000000000000000000000000000))
 
       ((instruction Sw) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
@@ -377,7 +380,7 @@ module Tests = struct
        (rs1_bits 00000000000000000000000001000101)
        (rs2_bits 00000000000000000000000000101010)
        (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
+       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
        (jump_target_bits 00000000000000000000000000000000))
 
       ((instruction Addi) (pc_int 4206988) (rs1_int 69) (rs2_int 42)

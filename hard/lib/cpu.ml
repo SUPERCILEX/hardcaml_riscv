@@ -5,60 +5,175 @@ module I = struct
   type 'a t =
     { clock : 'a
     ; clear : 'a
-    ; start : 'a
-    ; num : 'a [@bits 8]
     }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
-  type 'a t =
-    { done_ : 'a [@rtlname "done"]
-    ; num_ones : 'a [@bits 4]
-    }
-  [@@deriving sexp_of, hardcaml]
+  type 'a t = { _unused : 'a } [@@deriving sexp_of, hardcaml]
 end
 
 module State = struct
   type t =
-    | Idle
-    | Compute
-    | Done
+    | Fetch
+    | Decode
+    | Load
+    | Execute
+    | Writeback
+    | Error
   [@@deriving sexp_of, compare, enumerate]
 end
 
+let register_file
+  ~clock
+  ~write_address
+  ~read_address1
+  ~read_address2
+  ~write_enable
+  ~read_enable
+  ~write_data
+  =
+  match
+    Ram.create
+      ~name:"register_file"
+      ~collision_mode:Read_before_write
+      ~size:32
+      ~write_ports:
+        [| { Ram.Write_port.write_clock = clock; write_address; write_enable; write_data }
+        |]
+      ~read_ports:
+        [| { Ram.Read_port.read_clock = clock; read_address = read_address1; read_enable }
+         ; { Ram.Read_port.read_clock = clock; read_address = read_address2; read_enable }
+        |]
+      ()
+  with
+  | [| rs1; rs2 |] -> rs1, rs2
+  | _ -> assert false
+;;
+
+let do_on_load instruction ~s =
+  Instruction.Binary.Of_always.match_
+    ~default:[]
+    instruction
+    (Instruction.RV32I.[ Lb; Lh; Lw ] |> List.map ~f:(fun i -> i, s))
+;;
+
+let do_on_store instruction ~s =
+  Instruction.Binary.Of_always.match_
+    ~default:[]
+    instruction
+    (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
+;;
+
 let create (scope : Scope.t) (i : _ I.t) =
   let open Signal in
-  let ( -- ) = Scope.naming scope in
   let spec = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
+  let program_counter =
+    Always.Variable.reg
+      ~width:Parameters.word_size
+      (spec
+      |> Reg_spec.override
+           ~clear_to:(of_int ~width:Parameters.word_size Parameters.code_bottom))
+  in
+  let load_instruction = Always.Variable.wire ~default:gnd in
+  let load = Always.Variable.wire ~default:gnd in
+  let store = Always.Variable.wire ~default:gnd in
+  let data_address = Always.Variable.wire ~default:(zero Parameters.word_size) in
+  let data_out = Always.Variable.wire ~default:(zero Parameters.word_size) in
+  let { Memory_controller.O.instruction = raw_instruction
+      ; data = data_in
+      ; error = invalid_address
+      }
+    =
+    Memory_controller.circuit
+      scope
+      { Memory_controller.I.clock = i.clock
+      ; load_instruction = load_instruction.value
+      ; load = load.value
+      ; store = store.value
+      ; program_counter = program_counter.value
+      ; data_address = data_address.value
+      ; data = data_out.value
+      }
+  in
+  let decoder =
+    Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
+    |> Decoder.O.map ~f:(fun s -> reg spec s)
+  in
+  let alu_store = wire 1 in
+  let alu_rd = wire Parameters.word_size in
   let sm = Always.State_machine.create (module State) spec in
-  let num = Always.Variable.reg ~width:(width i.num) spec in
-  let num_ones = Always.Variable.reg ~width:4 spec in
-  let _ = num.value -- "num_internal" in
-  let _ = sm.current -- "state" in
+  let rs1, rs2 =
+    register_file
+      ~clock:i.clock
+      ~write_address:decoder.rd
+      ~read_address1:decoder.rs1
+      ~read_address2:decoder.rs2
+      ~write_enable:alu_store
+      ~read_enable:(sm.is Decode |: sm.is Load)
+      ~write_data:alu_rd
+  in
+  let rs1_var = Always.Variable.wire ~default:rs1 in
+  let alu =
+    Alu_control.circuit
+      scope
+      { Alu_control.I.pc = program_counter.value
+      ; instruction = decoder.instruction
+      ; rs1 = rs1_var.value
+      ; rs2
+      ; immediate = decoder.immediate
+      }
+    |> Alu_control.O.map ~f:(fun s -> reg spec s)
+  in
+  alu_store <== alu.store;
+  alu_rd <== alu.rd;
+  let _debugging =
+    let ( -- ) = Scope.naming scope in
+    let _ = sm.current -- "state" in
+    ()
+  in
   Always.(
     compile
-      [ sm.switch
-          [ ( Idle
-            , [ num_ones <-- zero (width num_ones.value)
-              ; if_ i.start [ sm.set_next Compute ] [ num <-- i.num ]
+      [ when_ invalid_address [ sm.set_next Error ]
+      ; sm.switch
+          [ Fetch, [ load_instruction <-- vdd; sm.set_next Decode ]
+          ; Decode, [ sm.set_next Load ]
+          ; ( Load
+            , [ do_on_load
+                  decoder.instruction
+                  ~s:[ load <-- vdd; data_address <-- rs1 +: decoder.immediate ]
+              ; if_
+                  (Instruction.Binary.Of_signal.is decoder.instruction Invalid)
+                  [ sm.set_next Error ]
+                  [ sm.set_next Execute ]
               ] )
-          ; ( Compute
-            , [ num <-- srl num.value 1
-              ; when_ (num.value ==:. 0) [ sm.set_next Done ]
-              ; when_
-                  (num.value <>:. 0 &&: lsb num.value)
-                  [ num_ones <-- num_ones.value +:. 1 ]
+          ; ( Execute
+            , [ do_on_load decoder.instruction ~s:[ rs1_var <-- data_in ]
+              ; sm.set_next Writeback
               ] )
-          ; Done, [ when_ ~:(i.start) [ sm.set_next Idle ] ]
+          ; ( Writeback
+            , [ if_
+                  alu.jump
+                  [ program_counter <-- alu.jump_target ]
+                  [ program_counter <-- program_counter.value +:. 4 ]
+              ; do_on_store
+                  decoder.instruction
+                  ~s:
+                    [ store <-- vdd
+                    ; data_address <-- rs1 +: decoder.immediate
+                    ; data_out <-- alu.rd
+                    ]
+              ; sm.set_next Fetch
+              ] )
+          ; Error, []
           ]
       ]);
-  { O.num_ones = num_ones.value; done_ = sm.is Done }
+  { O._unused = load_instruction.value }
 ;;
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"playground" create
+  H.hierarchical ~scope ~name:"cpu_control" create
 ;;
 
 let root scope =
@@ -93,23 +208,20 @@ module Tests = struct
       inputs.clear := Bits.gnd;
       print_state_and_outputs ()
     in
-    let init bits =
-      inputs.num := Bits.of_bit_string bits;
-      Cyclesim.cycle sim;
-      inputs.start := Bits.vdd;
-      Cyclesim.cycle sim;
-      print_state_and_outputs ()
-    in
     let run () =
-      inputs.start := Bits.gnd;
       for _ = 0 to 11 do
         Cyclesim.cycle sim;
         print_state_and_outputs ()
       done
     in
     reset ();
-    init "10110001";
     run ()
+  ;;
+
+  let sim () =
+    let scope = Scope.create ~flatten_design:true () in
+    let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+    test_bench sim
   ;;
 
   let waves () =
@@ -117,71 +229,48 @@ module Tests = struct
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
     let waves, sim = Waveform.create sim in
     test_bench sim;
-    waves
+    let () =
+      let open Hardcaml_waveterm.Display_rule in
+      let input_rules =
+        I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
+      in
+      let output_rules =
+        O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
+      in
+      let output_rules =
+        (output_rules |> O.to_list)
+        @ [ port_name_is
+              "state"
+              ~wave_format:
+                (Index
+                   (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
+          ]
+      in
+      Waveform.print
+        waves
+        ~display_height:25
+        ~display_width:150
+        ~display_rules:(input_rules @ output_rules @ [ default ])
+    in
+    ()
   ;;
 
   let%expect_test "Simple" =
-    let open Hardcaml_waveterm.Display_rule in
-    let input_rules =
-      I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
-    in
-    let output_rules =
-      O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
-    in
-    let output_rules =
-      (output_rules |> O.to_list)
-      @ [ port_name_is
-            "state"
-            ~wave_format:
-              (Index
-                 (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
-        ]
-    in
-    Waveform.print
-      (waves ())
-      ~display_height:25
-      ~display_width:150
-      ~display_rules:(input_rules @ output_rules @ [ default ]);
+    sim ();
     [%expect
       {|
-      (Idle ((done_ 0) (num_ones 0)))
-      (Idle ((done_ 0) (num_ones 0)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 1)))
-      (Compute ((done_ 0) (num_ones 2)))
-      (Compute ((done_ 0) (num_ones 3)))
-      (Compute ((done_ 0) (num_ones 3)))
-      (Compute ((done_ 0) (num_ones 4)))
-      (Compute ((done_ 1) (num_ones 4)))
-      (Done ((done_ 0) (num_ones 4)))
-      (Idle ((done_ 0) (num_ones 0)))
-      (Idle ((done_ 0) (num_ones 0)))
-      ┌Signals───────────┐┌Waves───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-      │clock             ││┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   ┌───┐   │
-      │                  ││    └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───┘   └───│
-      │clear             ││        ┌───────┐                                                                                                               │
-      │                  ││────────┘       └───────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-      │start             ││                        ┌───────┐                                                                                               │
-      │                  ││────────────────────────┘       └───────────────────────────────────────────────────────────────────────────────────────────────│
-      │                  ││────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-      │num               ││ 0              │177                                                                                                            │
-      │                  ││────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-      │done              ││                                                                                                        ┌───────┐               │
-      │                  ││────────────────────────────────────────────────────────────────────────────────────────────────────────┘       └───────────────│
-      │                  ││────────────────────────────────────────┬───────────────────────────────┬───────┬───────────────┬───────────────────────┬───────│
-      │num_ones          ││ 0                                      │1                              │2      │3              │4                      │0      │
-      │                  ││────────────────────────────────────────┴───────────────────────────────┴───────┴───────────────┴───────────────────────┴───────│
-      │                  ││────────────────────────────────┬───────────────────────────────────────────────────────────────────────┬───────┬───────────────│
-      │state             ││ Idle                           │Compute                                                                │Done   │Idle           │
-      │                  ││────────────────────────────────┴───────────────────────────────────────────────────────────────────────┴───────┴───────────────│
-      │                  ││────────────────────────┬───────────────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────────────────────┬───────│
-      │num_internal      ││ 00                     │B1             │58     │2C     │16     │0B     │05     │02     │01     │00                     │B1     │
-      │                  ││────────────────────────┴───────────────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────────────────────┴───────│
-      │vdd               ││        ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-      │                  ││────────┘                                                                                                                       │
-      │                  ││                                                                                                                                │
-      └──────────────────┘└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘ |}]
+      (Fetch ((_unused 1)))
+      (Fetch ((_unused 0)))
+      (Decode ((_unused 0)))
+      (Load ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0))) |}]
   ;;
 end

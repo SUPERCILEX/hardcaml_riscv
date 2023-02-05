@@ -11,6 +11,10 @@
       },
       {
         "match": "\\.ml$",
+        "cmd": "dune build --auto-promote"
+      },
+      {
+        "match": "\\.ml$",
         "cmd": "./bin/cli.exe compile cpu.v"
       },
     ]
