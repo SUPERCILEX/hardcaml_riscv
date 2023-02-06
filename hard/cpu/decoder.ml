@@ -54,17 +54,19 @@ let create (scope : Scope.t) (i : _ I.t) =
               ; immediate
                 <-- sresize
                       (i.instruction.:(31)
-                      @: i.instruction.:+[12, Some 8]
+                      @: i.instruction.:[19, 12]
                       @: i.instruction.:(20)
-                      @: i.instruction.:+[21, Some 10]
+                      @: i.instruction.:[30, 21]
                       @: gnd)
                       32
               ] )
           ; ( of_bit_string "1100111"
-            , [ when_
-                  (funct3 ==: of_bit_string "000")
-                  [ set_instruction Jalr
-                  ; immediate <-- sresize i.instruction.:+[20, Some 12] 32
+            , [ switch
+                  funct3
+                  [ ( of_bit_string "000"
+                    , [ set_instruction Jalr
+                      ; immediate <-- sresize i.instruction.:[31, 20] 32
+                      ] )
                   ]
               ] )
           ; ( of_bit_string "1100011"
@@ -72,8 +74,8 @@ let create (scope : Scope.t) (i : _ I.t) =
                 <-- sresize
                       (i.instruction.:(31)
                       @: i.instruction.:(7)
-                      @: i.instruction.:+[25, Some 6]
-                      @: i.instruction.:-[Some 11, 4]
+                      @: i.instruction.:[30, 25]
+                      @: i.instruction.:[11, 8]
                       @: gnd)
                       32
               ; switch
@@ -87,7 +89,7 @@ let create (scope : Scope.t) (i : _ I.t) =
                   ]
               ] )
           ; ( of_bit_string "0000011"
-            , [ immediate <-- sresize i.instruction.:+[20, Some 12] 32
+            , [ immediate <-- sresize i.instruction.:[31, 20] 32
               ; switch
                   funct3
                   [ of_bit_string "000", [ set_instruction Lb ]
@@ -108,30 +110,33 @@ let create (scope : Scope.t) (i : _ I.t) =
                   ]
               ] )
           ; ( of_bit_string "0010011"
-            , [ immediate <-- sresize i.instruction.:+[20, Some 12] 32
+            , [ immediate <-- sresize i.instruction.:[31, 20] 32
               ; switch
                   funct3
-                  [ of_bit_string "000", [ set_instruction Addi ]
-                  ; of_bit_string "010", [ set_instruction Slti ]
-                  ; of_bit_string "011", [ set_instruction Sltiu ]
-                  ; of_bit_string "100", [ set_instruction Xori ]
-                  ; of_bit_string "110", [ set_instruction Ori ]
-                  ; of_bit_string "111", [ set_instruction Andi ]
-                  ; ( of_bit_string "001"
-                    , [ immediate <-- uresize i.instruction.:+[20, Some 5] 32
+                  ([ of_bit_string "000", [ set_instruction Addi ]
+                   ; of_bit_string "010", [ set_instruction Slti ]
+                   ; of_bit_string "011", [ set_instruction Sltiu ]
+                   ; of_bit_string "100", [ set_instruction Xori ]
+                   ; of_bit_string "110", [ set_instruction Ori ]
+                   ; of_bit_string "111", [ set_instruction Andi ]
+                   ]
+                  @
+                  let shamt = i.instruction.:[24, 20] in
+                  [ ( of_bit_string "001"
+                    , [ immediate <-- uresize shamt 32
                       ; switch
                           funct7
                           [ of_bit_string "0000000", [ set_instruction Slli ] ]
                       ] )
                   ; ( of_bit_string "101"
-                    , [ immediate <-- uresize i.instruction.:+[20, Some 5] 32
+                    , [ immediate <-- uresize shamt 32
                       ; switch
                           funct7
                           [ of_bit_string "0000000", [ set_instruction Srli ]
                           ; of_bit_string "0100000", [ set_instruction Srai ]
                           ]
                       ] )
-                  ]
+                  ])
               ] )
           ; ( of_bit_string "0110011"
             , [ switch
