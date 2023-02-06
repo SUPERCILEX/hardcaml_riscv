@@ -252,7 +252,7 @@ module Tests = struct
         ~display_width:150
         ~display_rules:(input_rules @ output_rules @ [ default ])
     in
-    ()
+    waves
   ;;
 
   let%expect_test "Simple" =
