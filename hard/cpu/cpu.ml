@@ -16,8 +16,7 @@ end
 module State = struct
   type t =
     | Fetch
-    | Decode
-    | Load
+    | Decode_and_load
     | Execute
     | Writeback
     | Error
@@ -33,6 +32,10 @@ let register_file
   ~read_enable
   ~write_data
   =
+  let open Signal in
+  assert (width write_address = 5);
+  assert (width read_address1 = 5);
+  assert (width read_address2 = 5);
   match
     Ram.create
       ~name:"register_file"
@@ -71,9 +74,9 @@ let create (scope : Scope.t) (i : _ I.t) =
   let program_counter =
     Always.Variable.reg
       ~width:Parameters.word_size
-      (spec
-      |> Reg_spec.override
-           ~clear_to:(of_int ~width:Parameters.word_size Parameters.code_bottom))
+      (Reg_spec.override
+         spec
+         ~clear_to:(of_int ~width:Parameters.word_size Parameters.code_bottom))
   in
   let load_instruction = Always.Variable.wire ~default:gnd in
   let load = Always.Variable.wire ~default:gnd in
@@ -96,10 +99,8 @@ let create (scope : Scope.t) (i : _ I.t) =
       ; data = data_out.value
       }
   in
-  let decoder =
-    Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
-    |> Decoder.O.map ~f:(fun s -> reg spec s)
-  in
+  let decoder = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
+  let decoder_regs = decoder |> Decoder.O.map ~f:(fun s -> reg spec s) in
   let alu_store = wire 1 in
   let alu_rd = wire Parameters.word_size in
   let sm = Always.State_machine.create (module State) spec in
@@ -110,18 +111,18 @@ let create (scope : Scope.t) (i : _ I.t) =
       ~read_address1:decoder.rs1
       ~read_address2:decoder.rs2
       ~write_enable:alu_store
-      ~read_enable:(sm.is Decode |: sm.is Load)
+      ~read_enable:(sm.is Decode_and_load)
       ~write_data:alu_rd
   in
-  let rs1_var = Always.Variable.wire ~default:rs1 in
   let alu =
     Alu_control.circuit
       scope
       { Alu_control.I.pc = program_counter.value
-      ; instruction = decoder.instruction
-      ; rs1 = rs1_var.value
+      ; data = data_in
+      ; instruction = decoder_regs.instruction
+      ; rs1
       ; rs2
-      ; immediate = decoder.immediate
+      ; immediate = decoder_regs.immediate
       }
     |> Alu_control.O.map ~f:(fun s -> reg spec s)
   in
@@ -129,16 +130,13 @@ let create (scope : Scope.t) (i : _ I.t) =
   alu_rd <== alu.rd;
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    let _ = sm.current -- "state" in
-    ()
+    ignore (sm.current -- "state")
   in
   Always.(
     compile
-      [ when_ invalid_address [ sm.set_next Error ]
-      ; sm.switch
-          [ Fetch, [ load_instruction <-- vdd; sm.set_next Decode ]
-          ; Decode, [ sm.set_next Load ]
-          ; ( Load
+      [ sm.switch
+          [ Fetch, [ load_instruction <-- vdd; sm.set_next Decode_and_load ]
+          ; ( Decode_and_load
             , [ do_on_load
                   decoder.instruction
                   ~s:[ load <-- vdd; data_address <-- rs1 +: decoder.immediate ]
@@ -147,26 +145,24 @@ let create (scope : Scope.t) (i : _ I.t) =
                   [ sm.set_next Error ]
                   [ sm.set_next Execute ]
               ] )
-          ; ( Execute
-            , [ do_on_load decoder.instruction ~s:[ rs1_var <-- data_in ]
-              ; sm.set_next Writeback
-              ] )
+          ; Execute, [ sm.set_next Writeback ]
           ; ( Writeback
             , [ if_
                   alu.jump
                   [ program_counter <-- alu.jump_target ]
                   [ program_counter <-- program_counter.value +:. 4 ]
               ; do_on_store
-                  decoder.instruction
+                  decoder_regs.instruction
                   ~s:
                     [ store <-- vdd
-                    ; data_address <-- rs1 +: decoder.immediate
+                    ; data_address <-- rs1 +: decoder_regs.immediate
                     ; data_out <-- alu.rd
                     ]
               ; sm.set_next Fetch
               ] )
           ; Error, []
           ]
+      ; when_ invalid_address [ sm.set_next Error ]
       ]);
   { O._unused = load_instruction.value }
 ;;
@@ -261,8 +257,8 @@ module Tests = struct
       {|
       (Fetch ((_unused 1)))
       (Fetch ((_unused 0)))
-      (Decode ((_unused 0)))
-      (Load ((_unused 0)))
+      (Error ((_unused 0)))
+      (Error ((_unused 0)))
       (Error ((_unused 0)))
       (Error ((_unused 0)))
       (Error ((_unused 0)))

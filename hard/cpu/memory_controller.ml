@@ -1,6 +1,9 @@
 open! Core
 open Hardcaml
 
+(* TODO add boot ROM *)
+(* TODO handle single byte memory ops correctly (split memory into byte chunks) *)
+
 module I = struct
   type 'a t =
     { clock : 'a
@@ -105,15 +108,14 @@ let create (scope : Scope.t) (i : _ I.t) =
   routed_data_address <== data_address;
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    let _ = routed_pc -- "routed_pc" in
-    let _ = routed_data_address -- "routed_data_address" in
-    let _ = pc -- "pc" in
-    let _ = data_address -- "data_address" in
-    let _ = pc_error -- "pc_error" in
-    let _ = data_error -- "data_error" in
-    let _ = raw_instruction -- "raw_instruction" in
-    let _ = data_out -- "data_out" in
-    ()
+    ignore (routed_pc -- "routed_pc");
+    ignore (routed_data_address -- "routed_data_address");
+    ignore (pc -- "pc");
+    ignore (data_address -- "data_address");
+    ignore (pc_error -- "pc_error");
+    ignore (data_error -- "data_error");
+    ignore (raw_instruction -- "raw_instruction");
+    ignore (data_out -- "data_out")
   in
   { O.instruction = Alu.flip_endianness raw_instruction
   ; data = Alu.flip_endianness data_out

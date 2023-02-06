@@ -25,11 +25,10 @@ let create (scope : Scope.t) (i : _ I.t) =
   let immediate = Always.Variable.wire ~default:(zero 32) in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    let _ = rd.value -- "output_register" in
-    let _ = rs1.value -- "input_register1" in
-    let _ = rs2.value -- "input_register2" in
-    let _ = immediate.value -- "parsed_immediate" in
-    ()
+    ignore (rd.value -- "output_register");
+    ignore (rs1.value -- "input_register1");
+    ignore (rs2.value -- "input_register2");
+    ignore (immediate.value -- "parsed_immediate")
   in
   let opcode = i.instruction.:[6, 0] in
   let funct3 = i.instruction.:[14, 12] in

@@ -4,6 +4,7 @@ open Hardcaml
 module I = struct
   type 'a t =
     { pc : 'a [@bits Parameters.word_size]
+    ; data : 'a [@bits Parameters.word_size]
     ; instruction : 'a Instruction.Binary.t
     ; rs1 : 'a [@bits Parameters.word_size]
     ; rs2 : 'a [@bits Parameters.word_size]
@@ -30,11 +31,10 @@ let create (scope : Scope.t) (i : _ I.t) =
   let jump_target = Always.Variable.wire ~default:(zero Parameters.word_size) in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    let _ = rd.value -- "result" in
-    let _ = store.value -- "store_to_reg_file" in
-    let _ = jump.value -- "should_jump" in
-    let _ = jump_target.value -- "jump_target" in
-    ()
+    ignore (rd.value -- "result");
+    ignore (store.value -- "store_to_reg_file");
+    ignore (jump.value -- "should_jump");
+    ignore (jump_target.value -- "jump_target")
   in
   Always.(
     compile
@@ -89,11 +89,11 @@ let create (scope : Scope.t) (i : _ I.t) =
           ; Bge, [ jump <-- (i.rs1 >=: i.rs2); jump_target <-- i.pc +: i.immediate ]
           ; Bltu, [ jump <-- (i.rs1 <+ i.rs2); jump_target <-- i.pc +: i.immediate ]
           ; Bgeu, [ jump <-- (i.rs1 >=+ i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Lb, [ rd <-- sresize (sel_bottom i.rs1 8) 32 ]
-          ; Lh, [ rd <-- sresize (sel_bottom i.rs1 16) 32 ]
-          ; Lw, [ rd <-- i.rs1 ]
-          ; Lbu, [ rd <-- uresize (sel_bottom i.rs1 8) 32 ]
-          ; Lhu, [ rd <-- uresize (sel_bottom i.rs1 16) 32 ]
+          ; Lb, [ rd <-- sresize (sel_bottom i.data 8) 32 ]
+          ; Lh, [ rd <-- sresize (sel_bottom i.data 16) 32 ]
+          ; Lw, [ rd <-- i.data ]
+          ; Lbu, [ rd <-- uresize (sel_bottom i.data 8) 32 ]
+          ; Lhu, [ rd <-- uresize (sel_bottom i.data 16) 32 ]
           ; Sb, [ rd <-- uresize (sel_bottom i.rs2 8) 32 ]
           ; Sh, [ rd <-- uresize (sel_bottom i.rs2 16) 32 ]
           ; Sw, [ rd <-- i.rs2 ]
@@ -176,6 +176,7 @@ module Tests = struct
       inputs.rs1 := rs1;
       inputs.rs2 := rs2;
       inputs.immediate := immediate;
+      inputs.data := rs1;
       Cyclesim.cycle sim;
       print_state ()
     in
