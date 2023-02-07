@@ -115,16 +115,16 @@ let create (scope : Scope.t) (i : _ I.t) =
       ~write_data:alu_rd
   in
   let alu =
-    Alu_control.circuit
+    Alu.circuit
       scope
-      { Alu_control.I.pc = program_counter.value
+      { Alu.I.pc = program_counter.value
       ; data = data_in
       ; instruction = decoder_regs.instruction
       ; rs1
       ; rs2
       ; immediate = decoder_regs.immediate
       }
-    |> Alu_control.O.map ~f:(fun s -> reg spec s)
+    |> Alu.O.map ~f:(fun s -> reg spec s)
   in
   alu_store <== alu.store;
   alu_rd <== alu.rd;

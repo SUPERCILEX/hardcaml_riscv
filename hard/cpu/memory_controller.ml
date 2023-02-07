@@ -98,7 +98,7 @@ let create (scope : Scope.t) (i : _ I.t) =
       ~write_enable:i.store
       ~read_enable1:i.load_instruction
       ~read_enable2:i.load
-      ~write_data:(Alu.flip_endianness i.data)
+      ~write_data:(Alu_utils.flip_endianness i.data)
   in
   let { Route.address = pc; error = pc_error } = router ~address:i.program_counter in
   routed_pc <== pc;
@@ -117,8 +117,8 @@ let create (scope : Scope.t) (i : _ I.t) =
     ignore (raw_instruction -- "raw_instruction");
     ignore (data_out -- "data_out")
   in
-  { O.instruction = Alu.flip_endianness raw_instruction
-  ; data = Alu.flip_endianness data_out
+  { O.instruction = Alu_utils.flip_endianness raw_instruction
+  ; data = Alu_utils.flip_endianness data_out
   ; error = pc_error &: i.load_instruction |: (data_error &: (i.load |: i.store))
   }
 ;;
