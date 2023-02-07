@@ -1,3 +1,6 @@
+open! Core
+open Hardcaml
+
 module RV32I = struct
   type t =
     | Invalid (* Not a real instruction, indicates a decode error *)
@@ -41,4 +44,4 @@ module RV32I = struct
   [@@deriving sexp_of, compare, enumerate]
 end
 
-include Hardcaml.Interface.Make_enums (RV32I)
+include Interface.Make_enums (RV32I)

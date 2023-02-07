@@ -135,21 +135,22 @@ module Tests = struct
   module Waveform = Hardcaml_waveterm.Waveform
 
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
+    let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state () =
       let instruction = Instruction.Binary.sim_get_exn inputs.instruction in
-      let pc_int = Bits.to_int !(inputs.pc) in
-      let rs1_int = Bits.to_int !(inputs.rs1) in
-      let rs2_int = Bits.to_int !(inputs.rs2) in
-      let immediate_int = Bits.to_int !(inputs.immediate) in
+      let pc_int = to_int !(inputs.pc) in
+      let rs1_int = to_int !(inputs.rs1) in
+      let rs2_int = to_int !(inputs.rs2) in
+      let immediate_int = to_int !(inputs.immediate) in
       let pc_bits = !(inputs.pc) in
       let rs1_bits = !(inputs.rs1) in
       let rs2_bits = !(inputs.rs2) in
       let immediate_bits = !(inputs.immediate) in
-      let store = Bits.to_bool !(outputs.store) in
-      let jump = Bits.to_bool !(outputs.jump) in
-      let rd_int = Bits.to_int !(outputs.rd) in
-      let jump_target_int = Bits.to_int !(outputs.jump_target) in
+      let store = to_bool !(outputs.store) in
+      let jump = to_bool !(outputs.jump) in
+      let rd_int = to_int !(outputs.rd) in
+      let jump_target_int = to_int !(outputs.jump_target) in
       let rd_bits = !(outputs.rd) in
       let jump_target_bits = !(outputs.jump_target) in
       Stdio.print_s
@@ -180,7 +181,7 @@ module Tests = struct
       Cyclesim.cycle sim;
       print_state ()
     in
-    let bit_num = Bits.of_int ~width:Parameters.word_size in
+    let bit_num = of_int ~width:Parameters.word_size in
     inputs.pc := bit_num 4206988;
     run Lui ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
     run Auipc ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);

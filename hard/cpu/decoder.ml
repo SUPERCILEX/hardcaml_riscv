@@ -18,7 +18,9 @@ end
 
 let create (scope : Scope.t) (i : _ I.t) =
   let open Signal in
-  let instruction = Instruction.Binary.Of_always.wire zero in
+  let instruction =
+    Instruction.Binary.(Of_always.wire (fun _ -> Of_signal.of_enum Invalid |> to_raw))
+  in
   let rd = Always.Variable.wire ~default:(zero 5) in
   let rs1 = Always.Variable.wire ~default:(zero 5) in
   let rs2 = Always.Variable.wire ~default:(zero 5) in
@@ -238,14 +240,15 @@ module Tests = struct
   ;;
 
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
+    let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state instruction =
       let instruction_bits = !(inputs.instruction) in
       let id = Instruction.Binary.sim_get_exn outputs.instruction in
-      let rd = Bits.to_int !(outputs.rd) in
-      let rs1 = Bits.to_int !(outputs.rs1) in
-      let rs2 = Bits.to_int !(outputs.rs2) in
-      let immediate = Bits.to_int !(outputs.immediate) in
+      let rd = to_int !(outputs.rd) in
+      let rs1 = to_int !(outputs.rs1) in
+      let rs2 = to_int !(outputs.rs2) in
+      let immediate = to_int !(outputs.immediate) in
       let immediate =
         if Option.is_some (String.substr_index instruction ~pattern:"0x")
         then Printf.sprintf "0x%x" immediate
