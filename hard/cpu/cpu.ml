@@ -33,9 +33,12 @@ let register_file
   ~write_data
   =
   let open Signal in
-  assert (width write_address = 5);
-  assert (width read_address1 = 5);
-  assert (width read_address2 = 5);
+  let _checks =
+    assert (width write_address = 5);
+    assert (width read_address1 = 5);
+    assert (width read_address2 = 5);
+    assert (width write_data = Parameters.word_size)
+  in
   match
     Ram.create
       ~name:"register_file"
@@ -82,6 +85,7 @@ let create (scope : Scope.t) (i : _ I.t) =
   let load = Always.Variable.wire ~default:gnd in
   let store = Always.Variable.wire ~default:gnd in
   let data_address = Always.Variable.wire ~default:(zero Parameters.word_size) in
+  let data_size = Memory_controller.Size.Binary.Of_always.wire zero in
   let data_out = Always.Variable.wire ~default:(zero Parameters.word_size) in
   let { Memory_controller.O.instruction = raw_instruction
       ; data = data_in
@@ -96,6 +100,7 @@ let create (scope : Scope.t) (i : _ I.t) =
       ; store = store.value
       ; program_counter = program_counter.value
       ; data_address = data_address.value
+      ; data_size = Memory_controller.Size.Binary.Of_always.value data_size
       ; data = data_out.value
       }
   in
@@ -140,6 +145,21 @@ let create (scope : Scope.t) (i : _ I.t) =
             , [ do_on_load
                   decoder.instruction
                   ~s:[ load <-- vdd; data_address <-- rs1 +: decoder.immediate ]
+              ; Instruction.Binary.Of_always.match_
+                  ~default:[]
+                  decoder.instruction
+                  ([ [ Instruction.RV32I.Lb; Lbu ], Memory_controller.Size.Size.Byte
+                   ; [ Lh; Lhu ], Half_word
+                   ; [ Lw ], Word
+                   ]
+                  |> List.map ~f:(fun (instructions, s) ->
+                       List.map instructions ~f:(fun i -> i, s))
+                  |> List.concat
+                  |> List.map ~f:(fun (i, s) ->
+                       ( i
+                       , [ Memory_controller.Size.Binary.(
+                             Of_always.assign data_size (Of_signal.of_enum s))
+                         ] )))
               ; if_
                   (Instruction.Binary.Of_signal.is decoder.instruction Invalid)
                   [ sm.set_next Error ]
@@ -158,6 +178,18 @@ let create (scope : Scope.t) (i : _ I.t) =
                     ; data_address <-- rs1 +: decoder_regs.immediate
                     ; data_out <-- alu.rd
                     ]
+              ; Instruction.Binary.Of_always.match_
+                  ~default:[]
+                  decoder.instruction
+                  ([ Instruction.RV32I.Sb, Memory_controller.Size.Size.Byte
+                   ; Sh, Half_word
+                   ; Sw, Word
+                   ]
+                  |> List.map ~f:(fun (i, s) ->
+                       ( i
+                       , [ Memory_controller.Size.Binary.(
+                             Of_always.assign data_size (Of_signal.of_enum s))
+                         ] )))
               ; sm.set_next Fetch
               ] )
           ; Error, []
@@ -182,26 +214,26 @@ module Tests = struct
   module Waveform = Hardcaml_waveterm.Waveform
 
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
+    let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state_and_outputs () =
       let state =
         List.nth_exn
           State.all
-          (Bits.to_int
+          (to_int
              !(List.Assoc.find_exn
                  (Cyclesim.internal_ports sim)
                  "state"
                  ~equal:String.equal))
       in
       Stdio.print_s
-        ([%sexp_of: State.t * int O.t]
-           (state, O.map outputs ~f:(fun p -> Bits.to_int !p)))
+        ([%sexp_of: State.t * int O.t] (state, O.map outputs ~f:(fun p -> to_int !p)))
     in
     let reset () =
       Cyclesim.reset sim;
-      inputs.clear := Bits.vdd;
+      inputs.clear := vdd;
       Cyclesim.cycle sim;
-      inputs.clear := Bits.gnd;
+      inputs.clear := gnd;
       print_state_and_outputs ()
     in
     let run () =
@@ -257,7 +289,7 @@ module Tests = struct
       {|
       (Fetch ((_unused 1)))
       (Fetch ((_unused 0)))
-      (Error ((_unused 0)))
+      (Decode_and_load ((_unused 0)))
       (Error ((_unused 0)))
       (Error ((_unused 0)))
       (Error ((_unused 0)))
