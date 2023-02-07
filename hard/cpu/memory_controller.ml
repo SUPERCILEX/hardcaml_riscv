@@ -4,7 +4,7 @@ open Hardcaml
 (* TODO add boot ROM *)
 
 module Size = struct
-  module Size = struct
+  module Enum = struct
     type t =
       | Byte
       | Half_word
@@ -12,7 +12,7 @@ module Size = struct
     [@@deriving sexp_of, compare, enumerate]
   end
 
-  include Interface.Make_enums (Size)
+  include Interface.Make_enums (Enum)
 end
 
 module I = struct
@@ -126,7 +126,7 @@ let ram
       Size.Binary.Of_signal.match_
         size
         (let bank_selector = bank_selector ~address in
-         [ Size.Size.Byte, mux bank_selector data
+         [ Size.Enum.Byte, mux bank_selector data
          ; ( Half_word
            , mux
                (msbs bank_selector)
@@ -140,14 +140,15 @@ let ram
   | _ -> assert false
 ;;
 
-let router ~address =
+let router ~address ~size =
   let open Signal in
   let routed_address = Always.Variable.wire ~default:(zero address_bits) in
-  let error = Always.Variable.wire ~default:gnd in
+  let invalid_address = Always.Variable.wire ~default:gnd in
+  let unaligned_address = Always.Variable.wire ~default:gnd in
   Always.(
     compile
-      Parameters.
-        [ if_
+      [ Parameters.(
+          if_
             (address >=:. stack_top - dmem_size &: (address <:. stack_top))
             [ routed_address
               <-- uresize (address -:. (stack_top - dmem_size)) address_bits
@@ -155,9 +156,19 @@ let router ~address =
           @@ elif
                (address >=:. code_bottom &: (address <:. code_bottom + imem_size))
                [ routed_address <-- uresize (address -:. code_bottom) address_bits ]
-          @@ [ error <-- vdd ]
-        ]);
-  { Route.address = routed_address.value; error = error.value }
+          @@ [ invalid_address <-- vdd ])
+      ; Size.Binary.Of_always.match_
+          size
+          ([ Size.Enum.Byte, gnd
+           ; Half_word, sel_bottom address 1
+           ; Word, sel_bottom address 2
+           ]
+          |> List.map ~f:(fun (size, alignment) ->
+               size, [ unaligned_address <-- (alignment <>:. 0) ]))
+      ]);
+  { Route.address = routed_address.value
+  ; error = invalid_address.value |: unaligned_address.value
+  }
 ;;
 
 let create (scope : Scope.t) (i : _ I.t) =
@@ -179,10 +190,12 @@ let create (scope : Scope.t) (i : _ I.t) =
       ~read_enable2:i.load
       ~write_data:i.data
   in
-  let { Route.address = pc; error = pc_error } = router ~address:i.program_counter in
+  let { Route.address = pc; error = pc_error } =
+    router ~address:i.program_counter ~size:(Size.Binary.Of_signal.of_enum Word)
+  in
   routed_pc <== pc;
   let { Route.address = data_address; error = data_error } =
-    router ~address:i.data_address
+    router ~address:i.data_address ~size:i.data_size
   in
   routed_data_address <== data_address;
   let _debugging =
@@ -405,5 +418,136 @@ module Tests = struct
         (program_counter 0x4000) (data_address 0x7fffffe0) (data_size 0x2)
         (data 0x69))
        ((instruction 0x0) (data 0xdead69ef) (error 0x0))) |}]
+  ;;
+
+  let%expect_test "Invalid addresses" =
+    sim (fun (step, inputs) ->
+      let open Bits in
+      inputs.data_address
+        := of_int ~width:Parameters.word_size (Parameters.code_bottom - 1);
+      step ();
+      inputs.load := vdd;
+      step ();
+      inputs.data_address
+        := of_int
+             ~width:Parameters.word_size
+             (Parameters.code_bottom + Parameters.imem_size);
+      step ();
+      inputs.data_address := of_int ~width:Parameters.word_size Parameters.stack_top;
+      step ();
+      inputs.data_address
+        := of_int
+             ~width:Parameters.word_size
+             (Parameters.stack_top - Parameters.dmem_size - 1);
+      step ();
+      inputs.data_address
+        := of_int ~width:Parameters.word_size (Parameters.stack_top - Parameters.dmem_size);
+      step ());
+    [%expect
+      {|
+      (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
+        (program_counter 0x4000) (data_address 0x3fff) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x3fff) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x14000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x80000000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x7ffeffff) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0))) |}]
+  ;;
+
+  let%expect_test "Unaligned addresses" =
+    sim (fun (step, inputs) ->
+      let open Bits in
+      inputs.load := vdd;
+      List.map Size.Enum.all ~f:(fun s ->
+        List.init (Parameters.word_size / 8) ~f:(fun i -> s, i))
+      |> List.concat
+      |> List.iter ~f:(fun (s, offset) ->
+           inputs.data_address
+             := of_int ~width:Parameters.word_size (Parameters.code_bottom + offset);
+           Size.Binary.sim_set inputs.data_size s;
+           step ()));
+    [%expect
+      {|
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4000) (data_size 0x0)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4001) (data_size 0x0)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4002) (data_size 0x0)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4003) (data_size 0x0)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4000) (data_size 0x1)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4001) (data_size 0x1)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4002) (data_size 0x1)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4003) (data_size 0x1)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4001) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4002) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4000) (data_address 0x4003) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1))) |}]
   ;;
 end

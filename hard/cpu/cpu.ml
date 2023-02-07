@@ -148,7 +148,7 @@ let create (scope : Scope.t) (i : _ I.t) =
               ; Instruction.Binary.Of_always.match_
                   ~default:[]
                   decoder.instruction
-                  ([ [ Instruction.RV32I.Lb; Lbu ], Memory_controller.Size.Size.Byte
+                  ([ [ Instruction.RV32I.Lb; Lbu ], Memory_controller.Size.Enum.Byte
                    ; [ Lh; Lhu ], Half_word
                    ; [ Lw ], Word
                    ]
@@ -181,7 +181,7 @@ let create (scope : Scope.t) (i : _ I.t) =
               ; Instruction.Binary.Of_always.match_
                   ~default:[]
                   decoder.instruction
-                  ([ Instruction.RV32I.Sb, Memory_controller.Size.Size.Byte
+                  ([ Instruction.RV32I.Sb, Memory_controller.Size.Enum.Byte
                    ; Sh, Half_word
                    ; Sw, Word
                    ]
