@@ -6,18 +6,22 @@ let compile =
     ~summary:"Compile into verilog"
     Command.Let_syntax.(
       let%map_open filename =
-        anon (maybe_with_default "-" ("filename" %: Filename_unix.arg_type))
+        flag ~doc:"Output file" "-output" (optional Filename_unix.arg_type)
       in
       fun () ->
         let scope = Scope.create () in
         Rtl.output
           ~output_mode:
             (match filename with
-             | "-" -> Rtl.Output_mode.To_channel Stdio.Out_channel.stdout
-             | file -> Rtl.Output_mode.To_file file)
+             | None -> Rtl.Output_mode.To_channel Stdio.Out_channel.stdout
+             | Some file -> Rtl.Output_mode.To_file file)
           ~database:(Scope.circuit_database scope)
           Verilog
-          (Cpu.root scope))
+          (Circuit.create_with_interface
+             (module Cpu.I)
+             (module Cpu.O)
+             ~name:"cpu_top"
+             (Cpu.circuit scope)))
 ;;
 
 let waves =

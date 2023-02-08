@@ -196,16 +196,12 @@ let create (scope : Scope.t) (i : _ I.t) =
           ]
       ; when_ invalid_address [ sm.set_next Error ]
       ]);
-  { O._unused = load_instruction.value }
+  { O._unused = sm.is Error }
 ;;
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"cpu_control" create
-;;
-
-let root scope =
-  Circuit.create_with_interface (module I) (module O) ~name:"cpu" (circuit scope)
+  H.hierarchical ~scope ~name:"cpu" create
 ;;
 
 module Tests = struct
@@ -287,18 +283,18 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      (Fetch ((_unused 1)))
       (Fetch ((_unused 0)))
-      (Decode_and_load ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0)))
-      (Error ((_unused 0))) |}]
+      (Fetch ((_unused 0)))
+      (Decode_and_load ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1)))
+      (Error ((_unused 1))) |}]
   ;;
 end
