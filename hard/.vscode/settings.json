@@ -15,7 +15,7 @@
       },
       {
         "match": "\\.ml$",
-        "cmd": "./cpu/bin/cli.exe compile -output cpu.v"
+        "cmd": "./arty/arty.exe compile -output arty/top.v"
       },
     ]
   }

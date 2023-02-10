@@ -1,6 +1,3 @@
-top.v: arty.exe
-	./arty.exe compile -output top.v
-
 outputs/post_synth.dcp: scripts/synth.tcl top.v
 	vivado -nojournal -mode batch -source scripts/synth.tcl -tclargs $(BOARD) -log outputs/synth.log
 
@@ -13,4 +10,8 @@ outputs/top.bit outputs/post_route.dcp: scripts/route.tcl outputs/post_place.dcp
 build: outputs/top.bit
 
 clean:
-	rm -f outputs/*
+	rm -rf outputs
+	rm -rf .Xil
+	rm -f *.log
+	rm -f top.v
+	rm -f tight_setup_hold_pins.txt
