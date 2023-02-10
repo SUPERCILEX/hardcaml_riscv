@@ -25,12 +25,12 @@ set output_dir "./outputs"
 exec rm -rf outputs/ips
 exec mkdir -p outputs
 exec cp -r ips/ outputs/ips
-read_ip -verbose outputs/ips/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci
+read_ip -verbose outputs/ips/clk_wiz_0/clk_wiz_0.xci
 
 read_verilog [ glob *.v ]
 
 upgrade_ip [get_ips]
-set_property generate_synth_checkpoint false [get_files outputs/ips/design_1_clk_wiz_0_0/design_1_clk_wiz_0_0.xci]
+set_property generate_synth_checkpoint false [get_files outputs/ips/clk_wiz_0/clk_wiz_0.xci]
 generate_target all [get_ips]
 validate_ip [get_ips]
 

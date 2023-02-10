@@ -1,6 +1,6 @@
 (executable
  (public_name arty)
  (promote)
- (libraries cpu core_unix.command_unix core_unix.filename_unix hardcaml_arty)
+ (libraries cpu core_unix.command_unix core_unix.filename_unix)
  (preprocess
   (pps ppx_jane ppx_deriving_hardcaml)))
