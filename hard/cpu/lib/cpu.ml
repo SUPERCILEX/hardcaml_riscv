@@ -71,9 +71,9 @@ let do_on_store instruction ~s =
     (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
 ;;
 
-let create (scope : Scope.t) (i : _ I.t) =
+let create (scope : Scope.t) ({ clock; clear } : _ I.t) =
   let open Signal in
-  let spec = Reg_spec.create ~clock:i.clock ~clear:i.clear () in
+  let spec = Reg_spec.create ~clock ~clear () in
   let program_counter =
     Always.Variable.reg
       ~width:Parameters.word_size
@@ -94,7 +94,7 @@ let create (scope : Scope.t) (i : _ I.t) =
     =
     Memory_controller.circuit
       scope
-      { Memory_controller.I.clock = i.clock
+      { Memory_controller.I.clock
       ; load_instruction = load_instruction.value
       ; load = load.value
       ; store = store.value
@@ -111,7 +111,7 @@ let create (scope : Scope.t) (i : _ I.t) =
   let sm = Always.State_machine.create (module State) spec in
   let rs1, rs2 =
     register_file
-      ~clock:i.clock
+      ~clock
       ~write_address:decoder.rd
       ~read_address1:decoder.rs1
       ~read_address2:decoder.rs2

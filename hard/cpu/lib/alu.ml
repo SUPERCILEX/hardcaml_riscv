@@ -23,7 +23,7 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create (scope : Scope.t) (i : _ I.t) =
+let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _ I.t) =
   let open Signal in
   let rd = Always.Variable.wire ~default:(zero Parameters.word_size) in
   let store = Always.Variable.wire ~default:gnd in
@@ -40,7 +40,7 @@ let create (scope : Scope.t) (i : _ I.t) =
     compile
       [ Instruction.Binary.Of_always.match_
           ~default:[]
-          i.instruction
+          instruction
           (Instruction.RV32I.
              [ Lui
              ; Auipc
@@ -74,48 +74,48 @@ let create (scope : Scope.t) (i : _ I.t) =
           |> List.map ~f:(fun op -> op, [ store <-- vdd ]))
       ; Instruction.Binary.Of_always.match_
           ~default:[]
-          i.instruction
-          [ Lui, [ rd <-- i.immediate ]
-          ; Auipc, [ rd <-- i.pc +: i.immediate ]
-          ; Jal, [ rd <-- i.pc +:. 4; jump <-- vdd; jump_target <-- i.pc +: i.immediate ]
+          instruction
+          [ Lui, [ rd <-- immediate ]
+          ; Auipc, [ rd <-- pc +: immediate ]
+          ; Jal, [ rd <-- pc +:. 4; jump <-- vdd; jump_target <-- pc +: immediate ]
           ; ( Jalr
-            , [ rd <-- i.pc +:. 4
+            , [ rd <-- pc +:. 4
               ; jump <-- vdd
-              ; jump_target <-- concat_msb [ msbs (i.rs1 +: i.immediate); gnd ]
+              ; jump_target <-- concat_msb [ msbs (rs1 +: immediate); gnd ]
               ] )
-          ; Beq, [ jump <-- (i.rs1 ==: i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Bne, [ jump <-- (i.rs1 <>: i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Blt, [ jump <-- (i.rs1 <: i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Bge, [ jump <-- (i.rs1 >=: i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Bltu, [ jump <-- (i.rs1 <+ i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Bgeu, [ jump <-- (i.rs1 >=+ i.rs2); jump_target <-- i.pc +: i.immediate ]
-          ; Lb, [ rd <-- sresize (sel_bottom i.data 8) 32 ]
-          ; Lh, [ rd <-- sresize (sel_bottom i.data 16) 32 ]
-          ; Lw, [ rd <-- i.data ]
-          ; Lbu, [ rd <-- uresize (sel_bottom i.data 8) 32 ]
-          ; Lhu, [ rd <-- uresize (sel_bottom i.data 16) 32 ]
-          ; Sb, [ rd <-- uresize (sel_bottom i.rs2 8) 32 ]
-          ; Sh, [ rd <-- uresize (sel_bottom i.rs2 16) 32 ]
-          ; Sw, [ rd <-- i.rs2 ]
-          ; Addi, [ rd <-- i.rs1 +: i.immediate ]
-          ; Slti, [ rd <-- uresize (i.rs1 <: i.immediate) 32 ]
-          ; Sltiu, [ rd <-- uresize (i.rs1 <+ i.immediate) 32 ]
-          ; Xori, [ rd <-- i.rs1 ^: i.immediate ]
-          ; Ori, [ rd <-- (i.rs1 |: i.immediate) ]
-          ; Andi, [ rd <-- (i.rs1 &: i.immediate) ]
-          ; Slli, [ rd <-- Alu_utils.shift_mux ~f:sll i.rs1 i.immediate ]
-          ; Srli, [ rd <-- Alu_utils.shift_mux ~f:srl i.rs1 i.immediate ]
-          ; Srai, [ rd <-- Alu_utils.shift_mux ~f:sra i.rs1 i.immediate ]
-          ; Add, [ rd <-- i.rs1 +: i.rs2 ]
-          ; Sub, [ rd <-- i.rs1 -: i.rs2 ]
-          ; Sll, [ rd <-- Alu_utils.shift_mux ~f:sll i.rs1 (sel_bottom i.rs2 5) ]
-          ; Slt, [ rd <-- uresize (i.rs1 <: i.rs2) 32 ]
-          ; Sltu, [ rd <-- uresize (i.rs1 <+ i.rs2) 32 ]
-          ; Xor, [ rd <-- i.rs1 ^: i.rs2 ]
-          ; Srl, [ rd <-- Alu_utils.shift_mux ~f:srl i.rs1 (sel_bottom i.rs2 5) ]
-          ; Sra, [ rd <-- Alu_utils.shift_mux ~f:sra i.rs1 (sel_bottom i.rs2 5) ]
-          ; Or, [ rd <-- (i.rs1 |: i.rs2) ]
-          ; And, [ rd <-- (i.rs1 &: i.rs2) ]
+          ; Beq, [ jump <-- (rs1 ==: rs2); jump_target <-- pc +: immediate ]
+          ; Bne, [ jump <-- (rs1 <>: rs2); jump_target <-- pc +: immediate ]
+          ; Blt, [ jump <-- (rs1 <: rs2); jump_target <-- pc +: immediate ]
+          ; Bge, [ jump <-- (rs1 >=: rs2); jump_target <-- pc +: immediate ]
+          ; Bltu, [ jump <-- (rs1 <+ rs2); jump_target <-- pc +: immediate ]
+          ; Bgeu, [ jump <-- (rs1 >=+ rs2); jump_target <-- pc +: immediate ]
+          ; Lb, [ rd <-- sresize (sel_bottom data 8) 32 ]
+          ; Lh, [ rd <-- sresize (sel_bottom data 16) 32 ]
+          ; Lw, [ rd <-- data ]
+          ; Lbu, [ rd <-- uresize (sel_bottom data 8) 32 ]
+          ; Lhu, [ rd <-- uresize (sel_bottom data 16) 32 ]
+          ; Sb, [ rd <-- uresize (sel_bottom rs2 8) 32 ]
+          ; Sh, [ rd <-- uresize (sel_bottom rs2 16) 32 ]
+          ; Sw, [ rd <-- rs2 ]
+          ; Addi, [ rd <-- rs1 +: immediate ]
+          ; Slti, [ rd <-- uresize (rs1 <: immediate) 32 ]
+          ; Sltiu, [ rd <-- uresize (rs1 <+ immediate) 32 ]
+          ; Xori, [ rd <-- rs1 ^: immediate ]
+          ; Ori, [ rd <-- (rs1 |: immediate) ]
+          ; Andi, [ rd <-- (rs1 &: immediate) ]
+          ; Slli, [ rd <-- Alu_utils.shift_mux ~f:sll rs1 immediate ]
+          ; Srli, [ rd <-- Alu_utils.shift_mux ~f:srl rs1 immediate ]
+          ; Srai, [ rd <-- Alu_utils.shift_mux ~f:sra rs1 immediate ]
+          ; Add, [ rd <-- rs1 +: rs2 ]
+          ; Sub, [ rd <-- rs1 -: rs2 ]
+          ; Sll, [ rd <-- Alu_utils.shift_mux ~f:sll rs1 (sel_bottom rs2 5) ]
+          ; Slt, [ rd <-- uresize (rs1 <: rs2) 32 ]
+          ; Sltu, [ rd <-- uresize (rs1 <+ rs2) 32 ]
+          ; Xor, [ rd <-- rs1 ^: rs2 ]
+          ; Srl, [ rd <-- Alu_utils.shift_mux ~f:srl rs1 (sel_bottom rs2 5) ]
+          ; Sra, [ rd <-- Alu_utils.shift_mux ~f:sra rs1 (sel_bottom rs2 5) ]
+          ; Or, [ rd <-- (rs1 |: rs2) ]
+          ; And, [ rd <-- (rs1 &: rs2) ]
           ]
       ]);
   { O.rd = rd.value

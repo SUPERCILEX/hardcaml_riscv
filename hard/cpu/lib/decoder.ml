@@ -16,7 +16,7 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create (scope : Scope.t) (i : _ I.t) =
+let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
   let open Signal in
   let instruction =
     Instruction.Binary.(Of_always.wire (fun _ -> Of_signal.of_enum Invalid |> to_raw))
@@ -32,32 +32,34 @@ let create (scope : Scope.t) (i : _ I.t) =
     ignore (rs2.value -- "input_register2");
     ignore (immediate.value -- "parsed_immediate")
   in
-  let opcode = i.instruction.:[6, 0] in
-  let funct3 = i.instruction.:[14, 12] in
-  let funct7 = i.instruction.:[31, 25] in
+  let opcode = raw_instruction.:[6, 0] in
+  let funct3 = raw_instruction.:[14, 12] in
+  let funct7 = raw_instruction.:[31, 25] in
   let set_instruction i =
     Instruction.Binary.(Of_always.assign instruction (Of_signal.of_enum i))
   in
   Always.(
     compile
-      [ rd <-- i.instruction.:[11, 7]
-      ; rs1 <-- i.instruction.:[19, 15]
-      ; rs2 <-- i.instruction.:[24, 20]
+      [ rd <-- raw_instruction.:[11, 7]
+      ; rs1 <-- raw_instruction.:[19, 15]
+      ; rs2 <-- raw_instruction.:[24, 20]
       ; switch
           opcode
           [ ( of_bit_string "0110111"
-            , [ set_instruction Lui; immediate <-- i.instruction.:[31, 12] @: zero 12 ] )
-          ; ( of_bit_string "0010111"
-            , [ set_instruction Auipc; immediate <-- i.instruction.:[31, 12] @: zero 12 ]
+            , [ set_instruction Lui; immediate <-- raw_instruction.:[31, 12] @: zero 12 ]
             )
+          ; ( of_bit_string "0010111"
+            , [ set_instruction Auipc
+              ; immediate <-- raw_instruction.:[31, 12] @: zero 12
+              ] )
           ; ( of_bit_string "1101111"
             , [ set_instruction Jal
               ; immediate
                 <-- sresize
-                      (i.instruction.:(31)
-                      @: i.instruction.:[19, 12]
-                      @: i.instruction.:(20)
-                      @: i.instruction.:[30, 21]
+                      (raw_instruction.:(31)
+                      @: raw_instruction.:[19, 12]
+                      @: raw_instruction.:(20)
+                      @: raw_instruction.:[30, 21]
                       @: gnd)
                       32
               ] )
@@ -66,17 +68,17 @@ let create (scope : Scope.t) (i : _ I.t) =
                   funct3
                   [ ( of_bit_string "000"
                     , [ set_instruction Jalr
-                      ; immediate <-- sresize i.instruction.:[31, 20] 32
+                      ; immediate <-- sresize raw_instruction.:[31, 20] 32
                       ] )
                   ]
               ] )
           ; ( of_bit_string "1100011"
             , [ immediate
                 <-- sresize
-                      (i.instruction.:(31)
-                      @: i.instruction.:(7)
-                      @: i.instruction.:[30, 25]
-                      @: i.instruction.:[11, 8]
+                      (raw_instruction.:(31)
+                      @: raw_instruction.:(7)
+                      @: raw_instruction.:[30, 25]
+                      @: raw_instruction.:[11, 8]
                       @: gnd)
                       32
               ; switch
@@ -90,7 +92,7 @@ let create (scope : Scope.t) (i : _ I.t) =
                   ]
               ] )
           ; ( of_bit_string "0000011"
-            , [ immediate <-- sresize i.instruction.:[31, 20] 32
+            , [ immediate <-- sresize raw_instruction.:[31, 20] 32
               ; switch
                   funct3
                   [ of_bit_string "000", [ set_instruction Lb ]
@@ -102,7 +104,7 @@ let create (scope : Scope.t) (i : _ I.t) =
               ] )
           ; ( of_bit_string "0100011"
             , [ immediate
-                <-- sresize (i.instruction.:[31, 25] @: i.instruction.:[11, 7]) 32
+                <-- sresize (raw_instruction.:[31, 25] @: raw_instruction.:[11, 7]) 32
               ; switch
                   funct3
                   [ of_bit_string "000", [ set_instruction Sb ]
@@ -111,7 +113,7 @@ let create (scope : Scope.t) (i : _ I.t) =
                   ]
               ] )
           ; ( of_bit_string "0010011"
-            , [ immediate <-- sresize i.instruction.:[31, 20] 32
+            , [ immediate <-- sresize raw_instruction.:[31, 20] 32
               ; switch
                   funct3
                   ([ of_bit_string "000", [ set_instruction Addi ]
@@ -122,7 +124,7 @@ let create (scope : Scope.t) (i : _ I.t) =
                    ; of_bit_string "111", [ set_instruction Andi ]
                    ]
                   @
-                  let shamt = i.instruction.:[24, 20] in
+                  let shamt = raw_instruction.:[24, 20] in
                   [ ( of_bit_string "001"
                     , [ immediate <-- uresize shamt 32
                       ; switch

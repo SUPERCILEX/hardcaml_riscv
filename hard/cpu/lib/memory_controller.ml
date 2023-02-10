@@ -171,31 +171,43 @@ let router ~address ~size =
   }
 ;;
 
-let create (scope : Scope.t) (i : _ I.t) =
+let create
+  (scope : Scope.t)
+  ({ clock
+   ; load_instruction
+   ; load
+   ; store
+   ; program_counter
+   ; data_address
+   ; data_size
+   ; data
+   } :
+    _ I.t)
+  =
   let open Signal in
   let routed_pc = wire address_bits in
   let routed_data_address = wire address_bits in
   let raw_instruction, data_out =
     let routed_data_address =
-      { Ram_address.address = routed_data_address; size = i.data_size }
+      { Ram_address.address = routed_data_address; size = data_size }
     in
     ram
-      ~clock:i.clock
+      ~clock
       ~write_address:routed_data_address
       ~read_address1:
         { Ram_address.address = routed_pc; size = Size.Binary.Of_signal.of_enum Word }
       ~read_address2:routed_data_address
-      ~write_enable:i.store
-      ~read_enable1:i.load_instruction
-      ~read_enable2:i.load
-      ~write_data:i.data
+      ~write_enable:store
+      ~read_enable1:load_instruction
+      ~read_enable2:load
+      ~write_data:data
   in
   let { Route.address = pc; error = pc_error } =
-    router ~address:i.program_counter ~size:(Size.Binary.Of_signal.of_enum Word)
+    router ~address:program_counter ~size:(Size.Binary.Of_signal.of_enum Word)
   in
   routed_pc <== pc;
   let { Route.address = data_address; error = data_error } =
-    router ~address:i.data_address ~size:i.data_size
+    router ~address:data_address ~size:data_size
   in
   routed_data_address <== data_address;
   let _debugging =
@@ -211,7 +223,7 @@ let create (scope : Scope.t) (i : _ I.t) =
   in
   { O.instruction = raw_instruction
   ; data = data_out
-  ; error = pc_error &: i.load_instruction |: (data_error &: (i.load |: i.store))
+  ; error = pc_error &: load_instruction |: (data_error &: (load |: store))
   }
 ;;
 
