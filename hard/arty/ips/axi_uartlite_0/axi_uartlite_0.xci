@@ -8,9 +8,9 @@
     "parameters": {
       "component_parameters": {
         "C_DATA_BITS": [ { "value": "8", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "C_BAUDRATE": [ { "value": "230400", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "C_S_AXI_ACLK_FREQ_HZ": [ { "value": "100000000", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "C_S_AXI_ACLK_FREQ_HZ_d": [ { "value": "100", "value_src": "user", "resolve_type": "user", "format": "float", "usage": "all" } ],
+        "C_BAUDRATE": [ { "value": "128000", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "C_S_AXI_ACLK_FREQ_HZ": [ { "value": "50000000", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "C_S_AXI_ACLK_FREQ_HZ_d": [ { "value": "50", "value_src": "user", "resolve_type": "user", "format": "float", "usage": "all" } ],
         "Component_Name": [ { "value": "axi_uartlite_0", "resolve_type": "user", "usage": "all" } ],
         "PARITY": [ { "value": "No_Parity", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "C_USE_PARITY": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -20,10 +20,10 @@
       },
       "model_parameters": {
         "C_FAMILY": [ { "value": "artix7", "resolve_type": "generated", "usage": "all" } ],
-        "C_S_AXI_ACLK_FREQ_HZ": [ { "value": "100000000", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_S_AXI_ACLK_FREQ_HZ": [ { "value": "50000000", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_S_AXI_ADDR_WIDTH": [ { "value": "4", "format": "long", "usage": "all" } ],
         "C_S_AXI_DATA_WIDTH": [ { "value": "32", "format": "long", "usage": "all" } ],
-        "C_BAUDRATE": [ { "value": "230400", "resolve_type": "generated", "format": "long", "usage": "all" } ],
+        "C_BAUDRATE": [ { "value": "128000", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_DATA_BITS": [ { "value": "8", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_USE_PARITY": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_ODD_PARITY": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ]
