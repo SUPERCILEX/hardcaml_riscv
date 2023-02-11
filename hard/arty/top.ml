@@ -7,37 +7,58 @@ module I = struct
     ; switches : 'a [@bits 4] [@rtlname "sw"]
     ; buttons : 'a [@bits 4] [@rtlname "btn"]
     ; reset : 'a [@rtlname "ck_rst"]
+    ; uart_receive : 'a [@rtlname "uart_txd_in"]
     }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
-  type 'a t = { leds : 'a [@bits 4] [@rtlname "led"] } [@@deriving sexp_of, hardcaml]
+  type 'a t =
+    { leds : 'a [@bits 4] [@rtlname "led"]
+    ; uart_transmit : 'a [@rtlname "uart_rxd_out"]
+    }
+  [@@deriving sexp_of, hardcaml]
 end
 
-let cdc_trigger ~clock value =
+let create
+  (scope : Scope.t)
+  ({ clock; switches = _; buttons = _; reset; uart_receive } : _ I.t)
+  =
   let open Signal in
-  pipeline
-    ~attributes:[ Rtl_attribute.Vivado.async_reg true ]
-    (Reg_spec.create ~clock ())
-    value
-;;
-
-let create (scope : Scope.t) ({ clock; switches = _; buttons = _; reset } : _ I.t) =
-  let open Signal in
-  let { Clocking_wizard.O.locked
+  let { Clk_wiz_0.O.locked
       ; clock_10_mhz = _
-      ; clock_25_mhz = _
       ; clock_50_mhz = clock
-      ; clock_100_mhz = _
+      ; clock_100_mhz
       ; clock_166_mhz = _
-      ; clock_200_mhz = _
       }
     =
-    Clocking_wizard.create { clock; reset }
+    Clk_wiz_0.create { clock; reset }
   in
-  let { Cpu.O._unused } =
-    Cpu.circuit scope { Cpu.I.clock; clear = ~:(cdc_trigger ~clock ~n:2 locked) }
+  let reset = Cdc.flip_flops ~clock ~n:2 locked in
+  let clear = ~:reset in
+  let write_data_feedback = wire 8 in
+  let write_ready_feedback = wire 1 in
+  let read_done_feedback = wire 1 in
+  let { Uart_wrapper.O.transmit; write_done; read_data; read_ready } =
+    Uart_wrapper.circuit
+      scope
+      { Uart_wrapper.I.clock
+      ; clear
+      ; clock_100_mhz
+      ; reset
+      ; receive = uart_receive
+      ; write_data = write_data_feedback
+      ; write_ready = write_ready_feedback
+      ; read_done = read_done_feedback
+      }
   in
-  { O.leds = uresize _unused 4 }
+  let { Cpu.O._unused; uart = { Cpu.Uart.O.write_data; write_ready; read_done } } =
+    Cpu.circuit
+      scope
+      { Cpu.I.clock; clear; uart = { Cpu.Uart.I.write_done; read_data; read_ready } }
+  in
+  write_data_feedback <== write_data;
+  write_ready_feedback <== write_ready;
+  read_done_feedback <== read_done;
+  { O.leds = uresize _unused 4; uart_transmit = transmit }
 ;;

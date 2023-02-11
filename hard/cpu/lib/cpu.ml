@@ -1,16 +1,22 @@
 open! Core
 open Hardcaml
+module Uart = Uart
 
 module I = struct
   type 'a t =
     { clock : 'a
     ; clear : 'a
+    ; uart : 'a Uart.I.t
     }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
-  type 'a t = { _unused : 'a } [@@deriving sexp_of, hardcaml]
+  type 'a t =
+    { _unused : 'a
+    ; uart : 'a Uart.O.t
+    }
+  [@@deriving sexp_of, hardcaml]
 end
 
 module State = struct
@@ -71,7 +77,7 @@ let do_on_store instruction ~s =
     (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
 ;;
 
-let create (scope : Scope.t) ({ clock; clear } : _ I.t) =
+let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
   let program_counter =
@@ -196,7 +202,36 @@ let create (scope : Scope.t) ({ clock; clear } : _ I.t) =
           ]
       ; when_ invalid_address [ sm.set_next Error ]
       ]);
-  { O._unused = sm.is Error }
+  let counter = Always.Variable.reg ~width:10 spec in
+  let raw_data =
+    "A description of the events in figure 4 follows:\n\n\
+    \  The Master puts an address on the Write Address channel and data on the Write \
+     data channel. At the same time it asserts AWVALID and WVALID indicating the address \
+     and data on the respective channels is valid. BREADY is also asserted by the \
+     Master, indicating it is ready to receive a response.\n\
+    \  The Slave asserts AWREADY and WREADY on the Write Address and Write Data \
+     channels, respectively.\n\
+    \  Since Valid and Ready signals are present on both the Write Address and Write \
+     Data channels, the handshakes on those channels occur and the associated Valid and \
+     Ready signals can be deasserted. (After both handshakes occur, the slave has the \
+     write address and data)\n\
+    \  The Slave asserts BVALID, indicating there is a valid reponse on the Write \
+     response channel. (in this case the response is 2’b00, that being ‘OKAY’).\n\
+    \  The next rising clock edge completes the transaction, with both the Ready and \
+     Valid signals on the write response channel high."
+    |> String.to_list
+    |> List.map ~f:of_char
+  in
+  let data = mux counter.value raw_data |> reg spec in
+  Always.(
+    compile
+      [ when_
+          (uart.write_done &: (counter.value <:. List.length raw_data))
+          [ counter <-- counter.value +:. 1 ]
+      ]);
+  { O._unused = sm.is Error
+  ; uart = { Uart.O.write_data = data; write_ready = vdd; read_done = gnd }
+  }
 ;;
 
 let circuit scope =
@@ -283,18 +318,19 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      (Fetch ((_unused 0)))
-      (Fetch ((_unused 0)))
-      (Decode_and_load ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1)))
-      (Error ((_unused 1))) |}]
+      (Fetch ((_unused 0) (uart ((write_data 0) (write_ready 1) (read_done 0)))))
+      (Fetch ((_unused 0) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Decode_and_load
+       ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0))))) |}]
   ;;
 end

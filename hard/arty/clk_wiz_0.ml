@@ -12,11 +12,9 @@ module O = struct
   type 'a t =
     { locked : 'a
     ; clock_10_mhz : 'a [@rtlname "clk_out1"]
-    ; clock_25_mhz : 'a [@rtlname "clk_out2"]
-    ; clock_50_mhz : 'a [@rtlname "clk_out3"]
-    ; clock_100_mhz : 'a [@rtlname "clk_out4"]
-    ; clock_166_mhz : 'a [@rtlname "clk_out5"]
-    ; clock_200_mhz : 'a [@rtlname "clk_out6"]
+    ; clock_50_mhz : 'a [@rtlname "clk_out2"]
+    ; clock_100_mhz : 'a [@rtlname "clk_out3"]
+    ; clock_166_mhz : 'a [@rtlname "clk_out4"]
     }
   [@@deriving sexp_of, hardcaml]
 end
