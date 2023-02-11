@@ -36,27 +36,25 @@ let create
   in
   let reset = Cdc.flip_flops ~clock ~n:2 locked in
   let clear = ~:reset in
-  let write_data_feedback = wire 8 in
-  let write_ready_feedback = wire 1 in
-  let read_ready_feedback = wire 1 in
+  let ({ Cpu.Uart.O.write_data; write_ready; read_ready } as uart_feedback) =
+    Cpu.Uart.O.Of_signal.wires ()
+  in
   let { Uart_wrapper.O.transmit; write_done; read_data; read_done } =
     Uart_wrapper.circuit
       scope
       { Uart_wrapper.I.clock
       ; reset
       ; receive = uart_receive
-      ; write_data = write_data_feedback
-      ; write_ready = write_ready_feedback
-      ; read_ready = read_ready_feedback
+      ; write_data
+      ; write_ready
+      ; read_ready
       }
   in
-  let { Cpu.O.error; uart = { Cpu.Uart.O.write_data; write_ready; read_ready } } =
+  let { Cpu.O.error; uart } =
     Cpu.circuit
       scope
       { Cpu.I.clock; clear; uart = { Cpu.Uart.I.write_done; read_data; read_done } }
   in
-  write_data_feedback <== write_data;
-  write_ready_feedback <== write_ready;
-  read_ready_feedback <== read_ready;
-  { O.leds = error @: clear @: gnd @: gnd; uart_transmit = transmit }
+  Cpu.Uart.O.iter2 uart_feedback uart ~f:( <== );
+  { O.leds = error @: gnd @: gnd @: gnd; uart_transmit = transmit }
 ;;
