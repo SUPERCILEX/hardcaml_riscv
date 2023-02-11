@@ -52,7 +52,7 @@ let create
       ; read_done = read_done_feedback
       }
   in
-  let { Cpu.O._unused; uart = { Cpu.Uart.O.write_data; write_ready; read_done } } =
+  let { Cpu.O.error; uart = { Cpu.Uart.O.write_data; write_ready; read_done } } =
     Cpu.circuit
       scope
       { Cpu.I.clock; clear; uart = { Cpu.Uart.I.write_done; read_data; read_ready } }
@@ -60,5 +60,5 @@ let create
   write_data_feedback <== write_data;
   write_ready_feedback <== write_ready;
   read_done_feedback <== read_done;
-  { O.leds = uresize _unused 4; uart_transmit = transmit }
+  { O.leds = error @: clear @: gnd @: gnd; uart_transmit = transmit }
 ;;

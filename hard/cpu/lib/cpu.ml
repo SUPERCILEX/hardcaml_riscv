@@ -13,7 +13,7 @@ end
 
 module O = struct
   type 'a t =
-    { _unused : 'a
+    { error : 'a
     ; uart : 'a Uart.O.t
     }
   [@@deriving sexp_of, hardcaml]
@@ -229,7 +229,7 @@ let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
           (uart.write_done &: (counter.value <:. List.length raw_data))
           [ counter <-- counter.value +:. 1 ]
       ]);
-  { O._unused = sm.is Error
+  { O.error = sm.is Error
   ; uart = { Uart.O.write_data = data; write_ready = vdd; read_done = gnd }
   }
 ;;
@@ -318,19 +318,19 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      (Fetch ((_unused 0) (uart ((write_data 0) (write_ready 1) (read_done 0)))))
-      (Fetch ((_unused 0) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Fetch ((error 0) (uart ((write_data 0) (write_ready 1) (read_done 0)))))
+      (Fetch ((error 0) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
       (Decode_and_load
-       ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((_unused 1) (uart ((write_data 65) (write_ready 1) (read_done 0))))) |}]
+       ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0))))) |}]
   ;;
 end
