@@ -1,7 +1,7 @@
-set_param board.repoPaths "boards/"
-set output_dir "outputs/"
-
-open_checkpoint $output_dir/post_place.dcp
+# set_param board.repoPaths "boards/"
+# set output_dir "outputs/"
+# 
+# open_checkpoint $output_dir/post_place.dcp
 
 route_design
 

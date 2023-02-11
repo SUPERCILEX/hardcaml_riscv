@@ -1,4 +1,5 @@
 set_param board.repoPaths "boards/"
+set output_dir "outputs/"
 
 set board [lindex $argv 0]
 
@@ -20,8 +21,6 @@ switch $board {
 }
 
 
-set output_dir "./outputs"
-
 exec rm -rf outputs/ips
 exec mkdir -p outputs
 exec cp -r ips/ outputs/ips
@@ -37,4 +36,4 @@ generate_target all [get_ips]
 validate_ip [get_ips]
 
 synth_design -top top
-write_checkpoint -force "${::output_dir}/post_synth.dcp"
+write_checkpoint -force $output_dir/post_synth
