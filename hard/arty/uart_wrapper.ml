@@ -53,7 +53,7 @@ let create
       ; write_data_valid = write_ready
       ; write_response_ready = vdd
       ; read_address = of_hex ~width:4 "00"
-      ; read_address_valid = vdd
+      ; read_address_valid = gnd
       ; read_response_ready = vdd
       ; receive
       }
