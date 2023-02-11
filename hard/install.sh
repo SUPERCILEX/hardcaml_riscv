@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-export BOARD="arty-a7-35"
+export BOARD="arty-a7-100"
 
 source ~/xilinx/Vivado/2022.2/settings64.sh
 (cd arty && make build)
