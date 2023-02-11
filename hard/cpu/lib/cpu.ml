@@ -222,15 +222,24 @@ let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
     |> String.to_list
     |> List.map ~f:of_char
   in
+  let is_dumping = counter.value <:. List.length raw_data in
   let data = mux counter.value raw_data |> reg spec in
+  let pending_write = Always.Variable.reg ~width:1 spec in
+  let pending_data = Always.Variable.reg ~width:8 spec in
   Always.(
     compile
       [ when_
-          (uart.write_done &: (counter.value <:. List.length raw_data))
-          [ counter <-- counter.value +:. 1 ]
+          (uart.write_done &: ~:is_dumping &: pending_write.value)
+          [ pending_write <-- gnd ]
+      ; when_ (uart.write_done &: is_dumping) [ counter <-- counter.value +:. 1 ]
+      ; when_ uart.read_done [ pending_write <-- vdd; pending_data <-- uart.read_data ]
       ]);
   { O.error = sm.is Error
-  ; uart = { Uart.O.write_data = data; write_ready = vdd; read_done = gnd }
+  ; uart =
+      { Uart.O.write_data = mux2 is_dumping data pending_data.value
+      ; write_ready = is_dumping |: pending_write.value
+      ; read_ready = ~:(pending_write.value)
+      }
   }
 ;;
 
@@ -318,19 +327,19 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      (Fetch ((error 0) (uart ((write_data 0) (write_ready 1) (read_done 0)))))
-      (Fetch ((error 0) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
+      (Fetch ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 1)))))
+      (Fetch ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
       (Decode_and_load
-       ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_done 0))))) |}]
+       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))) |}]
   ;;
 end
