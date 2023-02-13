@@ -23,18 +23,18 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
+let shift_mux ~f a shift =
+  let open Signal in
+  let w = width a in
+  mux (sel_bottom shift (address_bits_for w)) (List.init w ~f:(fun shift -> f a shift))
+;;
+
 let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _ I.t) =
   let open Signal in
-  let rd = Always.Variable.wire ~default:(zero Parameters.word_size) in
-  let store = Always.Variable.wire ~default:gnd in
-  let jump = Always.Variable.wire ~default:gnd in
-  let jump_target = Always.Variable.wire ~default:(zero Parameters.word_size) in
+  let ({ O.rd; store; jump; jump_target } as out) = O.Of_always.wire zero in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    ignore (rd.value -- "result");
-    ignore (store.value -- "store_to_reg_file");
-    ignore (jump.value -- "should_jump");
-    ignore (jump_target.value -- "jump_target")
+    O.map out ~f:Always.Variable.value |> Fn.flip O.map2 O.port_names ~f:( -- ) |> ignore
   in
   Always.(
     compile
@@ -103,31 +103,27 @@ let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _
           ; Xori, [ rd <-- rs1 ^: immediate ]
           ; Ori, [ rd <-- (rs1 |: immediate) ]
           ; Andi, [ rd <-- (rs1 &: immediate) ]
-          ; Slli, [ rd <-- Alu_utils.shift_mux ~f:sll rs1 immediate ]
-          ; Srli, [ rd <-- Alu_utils.shift_mux ~f:srl rs1 immediate ]
-          ; Srai, [ rd <-- Alu_utils.shift_mux ~f:sra rs1 immediate ]
+          ; Slli, [ rd <-- shift_mux ~f:sll rs1 immediate ]
+          ; Srli, [ rd <-- shift_mux ~f:srl rs1 immediate ]
+          ; Srai, [ rd <-- shift_mux ~f:sra rs1 immediate ]
           ; Add, [ rd <-- rs1 +: rs2 ]
           ; Sub, [ rd <-- rs1 -: rs2 ]
-          ; Sll, [ rd <-- Alu_utils.shift_mux ~f:sll rs1 (sel_bottom rs2 5) ]
+          ; Sll, [ rd <-- shift_mux ~f:sll rs1 (sel_bottom rs2 5) ]
           ; Slt, [ rd <-- uresize (rs1 <: rs2) 32 ]
           ; Sltu, [ rd <-- uresize (rs1 <+ rs2) 32 ]
           ; Xor, [ rd <-- rs1 ^: rs2 ]
-          ; Srl, [ rd <-- Alu_utils.shift_mux ~f:srl rs1 (sel_bottom rs2 5) ]
-          ; Sra, [ rd <-- Alu_utils.shift_mux ~f:sra rs1 (sel_bottom rs2 5) ]
+          ; Srl, [ rd <-- shift_mux ~f:srl rs1 (sel_bottom rs2 5) ]
+          ; Sra, [ rd <-- shift_mux ~f:sra rs1 (sel_bottom rs2 5) ]
           ; Or, [ rd <-- (rs1 |: rs2) ]
           ; And, [ rd <-- (rs1 &: rs2) ]
           ]
       ]);
-  { O.rd = rd.value
-  ; store = store.value
-  ; jump = jump.value
-  ; jump_target = jump_target.value
-  }
+  out |> O.map ~f:Always.Variable.value
 ;;
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"alu_control" create
+  H.hierarchical ~scope ~name:"alu" create
 ;;
 
 module Tests = struct
@@ -138,38 +134,24 @@ module Tests = struct
     let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state () =
+      let bits_and_int bits =
+        let int = to_int bits in
+        [%message (bits : Bits.t) (int : int)]
+      in
       let instruction = Instruction.Binary.sim_get_exn inputs.instruction in
-      let pc_int = to_int !(inputs.pc) in
-      let rs1_int = to_int !(inputs.rs1) in
-      let rs2_int = to_int !(inputs.rs2) in
-      let immediate_int = to_int !(inputs.immediate) in
-      let pc_bits = !(inputs.pc) in
-      let rs1_bits = !(inputs.rs1) in
-      let rs2_bits = !(inputs.rs2) in
-      let immediate_bits = !(inputs.immediate) in
-      let store = to_bool !(outputs.store) in
-      let jump = to_bool !(outputs.jump) in
-      let rd_int = to_int !(outputs.rd) in
-      let jump_target_int = to_int !(outputs.jump_target) in
-      let rd_bits = !(outputs.rd) in
-      let jump_target_bits = !(outputs.jump_target) in
+      let inputs = I.map inputs ~f:(( ! ) |> Fn.compose bits_and_int) in
+      let outputs =
+        let outputs = O.map outputs ~f:( ! ) in
+        let for_bool o = to_bool o |> Bool.sexp_of_t in
+        { O.rd = bits_and_int outputs.rd
+        ; jump_target = bits_and_int outputs.jump_target
+        ; store = for_bool outputs.store
+        ; jump = for_bool outputs.jump
+        }
+      in
       Stdio.print_s
         [%message
-          (instruction : Instruction.RV32I.t)
-            (pc_int : int)
-            (rs1_int : int)
-            (rs2_int : int)
-            (immediate_int : int)
-            (pc_bits : Bits.t)
-            (rs1_bits : Bits.t)
-            (rs2_bits : Bits.t)
-            (immediate_bits : Bits.t)
-            (store : bool)
-            (jump : bool)
-            (rd_int : int)
-            (jump_target_int : int)
-            (rd_bits : Bits.t)
-            (jump_target_bits : Bits.t)];
+          (instruction : Instruction.RV32I.t) (inputs : Sexp.t I.t) (outputs : Sexp.t O.t)];
       Stdio.print_endline ""
     in
     let run instruction ~rs1 ~rs2 ~immediate =
@@ -232,311 +214,485 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      ((instruction Lui) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 88) (jump_target_int 0) (rd_bits 00000000000000000000000001011000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lui)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000001) (int 1)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001011000) (int 88))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Auipc) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 4207076) (jump_target_int 0)
-       (rd_bits 00000000010000000011000111100100)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Auipc)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000010) (int 2)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000010000000011000111100100) (int 4207076))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Jal) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump true)
-       (rd_int 4206992) (jump_target_int 4207076)
-       (rd_bits 00000000010000000011000110010000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Jal)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000011) (int 3)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000010000000011000110010000) (int 4206992))) (store true)
+         (jump true)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Jalr) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump true)
-       (rd_int 4206992) (jump_target_int 156)
-       (rd_bits 00000000010000000011000110010000)
-       (jump_target_bits 00000000000000000000000010011100))
+      ((instruction Jalr)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000100) (int 4)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000010000000011000110010000) (int 4206992))) (store true)
+         (jump true)
+         (jump_target ((bits 00000000000000000000000010011100) (int 156))))))
 
-      ((instruction Beq) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Beq)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000101) (int 5)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Bne) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump true)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Bne)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000110) (int 6)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump true)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Blt) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Blt)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 000111) (int 7)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Bge) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump true)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Bge)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001000) (int 8)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump true)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Bltu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Bltu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001001) (int 9)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Bgeu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump true)
-       (rd_int 0) (jump_target_int 4207076)
-       (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000010000000011000111100100))
+      ((instruction Bgeu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001010) (int 10)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+         (jump true)
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
-      ((instruction Lb) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 69) (jump_target_int 0) (rd_bits 00000000000000000000000001000101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lb)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001011) (int 11)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Lh) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 69) (jump_target_int 0) (rd_bits 00000000000000000000000001000101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lh)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001100) (int 12)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Lw) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 69) (jump_target_int 0) (rd_bits 00000000000000000000000001000101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lw)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001101) (int 13)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Lbu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 69) (jump_target_int 0) (rd_bits 00000000000000000000000001000101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lbu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001110) (int 14)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Lhu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 69) (jump_target_int 0) (rd_bits 00000000000000000000000001000101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Lhu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 001111) (int 15)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sb) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sb)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010000) (int 16)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sh) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sh)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010001) (int 17)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sw) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store false) (jump false)
-       (rd_int 42) (jump_target_int 0) (rd_bits 00000000000000000000000000101010)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sw)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010010) (int 18)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Addi) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 157) (jump_target_int 0) (rd_bits 00000000000000000000000010011101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Addi)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010011) (int 19)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000010011101) (int 157))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Slti) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 1) (jump_target_int 0) (rd_bits 00000000000000000000000000000001)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Slti)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010100) (int 20)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000001) (int 1))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sltiu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 1) (jump_target_int 0) (rd_bits 00000000000000000000000000000001)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sltiu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010101) (int 21)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000001) (int 1))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Xori) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 29) (jump_target_int 0) (rd_bits 00000000000000000000000000011101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Xori)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010110) (int 22)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000011101) (int 29))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Ori) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 93) (jump_target_int 0) (rd_bits 00000000000000000000000001011101)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Ori)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 010111) (int 23)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001011101) (int 93))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Andi) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 64) (jump_target_int 0) (rd_bits 00000000000000000000000001000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Andi)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011000) (int 24)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001000000) (int 64))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Slli) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 1157627904) (jump_target_int 0)
-       (rd_bits 01000101000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Slli)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011001) (int 25)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 01000101000000000000000000000000) (int 1157627904)))
+         (store true) (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Srli) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Srli)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011010) (int 26)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Srai) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Srai)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011011) (int 27)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Add) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 111) (jump_target_int 0) (rd_bits 00000000000000000000000001101111)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Add)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011100) (int 28)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sub) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 27) (jump_target_int 0) (rd_bits 00000000000000000000000000011011)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sub)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011101) (int 29)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000011011) (int 27))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sll) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 70656) (jump_target_int 0)
-       (rd_bits 00000000000000010001010000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sll)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011110) (int 30)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000010001010000000000) (int 70656))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Slt) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Slt)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 011111) (int 31)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sltu) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sltu)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100000) (int 32)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Xor) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 111) (jump_target_int 0) (rd_bits 00000000000000000000000001101111)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Xor)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100001) (int 33)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Srl) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Srl)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100010) (int 34)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Sra) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Sra)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100011) (int 35)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction Or) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 111) (jump_target_int 0) (rd_bits 00000000000000000000000001101111)
-       (jump_target_bits 00000000000000000000000000000000))
+      ((instruction Or)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100100) (int 36)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
 
-      ((instruction And) (pc_int 4206988) (rs1_int 69) (rs2_int 42)
-       (immediate_int 88) (pc_bits 00000000010000000011000110001100)
-       (rs1_bits 00000000000000000000000001000101)
-       (rs2_bits 00000000000000000000000000101010)
-       (immediate_bits 00000000000000000000000001011000) (store true) (jump false)
-       (rd_int 0) (jump_target_int 0) (rd_bits 00000000000000000000000000000000)
-       (jump_target_bits 00000000000000000000000000000000)) |}]
+      ((instruction And)
+       (inputs
+        ((pc ((bits 00000000010000000011000110001100) (int 4206988)))
+         (data ((bits 00000000000000000000000001000101) (int 69)))
+         (instruction ((bits 100101) (int 37)))
+         (rs1 ((bits 00000000000000000000000001000101) (int 69)))
+         (rs2 ((bits 00000000000000000000000000101010) (int 42)))
+         (immediate ((bits 00000000000000000000000001011000) (int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
+         (jump false)
+         (jump_target ((bits 00000000000000000000000000000000) (int 0)))))) |}]
   ;;
 end

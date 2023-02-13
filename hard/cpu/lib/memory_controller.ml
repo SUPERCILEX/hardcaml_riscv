@@ -41,18 +41,50 @@ end
 let address_bits = Signal.address_bits_for Parameters.(imem_size + dmem_size)
 
 module Route = struct
-  type t =
-    { address : Signal.t
-    ; error : Signal.t
+  type 'a t =
+    { address : 'a [@bits address_bits]
+    ; error : 'a
     }
+  [@@deriving sexp_of, hardcaml]
 end
 
 module Ram_address = struct
-  type t =
-    { address : Signal.t
-    ; size : Size.Binary.Of_signal.t
+  type 'a t =
+    { address : 'a [@bits address_bits]
+    ; size : 'a Size.Binary.t
     }
+  [@@deriving sexp_of, hardcaml]
 end
+
+let split_data ~bank ~bank_selector ~data ~size =
+  let open Signal in
+  ( Size.Binary.Of_signal.match_
+      size
+      [ Byte, bank_selector ==:. bank
+      ; Half_word, srl bank_selector 1 ==:. Int.shift_right_logical bank 1
+      ; Word, vdd
+      ]
+  , Size.Binary.Of_signal.match_
+      size
+      [ Byte, sel_bottom data 8
+      ; ( Half_word
+        , List.nth_exn (split_lsb ~part_width:8 (sel_bottom data 16)) (bank land 1) )
+      ; Word, List.nth_exn (split_lsb ~part_width:8 data) bank
+      ] )
+;;
+
+let combine_data ~bank_selector ~data ~size =
+  let open Signal in
+  Size.Binary.Of_signal.match_
+    size
+    ([ Size.Enum.Byte, mux bank_selector data
+     ; ( Half_word
+       , mux (msbs bank_selector) (List.chunks_of data ~length:2 |> List.map ~f:concat_lsb)
+       )
+     ; Word, concat_lsb data
+     ]
+    |> List.map ~f:(fun (size, data) -> size, uresize data Parameters.word_size))
+;;
 
 let ram
   ~clock
@@ -72,71 +104,52 @@ let ram
     assert (width write_data = Parameters.word_size)
   in
   let bytes = Parameters.word_size / 8 in
-  let bank_selector ~address = sel_bottom address (address_bits_for bytes) in
+  let bank_selector address = sel_bottom address (address_bits_for bytes) in
+  let bank_address address = srl address (address_bits_for bytes) in
   match
-    List.init bytes ~f:(fun bank ->
-      let split_data ~address ~data ~size =
-        ( write_enable
-          &: Size.Binary.Of_signal.match_
-               size
-               (let bank_selector = bank_selector ~address in
-                [ Byte, bank_selector ==:. bank
-                ; Half_word, srl bank_selector 1 ==:. Int.shift_right_logical bank 1
-                ; Word, vdd
-                ])
-        , Size.Binary.Of_signal.match_
-            size
-            [ Byte, sel_bottom data 8
-            ; ( Half_word
-              , List.nth_exn (split_lsb ~part_width:8 (sel_bottom data 16)) (bank land 1)
-              )
-            ; Word, List.nth_exn (split_lsb ~part_width:8 data) bank
-            ] )
-      in
+    Array.init bytes ~f:(fun bank ->
       Ram.create
         ~name:"memory"
         ~collision_mode:Read_before_write
         ~size:(Parameters.(imem_size + dmem_size) / bytes)
         ~write_ports:
           [| (let write_enable, write_data =
-                split_data ~address:write_address ~data:write_data ~size:write_size
+                split_data
+                  ~bank
+                  ~bank_selector:(bank_selector write_address)
+                  ~data:write_data
+                  ~size:write_size
+                |> Tuple2.map_fst ~f:(( &: ) write_enable)
               in
               { Ram.Write_port.write_clock = clock
-              ; write_address = srl write_address (address_bits_for bytes)
+              ; write_address = bank_address write_address
               ; write_enable
               ; write_data
               })
           |]
         ~read_ports:
           [| { Ram.Read_port.read_clock = clock
-             ; read_address = srl read_address1 (address_bits_for bytes)
+             ; read_address = bank_address read_address1
              ; read_enable = read_enable1
              }
            ; { Ram.Read_port.read_clock = clock
-             ; read_address = srl read_address2 (address_bits_for bytes)
+             ; read_address = bank_address read_address2
              ; read_enable = read_enable2
              }
           |]
-        ()
-      |> Array.to_list)
-    |> List.transpose_exn
+        ())
+    |> Array.transpose_exn
+    |> Array.map ~f:Array.to_list
   with
-  | [ data1; data2 ] ->
-    let combine_data ~address ~data ~size =
-      Size.Binary.Of_signal.match_
-        size
-        (let bank_selector = bank_selector ~address in
-         [ Size.Enum.Byte, mux bank_selector data
-         ; ( Half_word
-           , mux
-               (msbs bank_selector)
-               (List.chunks_of data ~length:2 |> List.map ~f:concat_lsb) )
-         ; Word, concat_lsb data
-         ]
-         |> List.map ~f:(fun (size, data) -> size, uresize data Parameters.word_size))
-    in
-    ( combine_data ~address:read_address1 ~data:data1 ~size:read_size1
-    , combine_data ~address:read_address2 ~data:data2 ~size:read_size2 )
+  | [| data1; data2 |] ->
+    ( combine_data
+        ~bank_selector:(bank_selector read_address1)
+        ~data:data1
+        ~size:read_size1
+    , combine_data
+        ~bank_selector:(bank_selector read_address2)
+        ~data:data2
+        ~size:read_size2 )
   | _ -> assert false
 ;;
 
@@ -242,9 +255,9 @@ module Tests = struct
     let step () =
       Cyclesim.cycle sim;
       Stdio.print_s
-        ([%sexp_of: string I.t * string O.t]
-           ( I.map inputs ~f:(fun p -> to_int !p |> Printf.sprintf "0x%x")
-           , O.map outputs ~f:(fun p -> to_int !p |> Printf.sprintf "0x%x") ));
+        (let pretty p = to_int !p |> Printf.sprintf "0x%x" in
+         [%sexp_of: string I.t * string O.t]
+           (I.map inputs ~f:pretty, O.map outputs ~f:pretty));
       Stdio.print_endline ""
     in
     Cyclesim.reset sim;

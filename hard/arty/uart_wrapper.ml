@@ -6,9 +6,7 @@ module I = struct
     { clock : 'a
     ; reset : 'a
     ; receive : 'a
-    ; write_data : 'a [@bits 8]
-    ; write_ready : 'a
-    ; read_ready : 'a
+    ; uart : 'a Cpu.Uart.O.t [@rtlname "uart_in"]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -16,16 +14,14 @@ end
 module O = struct
   type 'a t =
     { transmit : 'a
-    ; write_done : 'a
-    ; read_data : 'a [@bits 8]
-    ; read_done : 'a
+    ; uart : 'a Cpu.Uart.I.t [@rtlname "uart_out"]
     }
   [@@deriving sexp_of, hardcaml]
 end
 
 let create
   (_scope : Scope.t)
-  ({ clock; reset; receive; write_data; write_ready; read_ready } : _ I.t)
+  ({ clock; reset; receive; uart = { write_data; write_ready; read_ready } } : _ I.t)
   =
   let open Signal in
   let { Axi_uartlite_0.O.interrupt = _
@@ -56,9 +52,11 @@ let create
       }
   in
   { O.transmit
-  ; write_done = write_response_valid &: (write_response ==:. 0)
-  ; read_data = sel_bottom read_data 8
-  ; read_done = read_response_valid &: (read_response ==:. 0)
+  ; uart =
+      { write_done = write_response_valid &: (write_response ==:. 0)
+      ; read_data = sel_bottom read_data 8
+      ; read_done = read_response_valid &: (read_response ==:. 0)
+      }
   }
 ;;
 

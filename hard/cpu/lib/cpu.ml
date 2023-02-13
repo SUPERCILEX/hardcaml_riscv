@@ -22,7 +22,9 @@ end
 module State = struct
   type t =
     | Fetch
-    | Decode_and_load
+    | Decode
+    | Load_regs
+    | Load_mem
     | Execute
     | Writeback
     | Error
@@ -67,7 +69,7 @@ let do_on_load instruction ~s =
   Instruction.Binary.Of_always.match_
     ~default:[]
     instruction
-    (Instruction.RV32I.[ Lb; Lh; Lw ] |> List.map ~f:(fun i -> i, s))
+    (Instruction.RV32I.[ Lb; Lbu; Lh; Lhu; Lw ] |> List.map ~f:(fun i -> i, s))
 ;;
 
 let do_on_store instruction ~s =
@@ -77,22 +79,128 @@ let do_on_store instruction ~s =
     (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
 ;;
 
+let fetch
+  ~(sm : State.t Always.State_machine.t)
+  ~memory_controller:({ load_instruction; _ } : _ Memory_controller.I.t)
+  =
+  let open Signal in
+  Always.[ load_instruction <-- vdd; sm.set_next Decode ]
+;;
+
+let decode ~(sm : State.t Always.State_machine.t) = [ sm.set_next Load_regs ]
+
+let load_regs
+  ~(sm : State.t Always.State_machine.t)
+  ~decoded:({ instruction; _ } : _ Decoder.O.t)
+  ~load_registers
+  =
+  let open Signal in
+  Always.
+    [ load_registers <-- vdd
+    ; if_
+        (Instruction.Binary.Of_signal.is instruction Invalid)
+        [ sm.set_next Error ]
+        [ sm.set_next Load_mem ]
+    ]
+;;
+
+let load_mem
+  ~(sm : State.t Always.State_machine.t)
+  ~loaded:({ instruction; rs1; rs2 = _; immediate; _ } : _ Alu.I.t)
+  ~memory_controller:
+    ({ clock = _
+     ; load_instruction = _
+     ; load
+     ; store = _
+     ; program_counter = _
+     ; data_address
+     ; data_size
+     ; data = _
+     } :
+      _ Memory_controller.I.t)
+  =
+  let open Signal in
+  Always.
+    [ do_on_load instruction ~s:[ load <-- vdd; data_address <-- rs1 +: immediate ]
+    ; Instruction.Binary.Of_always.match_
+        ~default:[]
+        instruction
+        ([ [ Instruction.RV32I.Lb; Lbu ], Memory_controller.Size.Enum.Byte
+         ; [ Lh; Lhu ], Half_word
+         ; [ Lw ], Word
+         ]
+        |> List.map ~f:(fun (instructions, s) -> List.map instructions ~f:(fun i -> i, s))
+        |> List.concat
+        |> List.map ~f:(fun (i, s) ->
+             ( i
+             , [ Memory_controller.Size.Binary.(
+                   Of_always.assign data_size (Of_signal.of_enum s))
+               ] )))
+    ; sm.set_next Execute
+    ]
+;;
+
+let execute ~(sm : State.t Always.State_machine.t) = [ sm.set_next Writeback ]
+
+let writeback
+  ~(sm : State.t Always.State_machine.t)
+  ~loaded:({ instruction; rs1; immediate; pc = _; data = _; rs2 = _ } : _ Alu.I.t)
+  ~alu:({ rd; store = _; jump; jump_target } : _ Alu.O.t)
+  ~memory_controller:
+    ({ clock = _
+     ; load_instruction = _
+     ; load = _
+     ; store = mem_store
+     ; program_counter
+     ; data_address
+     ; data_size
+     ; data
+     } :
+      _ Memory_controller.I.t)
+  =
+  let open Signal in
+  Always.
+    [ if_
+        jump
+        [ program_counter <-- jump_target ]
+        [ program_counter <-- program_counter.value +:. 4 ]
+    ; do_on_store
+        instruction
+        ~s:[ mem_store <-- vdd; data_address <-- rs1 +: immediate; data <-- rd ]
+    ; Instruction.Binary.Of_always.match_
+        ~default:[]
+        instruction
+        ([ Instruction.RV32I.Sb, Memory_controller.Size.Enum.Byte
+         ; Sh, Half_word
+         ; Sw, Word
+         ]
+        |> List.map ~f:(fun (i, s) ->
+             ( i
+             , [ Memory_controller.Size.Binary.(
+                   Of_always.assign data_size (Of_signal.of_enum s))
+               ] )))
+    ; sm.set_next Fetch
+    ]
+;;
+
 let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
-  let program_counter =
-    Always.Variable.reg
-      ~width:Parameters.word_size
-      (Reg_spec.override
-         spec
-         ~clear_to:(of_int ~width:Parameters.word_size Parameters.code_bottom))
+  let sm = Always.State_machine.create (module State) spec in
+  let _debugging =
+    let ( -- ) = Scope.naming scope in
+    ignore (sm.current -- "state")
   in
-  let load_instruction = Always.Variable.wire ~default:gnd in
-  let load = Always.Variable.wire ~default:gnd in
-  let store = Always.Variable.wire ~default:gnd in
-  let data_address = Always.Variable.wire ~default:(zero Parameters.word_size) in
-  let data_size = Memory_controller.Size.Binary.Of_always.wire zero in
-  let data_out = Always.Variable.wire ~default:(zero Parameters.word_size) in
+  let memory_controller =
+    { (Memory_controller.I.Of_always.wire zero) with
+      program_counter =
+        Always.Variable.reg
+          ~width:Parameters.word_size
+          (Reg_spec.override
+             spec
+             ~clear_to:(of_int ~width:Parameters.word_size Parameters.code_bottom))
+    }
+  in
   let { Memory_controller.O.instruction = raw_instruction
       ; data = data_in
       ; error = invalid_address
@@ -100,104 +208,47 @@ let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
     =
     Memory_controller.circuit
       scope
-      { Memory_controller.I.clock
-      ; load_instruction = load_instruction.value
-      ; load = load.value
-      ; store = store.value
-      ; program_counter = program_counter.value
-      ; data_address = data_address.value
-      ; data_size = Memory_controller.Size.Binary.Of_always.value data_size
-      ; data = data_out.value
-      }
+      { (Memory_controller.I.map memory_controller ~f:Always.Variable.value) with clock }
   in
-  let decoder = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
-  let decoder_regs = decoder |> Decoder.O.map ~f:(fun s -> reg spec s) in
-  let alu_store = wire 1 in
-  let alu_rd = wire Parameters.word_size in
-  let sm = Always.State_machine.create (module State) spec in
+  let decoder =
+    Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
+    |> Decoder.O.map ~f:(reg spec)
+  in
+  let alu_feedback = Alu.O.Of_signal.wires () in
+  let load_registers = Always.Variable.wire ~default:gnd in
   let rs1, rs2 =
+    let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
+    let { Decoder.O.rd; rs1; rs2; _ } = decoder in
     register_file
       ~clock
-      ~write_address:decoder.rd
-      ~read_address1:decoder.rs1
-      ~read_address2:decoder.rs2
-      ~write_enable:alu_store
-      ~read_enable:(sm.is Decode_and_load)
-      ~write_data:alu_rd
+      ~write_address:rd
+      ~read_address1:rs1
+      ~read_address2:rs2
+      ~write_enable:reg_store
+      ~read_enable:load_registers.value
+      ~write_data:alu_result
   in
-  let alu =
-    Alu.circuit
-      scope
-      { Alu.I.pc = program_counter.value
-      ; data = data_in
-      ; instruction = decoder_regs.instruction
-      ; rs1
-      ; rs2
-      ; immediate = decoder_regs.immediate
-      }
-    |> Alu.O.map ~f:(fun s -> reg spec s)
+  let loaded =
+    let { Decoder.O.instruction; immediate; _ } = decoder in
+    { Alu.I.pc = memory_controller.program_counter.value
+    ; data = data_in
+    ; instruction
+    ; rs1
+    ; rs2
+    ; immediate
+    }
   in
-  alu_store <== alu.store;
-  alu_rd <== alu.rd;
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    ignore (sm.current -- "state")
-  in
+  let alu = Alu.circuit scope loaded |> Alu.O.map ~f:(reg spec) in
+  Alu.O.iter2 alu_feedback alu ~f:( <== );
   Always.(
     compile
       [ sm.switch
-          [ Fetch, [ load_instruction <-- vdd; sm.set_next Decode_and_load ]
-          ; ( Decode_and_load
-            , [ do_on_load
-                  decoder.instruction
-                  ~s:[ load <-- vdd; data_address <-- rs1 +: decoder.immediate ]
-              ; Instruction.Binary.Of_always.match_
-                  ~default:[]
-                  decoder.instruction
-                  ([ [ Instruction.RV32I.Lb; Lbu ], Memory_controller.Size.Enum.Byte
-                   ; [ Lh; Lhu ], Half_word
-                   ; [ Lw ], Word
-                   ]
-                  |> List.map ~f:(fun (instructions, s) ->
-                       List.map instructions ~f:(fun i -> i, s))
-                  |> List.concat
-                  |> List.map ~f:(fun (i, s) ->
-                       ( i
-                       , [ Memory_controller.Size.Binary.(
-                             Of_always.assign data_size (Of_signal.of_enum s))
-                         ] )))
-              ; if_
-                  (Instruction.Binary.Of_signal.is decoder.instruction Invalid)
-                  [ sm.set_next Error ]
-                  [ sm.set_next Execute ]
-              ] )
-          ; Execute, [ sm.set_next Writeback ]
-          ; ( Writeback
-            , [ if_
-                  alu.jump
-                  [ program_counter <-- alu.jump_target ]
-                  [ program_counter <-- program_counter.value +:. 4 ]
-              ; do_on_store
-                  decoder_regs.instruction
-                  ~s:
-                    [ store <-- vdd
-                    ; data_address <-- rs1 +: decoder_regs.immediate
-                    ; data_out <-- alu.rd
-                    ]
-              ; Instruction.Binary.Of_always.match_
-                  ~default:[]
-                  decoder.instruction
-                  ([ Instruction.RV32I.Sb, Memory_controller.Size.Enum.Byte
-                   ; Sh, Half_word
-                   ; Sw, Word
-                   ]
-                  |> List.map ~f:(fun (i, s) ->
-                       ( i
-                       , [ Memory_controller.Size.Binary.(
-                             Of_always.assign data_size (Of_signal.of_enum s))
-                         ] )))
-              ; sm.set_next Fetch
-              ] )
+          [ Fetch, fetch ~sm ~memory_controller
+          ; Decode, decode ~sm
+          ; Load_regs, load_regs ~sm ~decoded:decoder ~load_registers
+          ; Load_mem, load_mem ~sm ~loaded ~memory_controller
+          ; Execute, execute ~sm
+          ; Writeback, writeback ~sm ~loaded ~alu ~memory_controller
           ; Error, []
           ]
       ; when_ invalid_address [ sm.set_next Error ]
@@ -273,8 +324,7 @@ module Tests = struct
       Cyclesim.reset sim;
       inputs.clear := vdd;
       Cyclesim.cycle sim;
-      inputs.clear := gnd;
-      print_state_and_outputs ()
+      inputs.clear := gnd
     in
     let run () =
       for _ = 0 to 11 do
@@ -327,11 +377,10 @@ module Tests = struct
     sim ();
     [%expect
       {|
-      (Fetch ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 1)))))
       (Fetch ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Decode_and_load
+      (Decode ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Load_regs
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
       (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
       (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
       (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))

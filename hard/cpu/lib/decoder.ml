@@ -18,19 +18,15 @@ end
 
 let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
   let open Signal in
-  let instruction =
-    Instruction.Binary.(Of_always.wire (fun _ -> Of_signal.of_enum Invalid |> to_raw))
+  let ({ O.instruction; rd; rs1; rs2; immediate } as out) =
+    { (O.Of_always.wire zero) with
+      instruction =
+        Instruction.Binary.(Of_always.wire (fun _ -> Of_signal.of_enum Invalid |> to_raw))
+    }
   in
-  let rd = Always.Variable.wire ~default:(zero 5) in
-  let rs1 = Always.Variable.wire ~default:(zero 5) in
-  let rs2 = Always.Variable.wire ~default:(zero 5) in
-  let immediate = Always.Variable.wire ~default:(zero 32) in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    ignore (rd.value -- "output_register");
-    ignore (rs1.value -- "input_register1");
-    ignore (rs2.value -- "input_register2");
-    ignore (immediate.value -- "parsed_immediate")
+    O.map out ~f:Always.Variable.value |> Fn.flip O.map2 O.port_names ~f:( -- ) |> ignore
   in
   let opcode = raw_instruction.:[6, 0] in
   let funct3 = raw_instruction.:[14, 12] in
@@ -168,12 +164,7 @@ let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
               ] )
           ]
       ]);
-  { O.instruction = Instruction.Binary.Of_always.value instruction
-  ; rd = rd.value
-  ; rs1 = rs1.value
-  ; rs2 = rs2.value
-  ; immediate = immediate.value
-  }
+  out |> O.map ~f:Always.Variable.value
 ;;
 
 let circuit scope =
@@ -245,26 +236,24 @@ module Tests = struct
     let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let print_state instruction =
-      let instruction_bits = !(inputs.instruction) in
       let id = Instruction.Binary.sim_get_exn outputs.instruction in
-      let rd = to_int !(outputs.rd) in
-      let rs1 = to_int !(outputs.rs1) in
-      let rs2 = to_int !(outputs.rs2) in
-      let immediate = to_int !(outputs.immediate) in
-      let immediate =
-        if Option.is_some (String.substr_index instruction ~pattern:"0x")
-        then Printf.sprintf "0x%x" immediate
-        else Int.to_string immediate
+      let outputs =
+        let outputs = O.map outputs ~f:(( ! ) |> Fn.compose to_int) in
+        { (O.map outputs ~f:Int.to_string) with
+          immediate =
+            (outputs.immediate
+            |>
+            if Option.is_some (String.substr_index instruction ~pattern:"0x")
+            then Printf.sprintf "0x%x"
+            else Int.to_string)
+        }
       in
       Stdio.print_s
         [%message
           (instruction : string)
-            (instruction_bits : Bits.t)
-            (id : Instruction.RV32I.t)
-            (rd : int)
-            (rs1 : int)
-            (rs2 : int)
-            (immediate : string)];
+            (inputs : Bits.t ref I.t)
+            (outputs : string O.t)
+            (id : Instruction.RV32I.t)];
       Stdio.print_endline ""
     in
     List.iter2_exn
@@ -287,154 +276,191 @@ module Tests = struct
     [%expect
       {|
       ((instruction "lui a0, 0xdead")
-       (instruction_bits 00001101111010101101010100110111) (id Lui) (rd 10)
-       (rs1 21) (rs2 30) (immediate 0xdead000))
+       (inputs ((instruction 00001101111010101101010100110111)))
+       (outputs ((instruction 1) (rd 10) (rs1 21) (rs2 30) (immediate 0xdead000)))
+       (id Lui))
 
       ((instruction "auipc a1, 0xbeef")
-       (instruction_bits 00001011111011101111010110010111) (id Auipc) (rd 11)
-       (rs1 29) (rs2 30) (immediate 0xbeef000))
+       (inputs ((instruction 00001011111011101111010110010111)))
+       (outputs ((instruction 2) (rd 11) (rs1 29) (rs2 30) (immediate 0xbeef000)))
+       (id Auipc))
 
       ((instruction "jal a2, 0xcafe")
-       (instruction_bits 11001010111111100000011001101111) (id Jal) (rd 12)
-       (rs1 28) (rs2 15) (immediate 0xfffe0cae))
+       (inputs ((instruction 11001010111111100000011001101111)))
+       (outputs ((instruction 3) (rd 12) (rs1 28) (rs2 15) (immediate 0xfffe0cae)))
+       (id Jal))
 
       ((instruction "jalr a3, a0, 0x69")
-       (instruction_bits 00000110100101010000011011100111) (id Jalr) (rd 13)
-       (rs1 10) (rs2 9) (immediate 0x69))
+       (inputs ((instruction 00000110100101010000011011100111)))
+       (outputs ((instruction 4) (rd 13) (rs1 10) (rs2 9) (immediate 0x69)))
+       (id Jalr))
 
       ((instruction "beq a4, a1, 0x42")
-       (instruction_bits 00000000101101110001010001100011) (id Bne) (rd 8)
-       (rs1 14) (rs2 11) (immediate 0x8))
+       (inputs ((instruction 00000000101101110001010001100011)))
+       (outputs ((instruction 6) (rd 8) (rs1 14) (rs2 11) (immediate 0x8)))
+       (id Bne))
 
       ((instruction "bne a5, a2, 420")
-       (instruction_bits 00000000110001111000010001100011) (id Beq) (rd 8)
-       (rs1 15) (rs2 12) (immediate 8))
+       (inputs ((instruction 00000000110001111000010001100011)))
+       (outputs ((instruction 5) (rd 8) (rs1 15) (rs2 12) (immediate 8))) (id Beq))
 
       ((instruction "blt a6, a3, 88")
-       (instruction_bits 00000000110110000101010001100011) (id Bge) (rd 8)
-       (rs1 16) (rs2 13) (immediate 8))
+       (inputs ((instruction 00000000110110000101010001100011)))
+       (outputs ((instruction 8) (rd 8) (rs1 16) (rs2 13) (immediate 8))) (id Bge))
 
       ((instruction "bge a7, a4, 1234")
-       (instruction_bits 00000000111010001100010001100011) (id Blt) (rd 8)
-       (rs1 17) (rs2 14) (immediate 8))
+       (inputs ((instruction 00000000111010001100010001100011)))
+       (outputs ((instruction 7) (rd 8) (rs1 17) (rs2 14) (immediate 8))) (id Blt))
 
       ((instruction "bltu t0, a5, -1")
-       (instruction_bits 00000000111100101111010001100011) (id Bgeu) (rd 8)
-       (rs1 5) (rs2 15) (immediate 8))
+       (inputs ((instruction 00000000111100101111010001100011)))
+       (outputs ((instruction 10) (rd 8) (rs1 5) (rs2 15) (immediate 8)))
+       (id Bgeu))
 
       ((instruction "bgeu t1, a6, -1")
-       (instruction_bits 00000001000000110110010001100011) (id Bltu) (rd 8)
-       (rs1 6) (rs2 16) (immediate 8))
+       (inputs ((instruction 00000001000000110110010001100011)))
+       (outputs ((instruction 9) (rd 8) (rs1 6) (rs2 16) (immediate 8))) (id Bltu))
 
       ((instruction "lb t2, 42(a7)")
-       (instruction_bits 00000010101010001000001110000011) (id Lb) (rd 7) (rs1 17)
-       (rs2 10) (immediate 42))
+       (inputs ((instruction 00000010101010001000001110000011)))
+       (outputs ((instruction 11) (rd 7) (rs1 17) (rs2 10) (immediate 42)))
+       (id Lb))
 
       ((instruction "lh t3, 1234(t0)")
-       (instruction_bits 01001101001000101001111000000011) (id Lh) (rd 28)
-       (rs1 5) (rs2 18) (immediate 1234))
+       (inputs ((instruction 01001101001000101001111000000011)))
+       (outputs ((instruction 12) (rd 28) (rs1 5) (rs2 18) (immediate 1234)))
+       (id Lh))
 
       ((instruction "lw t4, 0x69(t1)")
-       (instruction_bits 00000110100100110010111010000011) (id Lw) (rd 29)
-       (rs1 6) (rs2 9) (immediate 0x69))
+       (inputs ((instruction 00000110100100110010111010000011)))
+       (outputs ((instruction 13) (rd 29) (rs1 6) (rs2 9) (immediate 0x69)))
+       (id Lw))
 
       ((instruction "lbu t5, -1(t2)")
-       (instruction_bits 11111111111100111100111100000011) (id Lbu) (rd 30)
-       (rs1 7) (rs2 31) (immediate 4294967295))
+       (inputs ((instruction 11111111111100111100111100000011)))
+       (outputs ((instruction 14) (rd 30) (rs1 7) (rs2 31) (immediate 4294967295)))
+       (id Lbu))
 
       ((instruction "lhu t6, -1(t3)")
-       (instruction_bits 11111111111111100101111110000011) (id Lhu) (rd 31)
-       (rs1 28) (rs2 31) (immediate 4294967295))
+       (inputs ((instruction 11111111111111100101111110000011)))
+       (outputs
+        ((instruction 15) (rd 31) (rs1 28) (rs2 31) (immediate 4294967295)))
+       (id Lhu))
 
       ((instruction "sb t2, 42(a7)")
-       (instruction_bits 00000010011110001000010100100011) (id Sb) (rd 10)
-       (rs1 17) (rs2 7) (immediate 42))
+       (inputs ((instruction 00000010011110001000010100100011)))
+       (outputs ((instruction 16) (rd 10) (rs1 17) (rs2 7) (immediate 42)))
+       (id Sb))
 
       ((instruction "sh t3, 1234(t0)")
-       (instruction_bits 01001101110000101001100100100011) (id Sh) (rd 18)
-       (rs1 5) (rs2 28) (immediate 1234))
+       (inputs ((instruction 01001101110000101001100100100011)))
+       (outputs ((instruction 17) (rd 18) (rs1 5) (rs2 28) (immediate 1234)))
+       (id Sh))
 
       ((instruction "sw t4, 0x69(t1)")
-       (instruction_bits 00000111110100110010010010100011) (id Sw) (rd 9) (rs1 6)
-       (rs2 29) (immediate 0x69))
+       (inputs ((instruction 00000111110100110010010010100011)))
+       (outputs ((instruction 18) (rd 9) (rs1 6) (rs2 29) (immediate 0x69)))
+       (id Sw))
 
       ((instruction "addi s0, t4, 987")
-       (instruction_bits 00111101101111101000010000010011) (id Addi) (rd 8)
-       (rs1 29) (rs2 27) (immediate 987))
+       (inputs ((instruction 00111101101111101000010000010011)))
+       (outputs ((instruction 19) (rd 8) (rs1 29) (rs2 27) (immediate 987)))
+       (id Addi))
 
       ((instruction "slti s1, t5, 574")
-       (instruction_bits 00100011111011110010010010010011) (id Slti) (rd 9)
-       (rs1 30) (rs2 30) (immediate 574))
+       (inputs ((instruction 00100011111011110010010010010011)))
+       (outputs ((instruction 20) (rd 9) (rs1 30) (rs2 30) (immediate 574)))
+       (id Slti))
 
       ((instruction "sltiu s2, t6, -1")
-       (instruction_bits 11111111111111111011100100010011) (id Sltiu) (rd 18)
-       (rs1 31) (rs2 31) (immediate 4294967295))
+       (inputs ((instruction 11111111111111111011100100010011)))
+       (outputs
+        ((instruction 21) (rd 18) (rs1 31) (rs2 31) (immediate 4294967295)))
+       (id Sltiu))
 
       ((instruction "xori s3, s0, 296")
-       (instruction_bits 00010010100001000100100110010011) (id Xori) (rd 19)
-       (rs1 8) (rs2 8) (immediate 296))
+       (inputs ((instruction 00010010100001000100100110010011)))
+       (outputs ((instruction 22) (rd 19) (rs1 8) (rs2 8) (immediate 296)))
+       (id Xori))
 
       ((instruction "ori s4, s1, 420")
-       (instruction_bits 00011010010001001110101000010011) (id Ori) (rd 20)
-       (rs1 9) (rs2 4) (immediate 420))
+       (inputs ((instruction 00011010010001001110101000010011)))
+       (outputs ((instruction 23) (rd 20) (rs1 9) (rs2 4) (immediate 420)))
+       (id Ori))
 
       ((instruction "andi s5, s2, 698")
-       (instruction_bits 00101011101010010111101010010011) (id Andi) (rd 21)
-       (rs1 18) (rs2 26) (immediate 698))
+       (inputs ((instruction 00101011101010010111101010010011)))
+       (outputs ((instruction 24) (rd 21) (rs1 18) (rs2 26) (immediate 698)))
+       (id Andi))
 
       ((instruction "slli s5, s2, 8")
-       (instruction_bits 00000000100010010001101010010011) (id Slli) (rd 21)
-       (rs1 18) (rs2 8) (immediate 8))
+       (inputs ((instruction 00000000100010010001101010010011)))
+       (outputs ((instruction 25) (rd 21) (rs1 18) (rs2 8) (immediate 8)))
+       (id Slli))
 
       ((instruction "srli s5, s2, 21")
-       (instruction_bits 00000001010110010101101010010011) (id Srli) (rd 21)
-       (rs1 18) (rs2 21) (immediate 21))
+       (inputs ((instruction 00000001010110010101101010010011)))
+       (outputs ((instruction 26) (rd 21) (rs1 18) (rs2 21) (immediate 21)))
+       (id Srli))
 
       ((instruction "srai s5, s2, 17")
-       (instruction_bits 01000001000110010101101010010011) (id Srai) (rd 21)
-       (rs1 18) (rs2 17) (immediate 17))
+       (inputs ((instruction 01000001000110010101101010010011)))
+       (outputs ((instruction 27) (rd 21) (rs1 18) (rs2 17) (immediate 17)))
+       (id Srai))
 
       ((instruction "add s6, s5, s2")
-       (instruction_bits 00000001001010101000101100110011) (id Add) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101000101100110011)))
+       (outputs ((instruction 28) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Add))
 
       ((instruction "sub s6, s5, s2")
-       (instruction_bits 01000001001010101000101100110011) (id Sub) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 01000001001010101000101100110011)))
+       (outputs ((instruction 29) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Sub))
 
       ((instruction "sll s6, s5, s2")
-       (instruction_bits 00000001001010101001101100110011) (id Sll) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101001101100110011)))
+       (outputs ((instruction 30) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Sll))
 
       ((instruction "slt s6, s5, s2")
-       (instruction_bits 00000001001010101010101100110011) (id Slt) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101010101100110011)))
+       (outputs ((instruction 31) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Slt))
 
       ((instruction "sltu s6, s5, s2")
-       (instruction_bits 00000001001010101011101100110011) (id Sltu) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101011101100110011)))
+       (outputs ((instruction 32) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Sltu))
 
       ((instruction "xor s6, s5, s2")
-       (instruction_bits 00000001001010101100101100110011) (id Xor) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101100101100110011)))
+       (outputs ((instruction 33) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Xor))
 
       ((instruction "srl s6, s5, s2")
-       (instruction_bits 00000001001010101101101100110011) (id Srl) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101101101100110011)))
+       (outputs ((instruction 34) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Srl))
 
       ((instruction "sra s6, s5, s2")
-       (instruction_bits 01000001001010101101101100110011) (id Sra) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 01000001001010101101101100110011)))
+       (outputs ((instruction 35) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Sra))
 
       ((instruction "or s6, s5, s2")
-       (instruction_bits 00000001001010101110101100110011) (id Or) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101110101100110011)))
+       (outputs ((instruction 36) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id Or))
 
       ((instruction "and s6, s5, s2")
-       (instruction_bits 00000001001010101111101100110011) (id And) (rd 22)
-       (rs1 21) (rs2 18) (immediate 0))
+       (inputs ((instruction 00000001001010101111101100110011)))
+       (outputs ((instruction 37) (rd 22) (rs1 21) (rs2 18) (immediate 0)))
+       (id And))
 
-      ((instruction invalid) (instruction_bits 00000000000000000000000000000000)
-       (id Invalid) (rd 0) (rs1 0) (rs2 0) (immediate 0)) |}]
+      ((instruction invalid)
+       (inputs ((instruction 00000000000000000000000000000000)))
+       (outputs ((instruction 0) (rd 0) (rs1 0) (rs2 0) (immediate 0)))
+       (id Invalid)) |}]
   ;;
 end
