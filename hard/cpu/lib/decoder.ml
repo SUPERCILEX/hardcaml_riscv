@@ -26,7 +26,7 @@ let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
   in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    O.map out ~f:Always.Variable.value |> Fn.flip O.map2 O.port_names ~f:( -- ) |> ignore
+    O.Of_always.value out |> O.Of_signal.apply_names ~naming_op:( -- )
   in
   let opcode = raw_instruction.:[6, 0] in
   let funct3 = raw_instruction.:[14, 12] in
@@ -164,7 +164,7 @@ let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
               ] )
           ]
       ]);
-  out |> O.map ~f:Always.Variable.value
+  O.Of_always.value out
 ;;
 
 let circuit scope =

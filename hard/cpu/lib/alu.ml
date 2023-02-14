@@ -34,7 +34,7 @@ let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _
   let ({ O.rd; store; jump; jump_target } as out) = O.Of_always.wire zero in
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    O.map out ~f:Always.Variable.value |> Fn.flip O.map2 O.port_names ~f:( -- ) |> ignore
+    O.Of_always.value out |> O.Of_signal.apply_names ~naming_op:( -- )
   in
   Always.(
     compile
@@ -118,7 +118,7 @@ let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _
           ; And, [ rd <-- (rs1 &: rs2) ]
           ]
       ]);
-  out |> O.map ~f:Always.Variable.value
+  O.Of_always.value out
 ;;
 
 let circuit scope =
