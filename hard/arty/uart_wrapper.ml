@@ -20,8 +20,8 @@ module O = struct
 end
 
 let create
-  (_scope : Scope.t)
-  ({ clock; reset; receive; uart = { write_data; write_ready; read_ready } } : _ I.t)
+  _scope
+  { I.clock; reset; receive; uart = { write_data; write_ready; read_ready } }
   =
   let open Signal in
   let { Axi_uartlite_0.O.interrupt = _

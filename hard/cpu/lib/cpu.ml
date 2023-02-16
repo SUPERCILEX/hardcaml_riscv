@@ -81,7 +81,7 @@ let do_on_store instruction ~s =
 
 let fetch
   ~(sm : State.t Always.State_machine.t)
-  ~memory_controller:({ load_instruction; _ } : _ Memory_controller.I.t)
+  ~memory_controller:{ Memory_controller.I.load_instruction; _ }
   =
   let open Signal in
   Always.[ load_instruction <-- vdd; sm.set_next Decode ]
@@ -91,7 +91,7 @@ let decode ~(sm : State.t Always.State_machine.t) = [ sm.set_next Load_regs ]
 
 let load_regs
   ~(sm : State.t Always.State_machine.t)
-  ~decoded:({ instruction; _ } : _ Decoder.O.t)
+  ~decoded:{ Decoder.O.instruction; _ }
   ~load_registers
   =
   let open Signal in
@@ -106,9 +106,9 @@ let load_regs
 
 let load_mem
   ~(sm : State.t Always.State_machine.t)
-  ~loaded:({ instruction; rs1; rs2 = _; immediate; _ } : _ Alu.I.t)
+  ~loaded:{ Alu.I.instruction; rs1; rs2 = _; immediate; _ }
   ~memory_controller:
-    ({ clock = _
+    { Memory_controller.I.clock = _
      ; load_instruction = _
      ; load
      ; store = _
@@ -116,8 +116,7 @@ let load_mem
      ; data_address
      ; data_size
      ; data = _
-     } :
-      _ Memory_controller.I.t)
+    }
   =
   let open Signal in
   Always.
@@ -144,10 +143,10 @@ let execute ~(sm : State.t Always.State_machine.t) = [ sm.set_next Writeback ]
 
 let writeback
   ~(sm : State.t Always.State_machine.t)
-  ~loaded:({ instruction; rs1; immediate; pc = _; data = _; rs2 = _ } : _ Alu.I.t)
-  ~alu:({ rd; store = _; jump; jump_target } : _ Alu.O.t)
+  ~loaded:{ Alu.I.instruction; rs1; immediate; pc = _; data = _; rs2 = _ }
+  ~alu:{ Alu.O.rd; store = _; jump; jump_target }
   ~memory_controller:
-    ({ clock = _
+    { Memory_controller.I.clock = _
      ; load_instruction = _
      ; load = _
      ; store = mem_store
@@ -155,8 +154,7 @@ let writeback
      ; data_address
      ; data_size
      ; data
-     } :
-      _ Memory_controller.I.t)
+    }
   =
   let open Signal in
   Always.
@@ -183,7 +181,7 @@ let writeback
     ]
 ;;
 
-let create (scope : Scope.t) ({ clock; clear; uart } : _ I.t) =
+let create scope { I.clock; clear; uart } =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
   let sm = Always.State_machine.create (module State) spec in

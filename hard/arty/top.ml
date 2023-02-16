@@ -20,10 +20,7 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create
-  (scope : Scope.t)
-  ({ clock; switches = _; buttons = _; reset; uart_receive } : _ I.t)
-  =
+let create scope { I.clock; switches = _; buttons = _; reset; uart_receive } =
   let open Signal in
   let { Clk_wiz_0.O.locked
       ; clock_10_mhz = _

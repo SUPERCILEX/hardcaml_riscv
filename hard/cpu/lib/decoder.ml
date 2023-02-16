@@ -16,7 +16,7 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create (scope : Scope.t) ({ instruction = raw_instruction } : _ I.t) =
+let create scope { I.instruction = raw_instruction } =
   let open Signal in
   let ({ O.instruction; rd; rs1; rs2; immediate } as out) =
     { (O.Of_always.wire zero) with

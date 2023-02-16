@@ -29,7 +29,7 @@ let shift_mux ~f a shift =
   mux (sel_bottom shift (address_bits_for w)) (List.init w ~f:(fun shift -> f a shift))
 ;;
 
-let create (scope : Scope.t) ({ pc; data; instruction; rs1; rs2; immediate } : _ I.t) =
+let create scope { I.pc; data; instruction; rs1; rs2; immediate } =
   let open Signal in
   let ({ O.rd; store; jump; jump_target } as out) = O.Of_always.wire zero in
   let _debugging =
