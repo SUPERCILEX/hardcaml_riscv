@@ -306,15 +306,15 @@ module Tests = struct
       Stdio.print_endline ""
     in
     Cyclesim.reset sim;
-    inputs.data := of_int ~width:Parameters.word_size 0xdeadbeef;
-    inputs.data_address
-      := of_int ~width:Parameters.word_size (Parameters.stack_top - Parameters.word_size);
-    inputs.program_counter := of_int ~width:Parameters.word_size Parameters.code_bottom;
+    let open Parameters in
+    inputs.data := of_int ~width:word_size 0xdeadbeef;
+    inputs.data_address := of_int ~width:word_size (stack_top - word_size);
+    inputs.program_counter := of_int ~width:word_size code_bottom;
     inputs.store := gnd;
     inputs.load := gnd;
     inputs.load_instruction := gnd;
     Size.Binary.sim_set inputs.data_size Word;
-    f (step, inputs)
+    f ~sim ~step ~inputs
   ;;
 
   let sim f =
@@ -324,7 +324,7 @@ module Tests = struct
   ;;
 
   let%expect_test "Basic" =
-    sim (fun (step, inputs) ->
+    sim (fun ~sim:_ ~step ~inputs ->
       let open Bits in
       step ();
       inputs.store := vdd;
@@ -382,7 +382,7 @@ module Tests = struct
   ;;
 
   let%expect_test "Sizes" =
-    sim (fun (step, inputs) ->
+    sim (fun ~sim:_ ~step ~inputs ->
       let open Bits in
       let base_address = !(inputs.data_address) in
       let offset_address n = inputs.data_address := base_address +:. n in
@@ -491,27 +491,20 @@ module Tests = struct
   ;;
 
   let%expect_test "Invalid addresses" =
-    sim (fun (step, inputs) ->
+    sim (fun ~sim:_ ~step ~inputs ->
       let open Bits in
-      inputs.data_address
-        := of_int ~width:Parameters.word_size (Parameters.code_bottom - 1);
+      let open Parameters in
+      inputs.data_address := of_int ~width:word_size (code_bottom - 1);
       step ();
       inputs.load := vdd;
       step ();
-      inputs.data_address
-        := of_int
-             ~width:Parameters.word_size
-             (Parameters.code_bottom + Parameters.imem_size);
+      inputs.data_address := of_int ~width:word_size (code_bottom + imem_size);
       step ();
-      inputs.data_address := of_int ~width:Parameters.word_size Parameters.stack_top;
+      inputs.data_address := of_int ~width:word_size stack_top;
       step ();
-      inputs.data_address
-        := of_int
-             ~width:Parameters.word_size
-             (Parameters.stack_top - Parameters.dmem_size - 1);
+      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size - 1);
       step ();
-      inputs.data_address
-        := of_int ~width:Parameters.word_size (Parameters.stack_top - Parameters.dmem_size);
+      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
       step ());
     [%expect
       {|
@@ -547,15 +540,15 @@ module Tests = struct
   ;;
 
   let%expect_test "Unaligned addresses" =
-    sim (fun (step, inputs) ->
+    sim (fun ~sim:_ ~step ~inputs ->
       let open Bits in
       inputs.load := vdd;
       List.map Size.Enum.all ~f:(fun s ->
         List.init (Parameters.word_size / 8) ~f:(fun i -> s, i))
       |> List.concat
       |> List.iter ~f:(fun (s, offset) ->
-           inputs.data_address
-             := of_int ~width:Parameters.word_size (Parameters.code_bottom + offset);
+           (inputs.data_address
+              := Parameters.(of_int ~width:word_size (code_bottom + offset)));
            Size.Binary.sim_set inputs.data_size s;
            step ()));
     [%expect
@@ -619,5 +612,131 @@ module Tests = struct
         (program_counter 0x4000) (data_address 0x4003) (data_size 0x2)
         (data 0xdeadbeef))
        ((instruction 0x0) (data 0x0) (error 0x1))) |}]
+  ;;
+
+  let%expect_test "Overlapping ops" =
+    sim (fun ~sim ~step ~inputs ->
+      let open Bits in
+      let open Parameters in
+      let run () =
+        Stdio.print_endline "--------------------------------------------";
+        step ();
+        inputs.load := vdd;
+        step ();
+        inputs.load_instruction := vdd;
+        step ();
+        inputs.load := gnd;
+        step ();
+        inputs.store := vdd;
+        step ();
+        inputs.load_instruction := gnd;
+        inputs.load := vdd;
+        inputs.store := vdd;
+        step ();
+        Cyclesim.reset sim
+      in
+      inputs.data_address := of_int ~width:word_size code_bottom;
+      inputs.program_counter := of_int ~width:word_size (code_bottom + 512);
+      run ();
+      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
+      inputs.program_counter := of_int ~width:word_size (stack_top - dmem_size + 512);
+      run ();
+      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
+      inputs.program_counter := of_int ~width:word_size code_bottom;
+      run ());
+    [%expect
+      {|
+      --------------------------------------------
+      (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x4200) (data_address 0x4000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      --------------------------------------------
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x1)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x7fff0200) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      --------------------------------------------
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+
+      (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
+        (program_counter 0x4000) (data_address 0x7fff0000) (data_size 0x2)
+        (data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0))) |}]
   ;;
 end
