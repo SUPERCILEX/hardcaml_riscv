@@ -38,205 +38,250 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let address_bits = Signal.address_bits_for Parameters.(imem_size + dmem_size)
+let single_exn l =
+  match l with
+  | [ x ] -> x
+  | _ -> invalid_argf "List.single_exn called on list of length %d" (List.length l) ()
+;;
 
-module Route = struct
+let match_on_size ~size ops =
+  List.zip_exn Size.Enum.all ops |> Size.Binary.Of_signal.match_ size
+;;
+
+let choose_bank ~bank ~bank_selector ~size =
+  let open Signal in
+  List.init
+    (width bank_selector + 1)
+    ~f:(fun shift -> srl bank_selector shift ==:. Int.shift_right_logical bank shift)
+  |> match_on_size ~size
+;;
+
+let split_data ~bank ~data ~size =
+  let open Signal in
+  List.init (List.length Size.Enum.all) ~f:(fun shift ->
+    List.nth_exn
+      (split_lsb ~part_width:8 (sel_bottom data (Int.shift_left 8 shift)))
+      (bank land (Int.shift_left 1 shift - 1)))
+  |> match_on_size ~size
+;;
+
+let combine_data ~bank_selector ~data ~size =
+  let open Signal in
+  List.init
+    (width bank_selector + 1)
+    ~f:(fun shift ->
+      let bytes =
+        List.chunks_of data ~length:(Int.shift_left 1 shift) |> List.map ~f:concat_lsb
+      in
+      (if width bank_selector = shift
+      then single_exn bytes
+      else mux (drop_bottom bank_selector shift) bytes)
+      |> Fn.flip uresize (8 * List.length data))
+  |> match_on_size ~size
+;;
+
+let is_unaligned_address ~size address =
+  let open Signal in
+  List.init (List.length Size.Enum.all) ~f:(fun shift ->
+    if shift = 0 then gnd else sel_bottom address shift <>:. 0)
+  |> match_on_size ~size
+;;
+
+module MakeRam (Params : sig
+  val size : int
+end) =
+struct
+  let address_bits = Signal.address_bits_for Params.size
+
+  module Address = struct
+    type 'a t =
+      { address : 'a [@bits address_bits]
+      ; size : 'a Size.Binary.t
+      }
+    [@@deriving sexp_of, hardcaml]
+  end
+
+  module I = struct
+    type 'a t =
+      { clock : 'a
+      ; read_address : 'a Address.t
+      ; write_address : 'a Address.t
+      ; read_enable : 'a
+      ; write_enable : 'a
+      ; write_data : 'a [@bits Parameters.word_size]
+      }
+    [@@deriving sexp_of, hardcaml]
+  end
+
+  let ram
+    ~name
+    { I.clock
+    ; read_address = { Address.address = read_address; size = read_size }
+    ; write_address = { Address.address = write_address; size = write_size }
+    ; read_enable
+    ; write_enable
+    ; write_data
+    }
+    =
+    let open Signal in
+    let bytes = width write_data / 8 in
+    let bank_selector address = sel_bottom address (address_bits_for bytes) in
+    let bank_address address = srl address (address_bits_for bytes) in
+    match
+      Array.init bytes ~f:(fun bank ->
+        Ram.create
+          ~name
+          ~collision_mode:Read_before_write
+          ~size:(Params.size / bytes)
+          ~write_ports:
+            [| { Ram.Write_port.write_clock = clock
+               ; write_address = bank_address write_address
+               ; write_enable =
+                   write_enable
+                   &: choose_bank
+                        ~bank
+                        ~bank_selector:(bank_selector write_address)
+                        ~size:write_size
+               ; write_data = split_data ~bank ~data:write_data ~size:write_size
+               }
+            |]
+          ~read_ports:
+            [| { Ram.Read_port.read_clock = clock
+               ; read_address = bank_address read_address
+               ; read_enable =
+                   read_enable
+                   &: choose_bank
+                        ~bank
+                        ~bank_selector:(bank_selector read_address)
+                        ~size:read_size
+               }
+            |]
+          ())
+      |> Array.transpose_exn
+      |> Array.map ~f:Array.to_list
+    with
+    | [| data |] ->
+      combine_data ~bank_selector:(bank_selector read_address) ~data ~size:read_size
+    | _ -> assert false
+  ;;
+end
+
+module Segment = struct
   type 'a t =
-    { address : 'a [@bits address_bits]
+    { is_pc_in_range : 'a
+    ; is_data_address_in_range : 'a
+    ; data : 'a [@bits Parameters.word_size]
     ; error : 'a
     }
   [@@deriving sexp_of, hardcaml]
 end
 
-module Ram_address = struct
-  type 'a t =
-    { address : 'a [@bits address_bits]
-    ; size : 'a Size.Binary.t
-    }
-  [@@deriving sexp_of, hardcaml]
-end
-
-let split_data ~bank ~bank_selector ~data ~size =
-  let open Signal in
-  ( Size.Binary.Of_signal.match_
-      size
-      [ Byte, bank_selector ==:. bank
-      ; Half_word, srl bank_selector 1 ==:. Int.shift_right_logical bank 1
-      ; Word, vdd
-      ]
-  , Size.Binary.Of_signal.match_
-      size
-      [ Byte, sel_bottom data 8
-      ; ( Half_word
-        , List.nth_exn (split_lsb ~part_width:8 (sel_bottom data 16)) (bank land 1) )
-      ; Word, List.nth_exn (split_lsb ~part_width:8 data) bank
-      ] )
-;;
-
-let combine_data ~bank_selector ~data ~size =
-  let open Signal in
-  Size.Binary.Of_signal.match_
-    size
-    ([ Size.Enum.Byte, mux bank_selector data
-     ; ( Half_word
-       , mux (msbs bank_selector) (List.chunks_of data ~length:2 |> List.map ~f:concat_lsb)
-       )
-     ; Word, concat_lsb data
-     ]
-    |> List.map ~f:(fun (size, data) -> size, uresize data Parameters.word_size))
-;;
-
 let ram
-  ~clock
-  ~write_address:{ Ram_address.address = write_address; size = write_size }
-  ~read_address1:{ Ram_address.address = read_address1; size = read_size1 }
-  ~read_address2:{ Ram_address.address = read_address2; size = read_size2 }
-  ~write_enable
-  ~read_enable1
-  ~read_enable2
-  ~write_data
+  ~size
+  ~name
+  ~is_in_range
+  ~route
+  { I.clock
+  ; load_instruction
+  ; load
+  ; store
+  ; program_counter
+  ; data_address
+  ; data_size
+  ; data
+  }
   =
   let open Signal in
-  let _checks =
-    assert (width write_address = address_bits);
-    assert (width read_address1 = address_bits);
-    assert (width read_address2 = address_bits);
-    assert (width write_data = Parameters.word_size)
+  let module Ram =
+    MakeRam (struct
+      let size = size
+    end)
   in
-  let bytes = Parameters.word_size / 8 in
-  let bank_selector address = sel_bottom address (address_bits_for bytes) in
-  let bank_address address = srl address (address_bits_for bytes) in
-  match
-    Array.init bytes ~f:(fun bank ->
-      Ram.create
-        ~name:"memory"
-        ~collision_mode:Read_before_write
-        ~size:(Parameters.(imem_size + dmem_size) / bytes)
-        ~write_ports:
-          [| (let write_enable, write_data =
-                split_data
-                  ~bank
-                  ~bank_selector:(bank_selector write_address)
-                  ~data:write_data
-                  ~size:write_size
-                |> Tuple2.map_fst ~f:(( &: ) write_enable)
-              in
-              { Ram.Write_port.write_clock = clock
-              ; write_address = bank_address write_address
-              ; write_enable
-              ; write_data
-              })
-          |]
-        ~read_ports:
-          [| { Ram.Read_port.read_clock = clock
-             ; read_address = bank_address read_address1
-             ; read_enable = read_enable1
+  let is_pc_in_range, is_data_address_in_range =
+    is_in_range program_counter, is_in_range data_address
+  in
+  let load_instruction = load_instruction &: is_pc_in_range in
+  let load = load &: is_data_address_in_range in
+  { Segment.is_pc_in_range
+  ; is_data_address_in_range
+  ; data =
+      (let program_counter, data_address =
+         let route address = route address ~bits:Ram.address_bits in
+         route program_counter, route data_address
+       in
+       Ram.ram
+         ~name
+         { Ram.I.clock
+         ; read_address =
+             { Ram.Address.address = mux2 load data_address program_counter
+             ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
              }
-           ; { Ram.Read_port.read_clock = clock
-             ; read_address = bank_address read_address2
-             ; read_enable = read_enable2
-             }
-          |]
-        ())
-    |> Array.transpose_exn
-    |> Array.map ~f:Array.to_list
-  with
-  | [| data1; data2 |] ->
-    ( combine_data
-        ~bank_selector:(bank_selector read_address1)
-        ~data:data1
-        ~size:read_size1
-    , combine_data
-        ~bank_selector:(bank_selector read_address2)
-        ~data:data2
-        ~size:read_size2 )
-  | _ -> assert false
-;;
-
-let router ~address ~size =
-  let open Signal in
-  let routed_address = Always.Variable.wire ~default:(zero address_bits) in
-  let invalid_address = Always.Variable.wire ~default:gnd in
-  let unaligned_address = Always.Variable.wire ~default:gnd in
-  Always.(
-    compile
-      [ Parameters.(
-          if_
-            (address >=:. stack_top - dmem_size &: (address <:. stack_top))
-            [ routed_address
-              <-- uresize (address -:. (stack_top - dmem_size)) address_bits
-            ]
-          @@ elif
-               (address >=:. code_bottom &: (address <:. code_bottom + imem_size))
-               [ routed_address <-- uresize (address -:. code_bottom) address_bits ]
-          @@ [ invalid_address <-- vdd ])
-      ; Size.Binary.Of_always.match_
-          size
-          ([ Size.Enum.Byte, gnd
-           ; Half_word, sel_bottom address 1
-           ; Word, sel_bottom address 2
-           ]
-          |> List.map ~f:(fun (size, alignment) ->
-               size, [ unaligned_address <-- (alignment <>:. 0) ]))
-      ]);
-  { Route.address = routed_address.value
-  ; error = invalid_address.value |: unaligned_address.value
+         ; write_address = { Ram.Address.address = data_address; size = data_size }
+         ; read_enable = load_instruction |: load
+         ; write_enable = store &: is_data_address_in_range
+         ; write_data = data
+         })
+  ; error = load_instruction &: load
   }
 ;;
 
 let create
-  (scope : Scope.t)
-  ({ clock
+  _scope
+  ({ I.clock = _
    ; load_instruction
    ; load
    ; store
    ; program_counter
    ; data_address
    ; data_size
-   ; data
-   } :
-    _ I.t)
+   ; data = _
+   } as i)
   =
   let open Signal in
-  let routed_pc = wire address_bits in
-  let routed_data_address = wire address_bits in
-  let raw_instruction, data_out =
-    let routed_data_address =
-      { Ram_address.address = routed_data_address; size = data_size }
-    in
-    ram
-      ~clock
-      ~write_address:routed_data_address
-      ~read_address1:
-        { Ram_address.address = routed_pc; size = Size.Binary.Of_signal.of_enum Word }
-      ~read_address2:routed_data_address
-      ~write_enable:store
-      ~read_enable1:load_instruction
-      ~read_enable2:load
-      ~write_data:data
+  let segments =
+    [ ram
+        ~size:Parameters.imem_size
+        ~name:"imem"
+        ~is_in_range:(fun address ->
+          Parameters.(address >=:. code_bottom &: (address <:. code_bottom + imem_size)))
+        ~route:(fun address ~bits -> uresize (address -:. Parameters.code_bottom) bits)
+        i
+    ; ram
+        ~size:Parameters.dmem_size
+        ~name:"dmem"
+        ~is_in_range:(fun address ->
+          Parameters.(address >=:. stack_top - dmem_size &: (address <:. stack_top)))
+        ~route:(fun address ~bits ->
+          uresize (address -:. Parameters.(stack_top - dmem_size)) bits)
+        i
+    ]
   in
-  let { Route.address = pc; error = pc_error } =
-    router ~address:program_counter ~size:(Size.Binary.Of_signal.of_enum Word)
+  let fold_data is_in_range =
+    List.fold
+      ~init:(List.hd_exn segments).data
+      segments
+      ~f:(fun acc ({ Segment.data; _ } as segment) -> mux2 (is_in_range segment) data acc)
   in
-  routed_pc <== pc;
-  let { Route.address = data_address; error = data_error } =
-    router ~address:data_address ~size:data_size
-  in
-  routed_data_address <== data_address;
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    ignore (routed_pc -- "routed_pc");
-    ignore (routed_data_address -- "routed_data_address");
-    ignore (pc -- "pc");
-    ignore (data_address -- "data_address");
-    ignore (pc_error -- "pc_error");
-    ignore (data_error -- "data_error");
-    ignore (raw_instruction -- "raw_instruction");
-    ignore (data_out -- "data_out")
-  in
-  { O.instruction = raw_instruction
-  ; data = data_out
-  ; error = pc_error &: load_instruction |: (data_error &: (load |: store))
+  { O.instruction = fold_data (fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
+  ; data =
+      fold_data (fun { Segment.is_data_address_in_range; _ } -> is_data_address_in_range)
+  ; error =
+      (List.map segments ~f:(fun { Segment.error; _ } -> error)
+      @ [ is_unaligned_address ~size:data_size data_address &: (load |: store)
+        ; is_unaligned_address ~size:(Size.Binary.Of_signal.of_enum Word) program_counter
+          &: load_instruction
+        ]
+      @
+      let any_in_range ranges = List.reduce_exn ranges ~f:( |: ) in
+      [ ~:(List.map segments ~f:(fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
+          |> any_in_range)
+        &: load_instruction
+      ; ~:(List.map segments ~f:(fun { Segment.is_data_address_in_range; _ } ->
+             is_data_address_in_range)
+          |> any_in_range)
+        &: (load |: store)
+      ])
+      |> List.reduce_exn ~f:( |: )
   }
 ;;
 
@@ -323,7 +368,7 @@ module Tests = struct
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x4000) (data_address 0x4000) (data_size 0x2)
         (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
+       ((instruction 0x0) (data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x4000) (data_address 0x4000) (data_size 0x2)
@@ -437,7 +482,7 @@ module Tests = struct
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x4000) (data_address 0x7fffffe1) (data_size 0x0)
         (data 0x69))
-       ((instruction 0x0) (data 0xbe) (error 0x0)))
+       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x4000) (data_address 0x7fffffe0) (data_size 0x2)
