@@ -1,0 +1,7 @@
+(rule
+ (target simple.bin)
+ (deps simple.s)
+ (action
+  (progn
+   (run riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -c %{deps})
+   (run riscv64-linux-gnu-objcopy -O binary simple.o %{target}))))
