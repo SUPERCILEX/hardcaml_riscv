@@ -1,6 +1,6 @@
 (executable
  (public_name arty)
- (promote)
+ (promote (until-clean))
  (libraries cpu core_unix.command_unix core_unix.filename_unix)
  (preprocess
   (pps ppx_jane ppx_deriving_hardcaml)))
@@ -18,7 +18,8 @@
 (rule
  (target top.v)
  (deps arty.exe)
- (mode promote)
+ (mode
+  (promote (until-clean)))
  (alias runtest)
  (action
   (run %{deps} compile -output %{target})))
@@ -31,19 +32,56 @@
   (source_tree ips)
   (source_tree scripts)
   (env_var BOARD))
- (mode promote)
+ (mode
+  (promote (until-clean)))
+ (locks vivado)
  (action
   (progn
    (run chmod +rw -R boards ips)
-   (run mkdir outputs)
+   (run mkdir -p outputs)
    (run
     vivado
     -nojournal
     -mode
     batch
     -source
-    scripts/all.tcl
+    scripts/bitstream.tcl
     -log
-    outputs/all.log
+    outputs/bitstream.log
+    -tclargs
+    %{env:BOARD=}))))
+
+(rule
+ (targets
+  timing_summary.rpt
+  bus_skew.rpt
+  utilization.rpt
+  suggestions.rpt
+  design_analysis.rpt)
+ (deps
+  (glob_files *.v)
+  (source_tree boards)
+  (source_tree ips)
+  (source_tree scripts)
+  (env_var BOARD))
+ (mode
+  (promote
+   (until-clean)
+   (into reports)))
+ (alias reports)
+ (locks vivado)
+ (action
+  (progn
+   (run chmod +rw -R boards ips)
+   (run mkdir -p outputs)
+   (run
+    vivado
+    -nojournal
+    -mode
+    batch
+    -source
+    scripts/reports.tcl
+    -log
+    outputs/reports.log
     -tclargs
     %{env:BOARD=}))))

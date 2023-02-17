@@ -1,8 +1,3 @@
-# set_param board.repoPaths "boards/"
-# set output_dir "outputs/"
-# 
-# open_checkpoint $output_dir/post_synth.dcp
-
 ########################
 # Various pin placements
 ########################
@@ -227,6 +222,3 @@ set_property -dict { PACKAGE_PIN C2    IOSTANDARD LVCMOS33 } [get_ports { ck_rst
 opt_design
 place_design
 phys_opt_design
-
-write_checkpoint -force $output_dir/post_place
-report_timing_summary -file $output_dir/post_place_timing_summary.rpt
