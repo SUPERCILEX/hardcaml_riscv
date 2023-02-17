@@ -21,7 +21,11 @@ let waves =
       in
       fun () ->
         Cpu.Tests.waves ~program ~cycles (fun ~display_rules waves ->
-          Hardcaml_waveterm_interactive.run ~signals_width:30 ~display_rules waves))
+          Hardcaml_waveterm_interactive.run
+            ~signals_width:30
+            ~wave_width:5
+            ~display_rules
+            waves))
 ;;
 
 let command = Command.group ~summary:"Hardware dev tools" [ "waves", waves ]
