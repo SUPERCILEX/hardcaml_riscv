@@ -3,7 +3,3 @@ Board files taken from https://github.com/Digilent/vivado-boards/tree/master/new
 Ports taken from https://github.com/Digilent/Arty/blob/master/Resources/XDC/Arty_Master.xdc. \
 IPs generated from temporary Vivado project and then copied into [ips/] with `gen_directory` and
 `OUTPUTDIR` set to `.`.
-
-```bash
-./arty.exe compile -output arty/top.v
-```

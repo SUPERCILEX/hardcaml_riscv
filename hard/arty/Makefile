@@ -4,4 +4,3 @@ build:
 clean:
 	rm -rf outputs
 	rm -rf .Xil
-	rm -f top.v
