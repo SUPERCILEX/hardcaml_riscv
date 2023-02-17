@@ -2,12 +2,13 @@ open! Core
 open Hardcaml
 
 module I = struct
-  type 'a t = { instruction : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
+  type 'a t = { instruction : 'a [@bits 32] [@rtlname "instruction_in"] }
+  [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
   type 'a t =
-    { instruction : 'a Instruction.Binary.t
+    { instruction : 'a Instruction.Binary.t [@rtlname "instruction_out"]
     ; rd : 'a [@bits 5]
     ; rs1 : 'a [@bits 5]
     ; rs2 : 'a [@bits 5]
@@ -16,17 +17,13 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create scope { I.instruction = raw_instruction } =
+let create _scope { I.instruction = raw_instruction } =
   let open Signal in
   let ({ O.instruction; rd; rs1; rs2; immediate } as out) =
     { (O.Of_always.wire zero) with
       instruction =
         Instruction.Binary.(Of_always.wire (fun _ -> Of_signal.of_enum Invalid |> to_raw))
     }
-  in
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    O.Of_always.value out |> O.Of_signal.apply_names ~naming_op:( -- )
   in
   let opcode = raw_instruction.:[6, 0] in
   let funct3 = raw_instruction.:[14, 12] in
@@ -169,13 +166,11 @@ let create scope { I.instruction = raw_instruction } =
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"decoder" create
+  let module D = Debugging.In_scope (I) (O) in
+  H.hierarchical ~scope ~name:"decoder" (D.create ~create_fn:create)
 ;;
 
 module Tests = struct
-  module Simulator = Cyclesim.With_interface (I) (O)
-  module Waveform = Hardcaml_waveterm.Waveform
-
   let test_instructions () =
     String.split_lines
       "lui a0, 0xdead\n\
@@ -266,6 +261,7 @@ module Tests = struct
   ;;
 
   let sim () =
+    let module Simulator = Cyclesim.With_interface (I) (O) in
     let scope = Scope.create ~flatten_design:true () in
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
     test_bench sim

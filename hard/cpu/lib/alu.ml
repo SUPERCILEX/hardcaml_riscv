@@ -29,13 +29,9 @@ let shift_mux ~f a shift =
   mux (sel_bottom shift (address_bits_for w)) (List.init w ~f:(fun shift -> f a shift))
 ;;
 
-let create scope { I.pc; data; instruction; rs1; rs2; immediate } =
+let create _scope { I.pc; data; instruction; rs1; rs2; immediate } =
   let open Signal in
   let ({ O.rd; store; jump; jump_target } as out) = O.Of_always.wire zero in
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    O.Of_always.value out |> O.Of_signal.apply_names ~naming_op:( -- )
-  in
   Always.(
     compile
       [ Instruction.Binary.Of_always.match_
@@ -123,13 +119,11 @@ let create scope { I.pc; data; instruction; rs1; rs2; immediate } =
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"alu" create
+  let module D = Debugging.In_scope (I) (O) in
+  H.hierarchical ~scope ~name:"alu" (D.create ~create_fn:create)
 ;;
 
 module Tests = struct
-  module Simulator = Cyclesim.With_interface (I) (O)
-  module Waveform = Hardcaml_waveterm.Waveform
-
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
     let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
@@ -205,6 +199,7 @@ module Tests = struct
   ;;
 
   let sim () =
+    let module Simulator = Cyclesim.With_interface (I) (O) in
     let scope = Scope.create ~flatten_design:true () in
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
     test_bench sim

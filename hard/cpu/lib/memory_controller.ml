@@ -1,8 +1,6 @@
 open! Core
 open Hardcaml
 
-(* TODO add boot ROM *)
-
 module Size = struct
   module Enum = struct
     type t =
@@ -274,7 +272,7 @@ let rom
 
 let create
   _scope
-  ~boot_rom
+  ~bootloader
   ({ I.clock = _
    ; load_instruction
    ; load
@@ -303,10 +301,12 @@ let create
           uresize (address -:. Parameters.(stack_top - dmem_size)) bits)
         i
     ; rom
-        ~data:boot_rom
+        ~data:bootloader
         ~is_in_range:(fun address ~size ->
-          Parameters.(address >=:. boot_rom_start &: (address <:. boot_rom_start + size)))
-        ~route:(fun address ~bits -> uresize (address -:. Parameters.boot_rom_start) bits)
+          Parameters.(
+            address >=:. bootloader_start &: (address <:. bootloader_start + size)))
+        ~route:(fun address ~bits ->
+          uresize (address -:. Parameters.bootloader_start) bits)
         i
     ]
   in
@@ -339,17 +339,17 @@ let create
   }
 ;;
 
-let circuit scope ~boot_rom =
-  ignore boot_rom;
+let circuit scope ~bootloader =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"memory_controller" (create ~boot_rom)
+  let module D = Debugging.In_scope (I) (O) in
+  H.hierarchical
+    ~scope
+    ~name:"memory_controller"
+    (D.create ~create_fn:(create ~bootloader))
 ;;
 
 module Tests = struct
-  module Simulator = Cyclesim.With_interface (I) (O)
-  module Waveform = Hardcaml_waveterm.Waveform
-
-  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) f =
+  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~f =
     let open Bits in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let step () =
@@ -370,12 +370,11 @@ module Tests = struct
   ;;
 
   let sim f =
+    let module Simulator = Cyclesim.With_interface (I) (O) in
     let scope = Scope.create ~flatten_design:true () in
-    let sim =
-      let fake_rom = List.init 80 ~f:(Signal.of_int ~width:8) in
-      Simulator.create ~config:Cyclesim.Config.trace_all (create scope ~boot_rom:fake_rom)
-    in
-    test_bench sim f
+    let fake_rom = List.init 80 ~f:(Signal.of_int ~width:8) in
+    Simulator.create ~config:Cyclesim.Config.trace_all (create scope ~bootloader:fake_rom)
+    |> test_bench ~f
   ;;
 
   let%expect_test "Basic" =
@@ -691,8 +690,8 @@ module Tests = struct
       inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
       inputs.program_counter := !(inputs.data_address);
       run ();
-      inputs.data_address := of_int ~width:word_size boot_rom_start;
-      inputs.program_counter := of_int ~width:word_size (boot_rom_start + 4);
+      inputs.data_address := of_int ~width:word_size bootloader_start;
+      inputs.program_counter := of_int ~width:word_size (bootloader_start + 4);
       run ();
       inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
       inputs.program_counter := of_int ~width:word_size code_bottom;
@@ -868,7 +867,7 @@ module Tests = struct
     sim (fun ~step ~inputs ->
       let open Bits in
       Size.Binary.sim_set inputs.data_size Byte;
-      (inputs.data_address := Parameters.(of_int ~width:word_size boot_rom_start));
+      (inputs.data_address := Parameters.(of_int ~width:word_size bootloader_start));
       inputs.load := vdd;
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->

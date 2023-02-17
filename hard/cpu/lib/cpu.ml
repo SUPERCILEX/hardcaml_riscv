@@ -1,6 +1,7 @@
 open! Core
 open Hardcaml
 module Uart = Uart
+module Bootloader = Bootloader
 
 module I = struct
   type 'a t =
@@ -109,13 +110,13 @@ let load_mem
   ~loaded:{ Alu.I.instruction; rs1; rs2 = _; immediate; _ }
   ~memory_controller:
     { Memory_controller.I.clock = _
-     ; load_instruction = _
-     ; load
-     ; store = _
-     ; program_counter = _
-     ; data_address
-     ; data_size
-     ; data = _
+    ; load_instruction = _
+    ; load
+    ; store = _
+    ; program_counter = _
+    ; data_address
+    ; data_size
+    ; data = _
     }
   =
   let open Signal in
@@ -147,13 +148,13 @@ let writeback
   ~alu:{ Alu.O.rd; store = _; jump; jump_target }
   ~memory_controller:
     { Memory_controller.I.clock = _
-     ; load_instruction = _
-     ; load = _
-     ; store = mem_store
-     ; program_counter
-     ; data_address
-     ; data_size
-     ; data
+    ; load_instruction = _
+    ; load = _
+    ; store = mem_store
+    ; program_counter
+    ; data_address
+    ; data_size
+    ; data
     }
   =
   let open Signal in
@@ -181,14 +182,10 @@ let writeback
     ]
 ;;
 
-let create scope { I.clock; clear; uart } =
+let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
   let sm = Always.State_machine.create (module State) spec in
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    ignore (sm.current -- "state")
-  in
   let memory_controller =
     { (Memory_controller.I.Of_always.wire zero) with
       program_counter =
@@ -206,7 +203,8 @@ let create scope { I.clock; clear; uart } =
     =
     Memory_controller.circuit
       scope
-      { (Memory_controller.I.map memory_controller ~f:Always.Variable.value) with clock }
+      { (Memory_controller.I.Of_always.value memory_controller) with clock }
+      ~bootloader
   in
   let decoder =
     Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
@@ -238,6 +236,11 @@ let create scope { I.clock; clear; uart } =
   in
   let alu = Alu.circuit scope loaded |> Alu.O.map ~f:(reg spec) in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
+  let _debugging =
+    let ( -- ) = Scope.naming scope in
+    ignore (sm.current -- "state");
+    ignore (load_registers.value -- "load_registers")
+  in
   Always.(
     compile
       [ sm.switch
@@ -294,99 +297,181 @@ let create scope { I.clock; clear; uart } =
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"cpu" create
+  H.hierarchical ~scope ~name:"cpu" (create ~bootloader:Bootloader.bytes)
 ;;
 
 module Tests = struct
-  open Core
   module Simulator = Cyclesim.With_interface (I) (O)
-  module Waveform = Hardcaml_waveterm.Waveform
 
-  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) =
+  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~step =
     let open Bits in
-    let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    let print_state_and_outputs () =
-      let state =
-        List.nth_exn
-          State.all
-          (to_int
-             !(List.Assoc.find_exn
-                 (Cyclesim.internal_ports sim)
-                 "state"
-                 ~equal:String.equal))
-      in
-      Stdio.print_s
-        ([%sexp_of: State.t * int O.t] (state, O.map outputs ~f:(fun p -> to_int !p)))
-    in
+    let inputs = Cyclesim.inputs sim in
     let reset () =
       Cyclesim.reset sim;
       inputs.clear := vdd;
       Cyclesim.cycle sim;
       inputs.clear := gnd
     in
-    let run () =
-      for _ = 0 to 11 do
-        Cyclesim.cycle sim;
-        print_state_and_outputs ()
-      done
-    in
     reset ();
-    run ()
-  ;;
-
-  let sim () =
-    let scope = Scope.create ~flatten_design:true () in
-    let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-    test_bench sim
-  ;;
-
-  let waves () =
-    let scope = Scope.create ~flatten_design:true () in
-    let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-    let waves, sim = Waveform.create sim in
-    test_bench sim;
-    let () =
-      let open Hardcaml_waveterm.Display_rule in
-      let input_rules =
-        I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
-      in
-      let output_rules =
-        O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
-      in
-      let output_rules =
-        (output_rules |> O.to_list)
-        @ [ port_name_is
-              "state"
-              ~wave_format:
-                (Index
-                   (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
-          ]
-      in
-      Waveform.print
-        waves
-        ~display_height:25
-        ~display_width:150
-        ~display_rules:(input_rules @ output_rules @ [ default ])
+    let rec run i =
+      Cyclesim.cycle sim;
+      if step i then () else run (i + 1)
     in
-    waves
+    run 1
   ;;
 
-  let%expect_test "Simple" =
-    sim ();
+  let prettify_enum ~sim ~(enums : 'a list) ~signal_name : 'a =
+    let open Bits in
+    List.nth_exn
+      enums
+      (to_int
+         !(List.Assoc.find_exn
+             (Cyclesim.internal_ports sim)
+             signal_name
+             ~equal:String.equal))
+  ;;
+
+  let sim ~program ~termination =
+    let scope = Scope.create ~flatten_design:true () in
+    let sim =
+      Simulator.create
+        ~config:Cyclesim.Config.trace_all
+        (create scope ~bootloader:program)
+    in
+    let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+    test_bench sim ~step:(fun i ->
+      let open Bits in
+      let all_signals =
+        Cyclesim.internal_ports sim
+        |> List.map ~f:(fun (signal_name, signal) ->
+             ( signal_name
+             , let prettify_enum enums = prettify_enum ~sim ~signal_name ~enums in
+               let is_signal = String.equal signal_name in
+               (if is_signal "state"
+               then prettify_enum State.all |> State.sexp_of_t
+               else if is_signal "decoder$binary_variant"
+                       || is_signal "alu$binary_variant"
+               then prettify_enum Instruction.RV32I.all |> Instruction.RV32I.sexp_of_t
+               else to_int !signal |> Int.sexp_of_t)
+               |> Sexp.to_string ))
+      in
+      Stdio.print_s
+        ([%sexp_of: State.t * int I.t * int O.t * (string * string) list]
+           ( prettify_enum ~sim ~enums:State.all ~signal_name:"state"
+           , I.map inputs ~f:(fun p -> to_int !p)
+           , O.map outputs ~f:(fun p -> to_int !p)
+           , all_signals ));
+      termination i sim)
+  ;;
+
+  let waves ~program ~cycles f =
+    let open Hardcaml_waveterm in
+    let scope = Scope.create ~flatten_design:true () in
+    let sim =
+      Simulator.create
+        ~config:Cyclesim.Config.trace_all
+        (create scope ~bootloader:(Bootloader.For_testing.sample program))
+    in
+    let waves, sim = Waveform.create sim in
+    test_bench sim ~step:(fun i -> i = cycles);
+    let open Hardcaml_waveterm.Display_rule in
+    let input_rules =
+      I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
+    in
+    let output_rules =
+      O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
+    in
+    let output_rules =
+      (output_rules |> O.to_list)
+      @ [ port_name_is
+            "state"
+            ~wave_format:
+              (Index
+                 (List.map State.all ~f:(fun t -> State.sexp_of_t t |> Sexp.to_string)))
+        ; port_name_is
+            "decoder$binary_variant"
+            ~wave_format:
+              (Index
+                 (List.map Instruction.RV32I.all ~f:(fun t ->
+                    Instruction.RV32I.sexp_of_t t |> Sexp.to_string)))
+        ; port_name_is
+            "alu$binary_variant"
+            ~wave_format:
+              (Index
+                 (List.map Instruction.RV32I.all ~f:(fun t ->
+                    Instruction.RV32I.sexp_of_t t |> Sexp.to_string)))
+        ]
+    in
+    f ~display_rules:(input_rules @ output_rules @ [ default ]) waves
+  ;;
+
+  let%expect_test "Invalid program" =
+    sim ~program:(Bootloader.For_testing.sample Invalid) ~termination:(fun i _ -> i = 4);
     [%expect
       {|
-      (Fetch ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Decode ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
+      (Fetch
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$jump_target 0) (imem_2 0) (imem_1 0) (imem_0 0) (imem 0) (alu$store 0)
+        (dmem_2 0) (dmem_1 0) (dmem_0 0) (memory_controller$store 0)
+        (memory_controller$data_in 0) (dmem 0) (memory_controller$binary_variant 0)
+        (memory_controller$data_out 0) (alu$data 0) (decoder$immediate 0)
+        (alu$immediate 0) (gnd 0) (load_registers 0) (alu$rs2 0) (alu$rd 0)
+        (decoder$rd 0) (decoder$rs2 0) (memory_controller$clock 0) (decoder$rs1 0)
+        (register_file 0) (alu$rs1 0) (memory_controller$data_address 0)
+        (memory_controller$load 0) (memory_controller$instruction 0)
+        (decoder$instruction_in 0) (decoder$binary_variant Invalid)
+        (alu$binary_variant Invalid) (alu$jump 0)
+        (memory_controller$program_counter 1048576) (alu$pc 1048576) (vdd 1)
+        (memory_controller$load_instruction 1) (memory_controller$error 0)
+        (state Fetch)))
+      (Decode
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$jump_target 0) (imem_2 0) (imem_1 0) (imem_0 0) (imem 0) (alu$store 0)
+        (dmem_2 0) (dmem_1 0) (dmem_0 0) (memory_controller$store 0)
+        (memory_controller$data_in 0) (dmem 0) (memory_controller$binary_variant 0)
+        (memory_controller$data_out 0) (alu$data 0) (decoder$immediate 0)
+        (alu$immediate 0) (gnd 0) (load_registers 0) (alu$rs2 0) (alu$rd 0)
+        (decoder$rd 0) (decoder$rs2 0) (memory_controller$clock 0) (decoder$rs1 0)
+        (register_file 0) (alu$rs1 0) (memory_controller$data_address 0)
+        (memory_controller$load 0) (memory_controller$instruction 0)
+        (decoder$instruction_in 0) (decoder$binary_variant Invalid)
+        (alu$binary_variant Invalid) (alu$jump 0)
+        (memory_controller$program_counter 1048576) (alu$pc 1048576) (vdd 1)
+        (memory_controller$load_instruction 0) (memory_controller$error 0)
+        (state Decode)))
       (Load_regs
-       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1)))))
-      (Error ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))) |}]
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$jump_target 0) (imem_2 0) (imem_1 0) (imem_0 0) (imem 0) (alu$store 0)
+        (dmem_2 0) (dmem_1 0) (dmem_0 0) (memory_controller$store 0)
+        (memory_controller$data_in 0) (dmem 0) (memory_controller$binary_variant 0)
+        (memory_controller$data_out 0) (alu$data 0) (decoder$immediate 0)
+        (alu$immediate 0) (gnd 0) (load_registers 1) (alu$rs2 0) (alu$rd 0)
+        (decoder$rd 0) (decoder$rs2 0) (memory_controller$clock 0) (decoder$rs1 0)
+        (register_file 0) (alu$rs1 0) (memory_controller$data_address 0)
+        (memory_controller$load 0) (memory_controller$instruction 0)
+        (decoder$instruction_in 0) (decoder$binary_variant Invalid)
+        (alu$binary_variant Invalid) (alu$jump 0)
+        (memory_controller$program_counter 1048576) (alu$pc 1048576) (vdd 1)
+        (memory_controller$load_instruction 0) (memory_controller$error 0)
+        (state Load_regs)))
+      (Error
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$jump_target 0) (imem_2 0) (imem_1 0) (imem_0 0) (imem 0) (alu$store 0)
+        (dmem_2 0) (dmem_1 0) (dmem_0 0) (memory_controller$store 0)
+        (memory_controller$data_in 0) (dmem 0) (memory_controller$binary_variant 0)
+        (memory_controller$data_out 0) (alu$data 0) (decoder$immediate 0)
+        (alu$immediate 0) (gnd 0) (load_registers 0) (alu$rs2 0) (alu$rd 0)
+        (decoder$rd 0) (decoder$rs2 0) (memory_controller$clock 0) (decoder$rs1 0)
+        (register_file 0) (alu$rs1 0) (memory_controller$data_address 0)
+        (memory_controller$load 0) (memory_controller$instruction 0)
+        (decoder$instruction_in 0) (decoder$binary_variant Invalid)
+        (alu$binary_variant Invalid) (alu$jump 0)
+        (memory_controller$program_counter 1048576) (alu$pc 1048576) (vdd 1)
+        (memory_controller$load_instruction 0) (memory_controller$error 0)
+        (state Error))) |}]
   ;;
 end
