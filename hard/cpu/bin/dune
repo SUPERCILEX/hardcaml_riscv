@@ -4,3 +4,13 @@
  (libraries cpu core_unix.command_unix hardcaml_waveterm.interactive)
  (preprocess
   (pps ppx_jane)))
+
+(rule
+ (target command-reference.golden)
+ (deps cli.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps} help -recursive -flags))))

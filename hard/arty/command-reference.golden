@@ -1,0 +1,16 @@
+Arty board tools
+
+  arty.exe SUBCOMMAND
+
+=== subcommands and flags ===
+
+  compile                    . Compile into verilog
+  . [-output Output]         . file
+  version                    . print version information
+  . [-build-info]            . print build info for this build
+  . [-version]               . print the version of this build
+  help                       . explain a given subcommand (perhaps recursively)
+  . [-expand-dots]           . expand subcommands in recursive help
+  . [-flags]                 . show flags as well in recursive help
+  . [-recursive]             . show subcommands of subcommands, etc.
+

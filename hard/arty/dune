@@ -6,6 +6,16 @@
   (pps ppx_jane ppx_deriving_hardcaml)))
 
 (rule
+ (target command-reference.golden)
+ (deps arty.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{deps} help -recursive -flags))))
+
+(rule
  (target top.v)
  (deps arty.exe)
  (mode promote)

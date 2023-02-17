@@ -1,0 +1,17 @@
+Hardware dev tools
+
+  cli.exe SUBCOMMAND
+
+=== subcommands and flags ===
+
+  waves                      . Open waveform viewer
+  . -cycles Number, -n       . of cycles to simulate
+  . -program Program         . to simulate (can be: Invalid, Simple)
+  version                    . print version information
+  . [-build-info]            . print build info for this build
+  . [-version]               . print the version of this build
+  help                       . explain a given subcommand (perhaps recursively)
+  . [-expand-dots]           . expand subcommands in recursive help
+  . [-flags]                 . show flags as well in recursive help
+  . [-recursive]             . show subcommands of subcommands, etc.
+
