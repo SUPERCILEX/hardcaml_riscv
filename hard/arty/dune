@@ -9,5 +9,31 @@
  (target top.v)
  (deps arty.exe)
  (mode promote)
+ (alias runtest)
  (action
   (run %{deps} compile -output %{target})))
+
+(rule
+ (target top.bit)
+ (deps
+  (glob_files *.v)
+  (source_tree boards)
+  (source_tree ips)
+  (source_tree scripts)
+  (env_var BOARD))
+ (mode promote)
+ (action
+  (progn
+   (run chmod +rw -R boards ips)
+   (run mkdir outputs)
+   (run
+    vivado
+    -nojournal
+    -mode
+    batch
+    -source
+    scripts/all.tcl
+    -log
+    outputs/all.log
+    -tclargs
+    %{env:BOARD=}))))

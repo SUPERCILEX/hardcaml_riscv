@@ -1,3 +1,2 @@
 top.v
-outputs/
-.Xil/
+top.bit

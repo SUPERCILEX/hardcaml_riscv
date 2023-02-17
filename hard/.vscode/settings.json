@@ -9,10 +9,6 @@
         "match": "\\.ml$",
         "cmd": "dune build @fmt --auto-promote"
       },
-      {
-        "match": "\\.ml$",
-        "cmd": "dune build --auto-promote"
-      },
     ]
   }
 }

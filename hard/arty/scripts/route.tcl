@@ -12,4 +12,4 @@ report_utilization -file $output_dir/post_route_utilization.rpt
 report_qor_suggestions -file $output_dir/post_route_suggestions.rpt
 
 if [expr {[get_property SLACK [get_timing_paths -delay_type min_max]] < 0}] { error "ERROR: Timing failed" }
-write_bitstream -force $output_dir/top.bit
+write_bitstream -force top.bit
