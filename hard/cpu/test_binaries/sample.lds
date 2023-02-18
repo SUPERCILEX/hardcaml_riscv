@@ -1,5 +1,5 @@
 SECTIONS {
-  . = 0;
+  . = 0x4000;
   .text : AT (0) {
     *(.text)
     LONG(0);

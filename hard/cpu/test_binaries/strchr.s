@@ -1,4 +1,5 @@
 la a0, test_string
+li a1, 87 # 87 = 'W'
 
 strchr:
   beq a0, zero, fail
