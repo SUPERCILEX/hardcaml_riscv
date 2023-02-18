@@ -5,21 +5,30 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github SUPERCILEX/hardcaml_riscv))
 
-(authors "Author Name")
+(authors "Alex Saveau")
 
-(maintainers "Maintainer Name")
+(maintainers "Alex Saveau")
 
 (license LICENSE)
-
-(documentation https://url/to/documentation)
 
 (package
  (name cse469)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends
+  base
+  core
+  core_unix
+  dune
+  hardcaml
+  hardcaml_waveterm
+  ocaml
+  ppx_blob
+  ppx_deriving_hardcaml
+  ppx_expect
+  ppx_jane)
  (tags
   (topics "to describe" your project)))
 
