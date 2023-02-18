@@ -6,8 +6,8 @@ Hardware dev tools
 
   waves                      . Open waveform viewer
   . -cycles N, -n            . Number of cycles to simulate
-  . -program NAME            . Program to simulate (can be: Fibonacci, Invalid,
-                               Simple, String_search)
+  . -program NAME            . Program to simulate (can be: Atoi, Fibonacci,
+                               Invalid, Simple, String_search)
   . [-start-cycle N]         . Start cycle
   version                    . print version information
   . [-build-info]            . print build info for this build
