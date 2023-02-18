@@ -5,9 +5,15 @@
 1. Get the Digilent Utilities: https://digilent.com/reference/software/adept/start
 1. (Optional) Install Vivado: https://www.xilinx.com/support/download.html
 
-## Build/upload
+## Building
+
+### Upload
 
 `./upload.sh`
+
+### Reports
+
+`./reports.sh`
 
 ## Dev workflow
 
