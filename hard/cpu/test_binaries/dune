@@ -1,3 +1,19 @@
+(executable
+ (name test)
+ (libraries cpu core_unix.command_unix)
+ (preprocess
+  (pps ppx_jane)))
+
+(rule
+ (target invalid.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 4 -program invalid))))
+
 (rule
  (target simple.bin)
  (deps
@@ -20,6 +36,16 @@
     (run riscv64-linux-gnu-objcopy -O binary simple %{target})))))
 
 (rule
+ (target simple.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 34 -program simple))))
+
+(rule
  (target strchr.bin)
  (deps
   (:src strchr.s)
@@ -38,3 +64,13 @@
     -o
     strchr)
    (run riscv64-linux-gnu-objcopy -O binary strchr %{target}))))
+
+(rule
+ (target strchr.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 206 -program string_search))))
