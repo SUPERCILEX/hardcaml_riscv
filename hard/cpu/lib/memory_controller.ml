@@ -168,110 +168,128 @@ module Segment = struct
   type 'a t =
     { is_pc_in_range : 'a
     ; is_data_address_in_range : 'a
-    ; data : 'a [@bits Parameters.word_size]
+    ; read_data : 'a [@bits Parameters.word_size]
     ; error : 'a
     }
   [@@deriving sexp_of, hardcaml]
 end
 
-let ram
-  ~size
-  ~name
-  ~is_in_range
-  ~route
-  { I.clock
-  ; load_instruction
-  ; load
-  ; store
-  ; program_counter
-  ; data_address
-  ; data_size
-  ; write_data
-  }
-  =
-  let open Signal in
-  let module Ram =
-    MakeRam (struct
-      let size = size
-    end)
-  in
-  let is_pc_in_range, is_data_address_in_range =
-    is_in_range program_counter, is_in_range data_address
-  in
-  let load_instruction = load_instruction &: is_pc_in_range in
-  let load = load &: is_data_address_in_range in
-  { Segment.is_pc_in_range
-  ; is_data_address_in_range
-  ; data =
-      (let program_counter, data_address =
-         let route address = route address ~bits:Ram.address_bits in
-         route program_counter, route data_address
-       in
-       Ram.ram
-         ~name
-         { Ram.I.clock
-         ; read_address =
-             { Ram.Address.address = mux2 load data_address program_counter
-             ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
-             }
-         ; write_address = { Ram.Address.address = data_address; size = data_size }
-         ; read_enable = load_instruction |: load
-         ; write_enable = store &: is_data_address_in_range
-         ; write_data
-         })
-  ; error = load_instruction &: load
-  }
-;;
-
-let rom
-  ~data
-  ~is_in_range
-  ~route
-  { I.clock
-  ; load_instruction
-  ; load
-  ; store
-  ; program_counter
-  ; data_address
-  ; data_size
-  ; write_data = _
-  }
-  =
-  let open Signal in
-  List.iter data ~f:(fun data -> assert (width data = 8));
-  let size = List.length data in
-  let is_pc_in_range, is_data_address_in_range =
-    let is_in_range address = is_in_range address ~size in
-    is_in_range program_counter, is_in_range data_address
-  in
-  let load_instruction = load_instruction &: is_pc_in_range in
-  let load = load &: is_data_address_in_range in
-  { Segment.is_pc_in_range
-  ; is_data_address_in_range
-  ; data =
-      (let bytes = 4 in
-       let address =
-         let program_counter, data_address =
-           let route address = route address ~bits:(address_bits_for size) in
+module Local_ram = struct
+  let create
+    scope
+    ~name
+    ~size
+    ~is_in_range
+    ~route
+    { I.clock
+    ; load_instruction
+    ; load
+    ; store
+    ; program_counter
+    ; data_address
+    ; data_size
+    ; write_data
+    }
+    =
+    let open Signal in
+    let module Ram =
+      MakeRam (struct
+        let size = size
+      end)
+    in
+    let is_pc_in_range, is_data_address_in_range =
+      is_in_range program_counter, is_in_range data_address
+    in
+    let load_instruction = load_instruction &: is_pc_in_range in
+    let load = load &: is_data_address_in_range in
+    { Segment.is_pc_in_range
+    ; is_data_address_in_range
+    ; read_data =
+        (let program_counter, data_address =
+           let route address = route address ~bits:Ram.address_bits in
            route program_counter, route data_address
          in
-         mux2 load data_address program_counter
-       in
-       combine_data
-         ~bank_selector:(sel_bottom address (address_bits_for bytes))
-         ~data:
-           (List.chunks_of ~length:bytes data
-           |> List.transpose_exn
-           |> List.map ~f:(fun byte_bank ->
-                mux (srl address (address_bits_for bytes)) byte_bank))
-         ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
-       |> reg ~enable:(load_instruction |: load) (Reg_spec.create ~clock ()))
-  ; error = store &: is_data_address_in_range |: (load_instruction &: load)
-  }
-;;
+         Ram.ram
+           ~name
+           { Ram.I.clock
+           ; read_address =
+               { Ram.Address.address = mux2 load data_address program_counter
+               ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
+               }
+           ; write_address = { Ram.Address.address = data_address; size = data_size }
+           ; read_enable = load_instruction |: load
+           ; write_enable = store &: is_data_address_in_range
+           ; write_data
+           })
+    ; error = load_instruction &: load
+    }
+    |> Segment.Of_signal.apply_names ~naming_op:(Scope.naming scope)
+  ;;
+
+  let circuit scope ~name ~size ~is_in_range ~route =
+    let module H = Hierarchy.In_scope (I) (Segment) in
+    H.hierarchical ~scope ~name (create ~name ~size ~is_in_range ~route)
+  ;;
+end
+
+module Rom = struct
+  let create
+    scope
+    ~data
+    ~is_in_range
+    ~route
+    { I.clock
+    ; load_instruction
+    ; load
+    ; store
+    ; program_counter
+    ; data_address
+    ; data_size
+    ; write_data = _
+    }
+    =
+    let open Signal in
+    List.iter data ~f:(fun data -> assert (width data = 8));
+    let size = List.length data in
+    let is_pc_in_range, is_data_address_in_range =
+      let is_in_range address = is_in_range address ~size in
+      is_in_range program_counter, is_in_range data_address
+    in
+    let load_instruction = load_instruction &: is_pc_in_range in
+    let load = load &: is_data_address_in_range in
+    { Segment.is_pc_in_range
+    ; is_data_address_in_range
+    ; read_data =
+        (let bytes = 4 in
+         let address =
+           let program_counter, data_address =
+             let route address = route address ~bits:(address_bits_for size) in
+             route program_counter, route data_address
+           in
+           mux2 load data_address program_counter
+         in
+         combine_data
+           ~bank_selector:(sel_bottom address (address_bits_for bytes))
+           ~data:
+             (List.chunks_of ~length:bytes data
+             |> List.transpose_exn
+             |> List.map ~f:(fun byte_bank ->
+                  mux (srl address (address_bits_for bytes)) byte_bank))
+           ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
+         |> reg ~enable:(load_instruction |: load) (Reg_spec.create ~clock ()))
+    ; error = store &: is_data_address_in_range |: (load_instruction &: load)
+    }
+    |> Segment.Of_signal.apply_names ~naming_op:(Scope.naming scope)
+  ;;
+
+  let circuit scope ~name ~data ~is_in_range ~route =
+    let module H = Hierarchy.In_scope (I) (Segment) in
+    H.hierarchical ~scope ~name (create ~data ~is_in_range ~route)
+  ;;
+end
 
 let create
-  _scope
+  scope
   ~bootloader
   ({ I.clock = _
    ; load_instruction
@@ -285,14 +303,16 @@ let create
   =
   let open Signal in
   let segments =
-    [ ram
+    [ Local_ram.circuit
+        scope
         ~size:Parameters.imem_size
         ~name:"imem"
         ~is_in_range:(fun address ->
           Parameters.(address >=:. code_bottom &: (address <:. code_bottom + imem_size)))
         ~route:(fun address ~bits -> uresize (address -:. Parameters.code_bottom) bits)
         i
-    ; ram
+    ; Local_ram.circuit
+        scope
         ~size:Parameters.dmem_size
         ~name:"dmem"
         ~is_in_range:(fun address ->
@@ -300,7 +320,9 @@ let create
         ~route:(fun address ~bits ->
           uresize (address -:. Parameters.(stack_top - dmem_size)) bits)
         i
-    ; rom
+    ; Rom.circuit
+        scope
+        ~name:"bootloader"
         ~data:bootloader
         ~is_in_range:(fun address ~size ->
           Parameters.(
@@ -312,9 +334,10 @@ let create
   in
   let fold_data is_in_range =
     List.fold
-      ~init:(List.hd_exn segments).data
+      ~init:(List.hd_exn segments).read_data
       segments
-      ~f:(fun acc ({ Segment.data; _ } as segment) -> mux2 (is_in_range segment) data acc)
+      ~f:(fun acc ({ Segment.read_data; _ } as segment) ->
+      mux2 (is_in_range segment) read_data acc)
   in
   { O.instruction = fold_data (fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
   ; read_data =

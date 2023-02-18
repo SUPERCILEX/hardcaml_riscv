@@ -23,7 +23,7 @@ module O = struct
 end
 
 let create
-  _scope
+  scope
   { I.clock
   ; load = read_enable
   ; read_address1
@@ -34,6 +34,7 @@ let create
   }
   =
   let open Signal in
+  let ( -- ) = Scope.naming scope in
   match
     Ram.create
       ~name:"register_file"
@@ -42,7 +43,7 @@ let create
       ~write_ports:
         [| { Ram.Write_port.write_clock = clock
            ; write_address
-           ; write_enable = write_enable &: (write_address <>:. 0)
+           ; write_enable = (write_enable &: (write_address <>:. 0)) -- "write_enable"
            ; write_data
            }
         |]

@@ -8,7 +8,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -19,7 +19,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -30,7 +30,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -41,7 +41,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -52,7 +52,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -63,7 +63,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -74,7 +74,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -85,7 +85,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x0)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -96,7 +96,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -107,7 +107,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4000) (state Load_mem)))
+  (register_file$write_data 0x4000) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -118,7 +119,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4000) (state Execute)))
+  (register_file$write_data 0x4000) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -129,7 +131,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Writeback)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -140,7 +143,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Fetch)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -151,7 +155,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x18)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Decode)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -162,7 +167,8 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x4000) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xb)
-  (register_file$write_data 0x4038) (state Load_regs)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -173,7 +179,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xb) (register_file$write_data 0x4038)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -184,7 +190,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xb) (register_file$write_data 0x4038)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -195,7 +201,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xb) (register_file$write_data 0x57)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -206,7 +212,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xb) (register_file$write_data 0x57)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -217,7 +223,7 @@
   (register_file$read_address1 0x0) (register_file$read_address2 0x17)
   (register_file$rs1 0x0) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xb) (register_file$write_data 0x57)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -228,7 +234,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x57)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -239,7 +245,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x57) (state Load_mem)))
+  (register_file$write_data 0x57) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -250,7 +257,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x57) (state Execute)))
+  (register_file$write_data 0x57) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -261,7 +269,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x2050063) (state Writeback)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -272,7 +281,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x2050063) (state Fetch)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -283,7 +293,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x2050063) (state Decode)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -294,7 +305,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x2050063) (state Load_regs)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -305,7 +317,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x2050063) (state Load_mem)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -316,7 +329,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x2050063) (state Execute)))
+  (register_file$write_data 0x2050063) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -327,7 +341,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Writeback)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -338,7 +353,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Fetch)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -349,7 +365,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1f)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Decode)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -360,7 +377,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Load_regs)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -371,7 +389,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Load_mem)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -382,7 +401,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4037) (state Execute)))
+  (register_file$write_data 0x4037) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -393,7 +413,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Writeback)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -404,7 +425,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Fetch)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -415,7 +437,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4038) (state Decode)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -426,7 +449,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4037) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x4038) (state Load_regs)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -437,7 +461,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x4038) (state Load_mem)))
+  (register_file$write_data 0x4038) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -448,7 +473,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4038)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x4038)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -459,7 +484,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4038)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x48)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -470,7 +495,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4038)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x48)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -481,7 +506,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x48) (state Decode)))
+  (register_file$write_data 0x48) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -492,7 +518,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x48) (state Load_regs)))
+  (register_file$write_data 0x48) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -503,7 +530,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x48)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x48)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -514,7 +541,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x48)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x48)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -525,7 +552,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x48)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -536,7 +563,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x48)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -547,7 +574,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x48)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -558,7 +585,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -569,7 +596,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -580,7 +607,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -591,7 +618,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -602,7 +629,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -613,7 +640,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -624,7 +651,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x48) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -635,7 +662,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -646,7 +674,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -657,7 +686,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x4039) (state Writeback)))
+  (register_file$write_data 0x4039) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -668,7 +698,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4039) (state Fetch)))
+  (register_file$write_data 0x4039) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -679,7 +710,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x4039) (state Decode)))
+  (register_file$write_data 0x4039) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -690,7 +722,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4038) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x4039) (state Load_regs)))
+  (register_file$write_data 0x4039) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -701,7 +734,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x4039) (state Load_mem)))
+  (register_file$write_data 0x4039) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -712,7 +746,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4039)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x4039)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -723,7 +757,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4039)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x65)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -734,7 +768,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x4039)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x65)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -745,7 +779,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x65) (state Decode)))
+  (register_file$write_data 0x65) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -756,7 +791,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x65) (state Load_regs)))
+  (register_file$write_data 0x65) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -767,7 +803,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x65)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x65)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -778,7 +814,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x65)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x65)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -789,7 +825,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x65)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -800,7 +836,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x65)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -811,7 +847,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x65)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -822,7 +858,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -833,7 +869,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -844,7 +880,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -855,7 +891,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -866,7 +902,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -877,7 +913,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -888,7 +924,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x65) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -899,7 +935,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -910,7 +947,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -921,7 +959,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403a) (state Writeback)))
+  (register_file$write_data 0x403a) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -932,7 +971,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403a) (state Fetch)))
+  (register_file$write_data 0x403a) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -943,7 +983,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403a) (state Decode)))
+  (register_file$write_data 0x403a) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -954,7 +995,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x4039) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403a) (state Load_regs)))
+  (register_file$write_data 0x403a) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -965,7 +1007,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403a) (state Load_mem)))
+  (register_file$write_data 0x403a) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -976,7 +1019,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403a)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x403a)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -987,7 +1030,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403a)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x6c)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -998,7 +1041,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403a)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x6c)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1009,7 +1052,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x6c) (state Decode)))
+  (register_file$write_data 0x6c) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1020,7 +1064,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x6c) (state Load_regs)))
+  (register_file$write_data 0x6c) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1031,7 +1076,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6c)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1042,7 +1087,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6c)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1053,7 +1098,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1064,7 +1109,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1075,7 +1120,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1086,7 +1131,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1097,7 +1142,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1108,7 +1153,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1119,7 +1164,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1130,7 +1175,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1141,7 +1186,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1152,7 +1197,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1163,7 +1208,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1174,7 +1220,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1185,7 +1232,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403b) (state Writeback)))
+  (register_file$write_data 0x403b) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1196,7 +1244,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403b) (state Fetch)))
+  (register_file$write_data 0x403b) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1207,7 +1256,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403b) (state Decode)))
+  (register_file$write_data 0x403b) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1218,7 +1268,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403a) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403b) (state Load_regs)))
+  (register_file$write_data 0x403b) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1229,7 +1280,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403b) (state Load_mem)))
+  (register_file$write_data 0x403b) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1240,7 +1292,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403b)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x403b)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1251,7 +1303,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403b)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x6c)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1262,7 +1314,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403b)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x6c)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1273,7 +1325,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x6c) (state Decode)))
+  (register_file$write_data 0x6c) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1284,7 +1337,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x6c) (state Load_regs)))
+  (register_file$write_data 0x6c) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1295,7 +1349,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6c)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1306,7 +1360,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6c)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1317,7 +1371,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1328,7 +1382,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1339,7 +1393,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1350,7 +1404,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1361,7 +1415,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1372,7 +1426,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1383,7 +1437,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1394,7 +1448,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1405,7 +1459,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1416,7 +1470,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x6c) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1427,7 +1481,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1438,7 +1493,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1449,7 +1505,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403c) (state Writeback)))
+  (register_file$write_data 0x403c) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1460,7 +1517,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403c) (state Fetch)))
+  (register_file$write_data 0x403c) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1471,7 +1529,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403c) (state Decode)))
+  (register_file$write_data 0x403c) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1482,7 +1541,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403b) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403c) (state Load_regs)))
+  (register_file$write_data 0x403c) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1493,7 +1553,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403c) (state Load_mem)))
+  (register_file$write_data 0x403c) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1504,7 +1565,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x403c)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1515,7 +1576,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403c)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x6f)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1526,7 +1587,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403c)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x6f)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1537,7 +1598,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x6f) (state Decode)))
+  (register_file$write_data 0x6f) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1548,7 +1610,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x6f) (state Load_regs)))
+  (register_file$write_data 0x6f) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1559,7 +1622,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6f)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6f)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1570,7 +1633,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6f)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x6f)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1581,7 +1644,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6f)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1592,7 +1655,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6f)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1603,7 +1666,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x6f)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1614,7 +1677,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1625,7 +1688,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1636,7 +1699,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1647,7 +1710,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1658,7 +1721,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1669,7 +1732,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1680,7 +1743,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x6f) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1691,7 +1754,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1702,7 +1766,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1713,7 +1778,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403d) (state Writeback)))
+  (register_file$write_data 0x403d) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1724,7 +1790,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403d) (state Fetch)))
+  (register_file$write_data 0x403d) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1735,7 +1802,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403d) (state Decode)))
+  (register_file$write_data 0x403d) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1746,7 +1814,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403c) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403d) (state Load_regs)))
+  (register_file$write_data 0x403d) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1757,7 +1826,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403d) (state Load_mem)))
+  (register_file$write_data 0x403d) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1768,7 +1838,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403d)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x403d)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1779,7 +1849,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403d)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x20)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1790,7 +1860,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403d)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x20)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1801,7 +1871,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x20) (state Decode)))
+  (register_file$write_data 0x20) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1812,7 +1883,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x20) (state Load_regs)))
+  (register_file$write_data 0x20) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1823,7 +1895,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x20)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x20)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1834,7 +1906,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x20)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x20)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1845,7 +1917,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x20)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1856,7 +1928,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x20)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1867,7 +1939,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x20)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1878,7 +1950,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1889,7 +1961,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1900,7 +1972,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1911,7 +1983,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1922,7 +1994,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1933,7 +2005,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1944,7 +2016,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x20) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1955,7 +2027,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1966,7 +2039,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1977,7 +2051,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Writeback)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1988,7 +2063,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Fetch)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1999,7 +2075,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x1)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Decode)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2010,7 +2087,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403d) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403e) (state Load_regs)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2021,7 +2099,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x403e) (state Load_mem)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2032,7 +2111,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403e)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x403e)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2043,7 +2122,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403e)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0xc) (register_file$write_data 0x57)
-  (state Writeback)))
+  (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2054,7 +2133,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x403e)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0xc) (register_file$write_data 0x57)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2065,7 +2144,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xc)
-  (register_file$write_data 0x57) (state Decode)))
+  (register_file$write_data 0x57) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2076,7 +2156,8 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x10)
-  (register_file$write_data 0x57) (state Load_regs)))
+  (register_file$write_data 0x57) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2087,7 +2168,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x57)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x57)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2098,7 +2179,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x57)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x57)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2109,7 +2190,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x57)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2120,7 +2201,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x57)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2131,7 +2212,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x57)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x10) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2142,7 +2223,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2153,7 +2234,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2164,7 +2245,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2175,7 +2256,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2186,7 +2267,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2197,7 +2278,7 @@
   (register_file$read_address1 0xc) (register_file$read_address2 0xb)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0x15) (register_file$write_data 0x0)
-  (state Decode)))
+  (register_file$write_enable 0x0) (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2208,7 +2289,7 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x57) (register_file$rs2 0x57) (register_file$store 0x0)
   (register_file$write_address 0xa) (register_file$write_data 0x0)
-  (state Load_regs)))
+  (register_file$write_enable 0x0) (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2219,7 +2300,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Load_mem)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2230,7 +2312,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x0) (state Execute)))
+  (register_file$write_data 0x0) (register_file$write_enable 0x0)
+  (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2241,7 +2324,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x1) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Writeback)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x1)
+  (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2252,7 +2336,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Fetch)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Fetch)))
 (Decode
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2263,7 +2348,8 @@
   (register_file$read_address1 0xa) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0xa)
-  (register_file$write_data 0x403e) (state Decode)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Decode)))
 (Load_regs
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2274,7 +2360,8 @@
   (register_file$read_address1 0x1) (register_file$read_address2 0x0)
   (register_file$rs1 0x403e) (register_file$rs2 0x0)
   (register_file$store 0x0) (register_file$write_address 0x0)
-  (register_file$write_data 0x403e) (state Load_regs)))
+  (register_file$write_data 0x403e) (register_file$write_enable 0x0)
+  (state Load_regs)))
 (Load_mem
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2285,7 +2372,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x403e)
-  (state Load_mem)))
+  (register_file$write_enable 0x0) (state Load_mem)))
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2296,7 +2383,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x403e)
-  (state Execute)))
+  (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2307,7 +2394,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x1)
   (register_file$write_address 0x0) (register_file$write_data 0x402c)
-  (state Writeback)))
+  (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2318,7 +2405,7 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x402c)
-  (state Fetch)))
+  (register_file$write_enable 0x0) (state Fetch)))
 (Error
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -2329,4 +2416,4 @@
   (register_file$read_address2 0x0) (register_file$rs1 0x0)
   (register_file$rs2 0x0) (register_file$store 0x0)
   (register_file$write_address 0x0) (register_file$write_data 0x402c)
-  (state Error)))
+  (register_file$write_enable 0x0) (state Error)))
