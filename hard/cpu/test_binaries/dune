@@ -73,7 +73,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 206 -program string_search))))
+   (run %{deps} -cycles 212 -program string_search))))
 
 (rule
  (target fibonacci.bin)

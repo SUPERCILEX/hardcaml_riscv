@@ -12,6 +12,7 @@ loop:
 
   bne a2, a1, loop
 
+  mv a0, a0
   ret
 
 fail:
