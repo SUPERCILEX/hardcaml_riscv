@@ -263,9 +263,9 @@ let rom
            (List.chunks_of ~length:bytes data
            |> List.transpose_exn
            |> List.map ~f:(fun byte_bank ->
-                mux (srl address (address_bits_for bytes)) byte_bank
-                |> reg (Reg_spec.create ~clock ())))
-         ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word)))
+                mux (srl address (address_bits_for bytes)) byte_bank))
+         ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
+       |> reg ~enable:(load_instruction |: load) (Reg_spec.create ~clock ()))
   ; error = store &: is_data_address_in_range |: (load_instruction &: load)
   }
 ;;
