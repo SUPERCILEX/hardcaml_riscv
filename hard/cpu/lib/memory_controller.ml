@@ -22,7 +22,7 @@ module I = struct
     ; program_counter : 'a [@bits Parameters.word_size]
     ; data_address : 'a [@bits Parameters.word_size]
     ; data_size : 'a Size.Binary.t
-    ; data : 'a [@bits Parameters.word_size] [@rtlname "data_in"]
+    ; write_data : 'a [@bits Parameters.word_size]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -30,7 +30,7 @@ end
 module O = struct
   type 'a t =
     { instruction : 'a [@bits 32]
-    ; data : 'a [@bits Parameters.word_size] [@rtlname "data_out"]
+    ; read_data : 'a [@bits Parameters.word_size]
     ; error : 'a
     }
   [@@deriving sexp_of, hardcaml]
@@ -186,7 +186,7 @@ let ram
   ; program_counter
   ; data_address
   ; data_size
-  ; data
+  ; write_data
   }
   =
   let open Signal in
@@ -217,7 +217,7 @@ let ram
          ; write_address = { Ram.Address.address = data_address; size = data_size }
          ; read_enable = load_instruction |: load
          ; write_enable = store &: is_data_address_in_range
-         ; write_data = data
+         ; write_data
          })
   ; error = load_instruction &: load
   }
@@ -234,7 +234,7 @@ let rom
   ; program_counter
   ; data_address
   ; data_size
-  ; data = _
+  ; write_data = _
   }
   =
   let open Signal in
@@ -280,7 +280,7 @@ let create
    ; program_counter
    ; data_address
    ; data_size
-   ; data = _
+   ; write_data = _
    } as i)
   =
   let open Signal in
@@ -317,7 +317,7 @@ let create
       ~f:(fun acc ({ Segment.data; _ } as segment) -> mux2 (is_in_range segment) data acc)
   in
   { O.instruction = fold_data (fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
-  ; data =
+  ; read_data =
       fold_data (fun { Segment.is_data_address_in_range; _ } -> is_data_address_in_range)
   ; error =
       (List.map segments ~f:(fun { Segment.error; _ } -> error)
@@ -362,7 +362,7 @@ module Tests = struct
     in
     Cyclesim.reset sim;
     let open Parameters in
-    inputs.data := of_int ~width:word_size 0xdeadbeef;
+    inputs.write_data := of_int ~width:word_size 0xdeadbeef;
     inputs.data_address := of_int ~width:word_size (stack_top - word_size);
     inputs.program_counter := of_int ~width:word_size code_bottom;
     Size.Binary.sim_set inputs.data_size Word;
@@ -401,38 +401,38 @@ module Tests = struct
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0))) |}]
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0))) |}]
   ;;
 
   let%expect_test "Sizes" =
@@ -469,7 +469,7 @@ module Tests = struct
       Size.Binary.sim_set inputs.data_size Byte;
       inputs.load := gnd;
       inputs.store := vdd;
-      inputs.data := of_int ~width:Parameters.word_size 0x69;
+      inputs.write_data := of_int ~width:Parameters.word_size 0x69;
       step ();
       inputs.load := vdd;
       inputs.store := gnd;
@@ -480,68 +480,68 @@ module Tests = struct
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe1) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xbe) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xbe) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe2) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xad) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xad) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe3) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xde) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xde) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe4) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe2) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xdead) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xdead) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe4) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fffffe1) (data_size 0x0)
-        (data 0x69))
-       ((instruction 0x0) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0x69))
+       ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
-        (data 0x69))
-       ((instruction 0x0) (data 0xdead69ef) (error 0x0))) |}]
+        (write_data 0x69))
+       ((instruction 0x0) (read_data 0xdead69ef) (error 0x0))) |}]
   ;;
 
   let%expect_test "Invalid addresses" =
@@ -564,33 +564,33 @@ module Tests = struct
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0xfffff) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0xfffff) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x110000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x80000000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7ffeffff) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0))) |}]
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0))) |}]
   ;;
 
   let%expect_test "Unaligned addresses" =
@@ -609,63 +609,63 @@ module Tests = struct
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1))) |}]
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1))) |}]
   ;;
 
   let%expect_test "Overlapping ops" =
@@ -701,166 +701,166 @@ module Tests = struct
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x0) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x0) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x3020100) (data 0x3020100) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x3020100) (read_data 0x3020100) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x3020100) (data 0x3020100) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x3020100) (read_data 0x3020100) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x3020100) (data 0x3020100) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x3020100) (read_data 0x3020100) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x3020100) (data 0x3020100) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x3020100) (read_data 0x3020100) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x7060504) (data 0x7060504) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x7060504) (read_data 0x7060504) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x7060504) (data 0x7060504) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x7060504) (read_data 0x7060504) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x7060504) (data 0x7060504) (error 0x1)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x7060504) (read_data 0x7060504) (error 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0x7060504) (data 0x7060504) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x7060504) (read_data 0x7060504) (error 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
-        (data 0xdeadbeef))
-       ((instruction 0xdeadbeef) (data 0xdeadbeef) (error 0x0))) |}]
+        (write_data 0xdeadbeef))
+       ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0))) |}]
   ;;
 
   let%expect_test "Simple boot rom" =
@@ -883,43 +883,43 @@ module Tests = struct
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4001) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x1) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x1) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4002) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x2) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x2) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4003) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x3) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x3) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4004) (data_size 0x0)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x4) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x4) (error 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4004) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x504) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x504) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4006) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x706) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x706) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4008) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0x908) (error 0x0)))
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0x908) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x400a) (data_size 0x1)
-        (data 0xdeadbeef))
-       ((instruction 0x0) (data 0xb0a) (error 0x0))) |}]
+        (write_data 0xdeadbeef))
+       ((instruction 0x0) (read_data 0xb0a) (error 0x0))) |}]
   ;;
 end
