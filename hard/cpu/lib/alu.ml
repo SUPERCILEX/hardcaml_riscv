@@ -87,6 +87,9 @@ let create _scope { I.pc; data; instruction; rs1; rs2; immediate } =
           ; Bge, [ jump <-- (rs1 >=: rs2) ]
           ; Bltu, [ jump <-- (rs1 <+ rs2) ]
           ; Bgeu, [ jump <-- (rs1 >=+ rs2) ]
+          ; Sb, [ rd <-- rs2 ]
+          ; Sh, [ rd <-- rs2 ]
+          ; Sw, [ rd <-- rs2 ]
           ; Addi, [ rd <-- rs1 +: immediate ]
           ; Slti, [ rd <-- uresize (rs1 <: immediate) 32 ]
           ; Sltiu, [ rd <-- uresize (rs1 <+ immediate) 32 ]
@@ -407,7 +410,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -420,7 +423,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -433,7 +436,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
+        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
