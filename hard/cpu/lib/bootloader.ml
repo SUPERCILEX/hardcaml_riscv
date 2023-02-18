@@ -10,6 +10,7 @@ module For_testing = struct
       | Invalid
       | Simple
       | String_search
+      | Fibonacci
     [@@deriving sexp_of, compare, enumerate]
   end
 
@@ -21,6 +22,10 @@ module For_testing = struct
       |> List.map ~f:Signal.of_char
     | String_search ->
       [%blob "cpu/test_binaries/strchr.bin"]
+      |> String.to_list
+      |> List.map ~f:Signal.of_char
+    | Fibonacci ->
+      [%blob "cpu/test_binaries/fibonacci.bin"]
       |> String.to_list
       |> List.map ~f:Signal.of_char
   ;;

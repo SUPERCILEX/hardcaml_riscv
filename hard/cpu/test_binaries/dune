@@ -74,3 +74,33 @@
   (with-outputs-to
    %{target}
    (run %{deps} -cycles 206 -program string_search))))
+
+(rule
+ (target fibonacci.bin)
+ (deps
+  (:src fibonacci.s)
+  sample.lds)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32i
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    fibonacci)
+   (run riscv64-linux-gnu-objcopy -O binary fibonacci %{target}))))
+
+(rule
+ (target fibonacci.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 11145 -program fibonacci))))
