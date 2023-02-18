@@ -25,6 +25,7 @@ module State = struct
     | Fetch
     | Decode
     | Load_regs
+    | Load_mem
     | Execute
     | Writeback
     | Error
@@ -83,20 +84,27 @@ let do_on_store instruction ~s =
     (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
 ;;
 
-let fetch
-  ~(sm : State.t Always.State_machine.t)
-  ~memory_controller:{ Memory_controller.I.load_instruction; _ }
-  =
+module Fetch_stage = struct
+  type 'a t = { load_instruction : 'a } [@@deriving sexp_of, hardcaml]
+end
+
+let fetch ~(sm : State.t Always.State_machine.t) { Fetch_stage.load_instruction } =
   let open Signal in
   Always.[ load_instruction <-- vdd; sm.set_next Decode ]
 ;;
 
 let decode ~(sm : State.t Always.State_machine.t) = [ sm.set_next Load_regs ]
 
+module Load_regs_stage = struct
+  type ('a, 'b) t =
+    { instruction : 'a Instruction.Binary.t
+    ; load_registers : 'b
+    }
+end
+
 let load_regs
   ~(sm : State.t Always.State_machine.t)
-  ~decoded:{ Decoder.O.instruction; _ }
-  ~load_registers
+  { Load_regs_stage.instruction; load_registers }
   =
   let open Signal in
   Always.
@@ -104,27 +112,25 @@ let load_regs
     ; if_
         (Instruction.Binary.Of_signal.is instruction Invalid)
         [ sm.set_next Error ]
-        [ sm.set_next Execute ]
+        [ sm.set_next Load_mem ]
     ]
 ;;
 
+module Load_mem_stage = struct
+  type ('a, 'b) t =
+    { instruction : 'a Instruction.Binary.t
+    ; load : 'b
+    ; data_size : 'b Memory_controller.Size.Binary.t
+    }
+end
+
 let load_mem
   ~(sm : State.t Always.State_machine.t)
-  ~loaded:{ Alu.I.instruction; rs1; rs2 = _; immediate; _ }
-  ~memory_controller:
-    { Memory_controller.I.clock = _
-    ; load_instruction = _
-    ; load
-    ; store = _
-    ; program_counter = _
-    ; data_address
-    ; data_size
-    ; data = _
-    }
+  { Load_mem_stage.instruction; load; data_size }
   =
   let open Signal in
   Always.
-    [ do_on_load instruction ~s:[ load <-- vdd; data_address <-- rs1 +: immediate ]
+    [ do_on_load instruction ~s:[ load <-- vdd ]
     ; Instruction.Binary.Of_always.match_
         ~default:[]
         instruction
@@ -145,20 +151,20 @@ let load_mem
 
 let execute ~(sm : State.t Always.State_machine.t) = [ sm.set_next Writeback ]
 
+module Writeback_stage = struct
+  type ('a, 'b) t =
+    { instruction : 'a Instruction.Binary.t
+    ; jump : 'a
+    ; jump_target : 'a
+    ; store : 'b
+    ; program_counter : 'b
+    ; data_size : 'b Memory_controller.Size.Binary.t
+    }
+end
+
 let writeback
   ~(sm : State.t Always.State_machine.t)
-  ~loaded:{ Alu.I.instruction; rs1; immediate; pc = _; data = _; rs2 = _ }
-  ~alu:{ Alu.O.rd; store = _; jump; jump_target }
-  ~memory_controller:
-    { Memory_controller.I.clock = _
-    ; load_instruction = _
-    ; load = _
-    ; store = mem_store
-    ; program_counter
-    ; data_address
-    ; data_size
-    ; data
-    }
+  { Writeback_stage.instruction; jump; jump_target; store; program_counter; data_size }
   =
   let open Signal in
   Always.
@@ -166,9 +172,7 @@ let writeback
         jump
         [ program_counter <-- jump_target ]
         [ program_counter <-- program_counter.value +:. 4 ]
-    ; do_on_store
-        instruction
-        ~s:[ mem_store <-- vdd; data_address <-- rs1 +: immediate; data <-- rd ]
+    ; do_on_store instruction ~s:[ store <-- vdd ]
     ; Instruction.Binary.Of_always.match_
         ~default:[]
         instruction
@@ -211,7 +215,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let decoder =
     Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
-    |> Decoder.O.map ~f:(reg spec)
+    |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode) spec)
   in
   let alu_feedback = Alu.O.Of_signal.wires () in
   let load_registers = Always.Variable.wire ~default:gnd in
@@ -223,21 +227,24 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~write_address:rd
       ~read_address1:rs1
       ~read_address2:rs2
-      ~write_enable:reg_store
+      ~write_enable:(reg_store &: sm.is Writeback)
       ~read_enable:load_registers.value
       ~write_data:alu_result
   in
-  let loaded =
-    let { Decoder.O.instruction; immediate; _ } = decoder in
-    { Alu.I.pc = memory_controller.program_counter.value
-    ; data = data_in
-    ; instruction
-    ; rs1
-    ; rs2
-    ; immediate
-    }
+  memory_controller.data_address.value <== rs1 +: decoder.immediate;
+  let alu =
+    Alu.circuit
+      scope
+      { Alu.I.pc = memory_controller.program_counter.value
+      ; data = data_in
+      ; instruction = decoder.instruction
+      ; rs1
+      ; rs2
+      ; immediate = decoder.immediate
+      }
+    |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec)
   in
-  let alu = Alu.circuit scope loaded |> Alu.O.map ~f:(reg spec) in
+  memory_controller.data.value <== alu.rd;
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =
     let ( -- ) = Scope.naming scope in
@@ -247,11 +254,33 @@ let create scope ~bootloader { I.clock; clear; uart } =
   Always.(
     compile
       [ sm.switch
-          [ Fetch, fetch ~sm ~memory_controller
+          [ ( Fetch
+            , fetch
+                ~sm
+                { Fetch_stage.load_instruction = memory_controller.load_instruction } )
           ; Decode, decode ~sm
-          ; Load_regs, load_regs ~sm ~decoded:decoder ~load_registers
-          ; Execute, load_mem ~sm ~loaded ~memory_controller @ execute ~sm
-          ; Writeback, writeback ~sm ~loaded ~alu ~memory_controller
+          ; ( Load_regs
+            , load_regs
+                ~sm
+                { Load_regs_stage.instruction = decoder.instruction; load_registers } )
+          ; ( Load_mem
+            , load_mem
+                ~sm
+                { Load_mem_stage.instruction = decoder.instruction
+                ; load = memory_controller.load
+                ; data_size = memory_controller.data_size
+                } )
+          ; Execute, execute ~sm
+          ; ( Writeback
+            , writeback
+                ~sm
+                { Writeback_stage.instruction = decoder.instruction
+                ; jump = alu.jump
+                ; jump_target = alu.jump_target
+                ; store = memory_controller.store
+                ; program_counter = memory_controller.program_counter
+                ; data_size = memory_controller.data_size
+                } )
           ; Error, []
           ]
       ; when_ invalid_address [ sm.set_next Error ]
@@ -487,7 +516,7 @@ module Tests = struct
   ;;
 
   let%expect_test "Simple program" =
-    sim ~program:(Bootloader.For_testing.sample Simple) ~termination:(( = ) 29);
+    sim ~program:(Bootloader.For_testing.sample Simple) ~termination:(( = ) 34);
     [%expect
       {|
       (Fetch
@@ -509,9 +538,9 @@ module Tests = struct
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
-       ((alu$binary_variant Addi) (alu$data 0) (alu$immediate 1) (alu$jump 0)
-        (alu$jump_target 0) (alu$pc 16384) (alu$rd 1) (alu$rs1 0) (alu$rs2 0)
-        (alu$store 1) (decoder$binary_variant Addi) (decoder$immediate 1)
+       ((alu$binary_variant Invalid) (alu$data 0) (alu$immediate 0) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16384) (alu$rd 0) (alu$rs1 0) (alu$rs2 0)
+        (alu$store 0) (decoder$binary_variant Addi) (decoder$immediate 1)
         (decoder$instruction_in 1048595) (decoder$rd 0) (decoder$rs1 0)
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
@@ -532,12 +561,28 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 0)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
         (register_file 0) (state Load_regs) (vdd 1)))
+      (Load_mem
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Addi) (alu$data 0) (alu$immediate 1) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16384) (alu$rd 1) (alu$rs1 0) (alu$rs2 0)
+        (alu$store 1) (decoder$binary_variant Addi) (decoder$immediate 1)
+        (decoder$instruction_in 1048595) (decoder$rd 0) (decoder$rs1 0)
+        (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
+        (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 0)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 1048595) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16384) (memory_controller$store 0)
+        (register_file 0) (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -548,7 +593,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 0)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -564,7 +609,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -580,7 +625,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
@@ -596,7 +641,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -612,12 +657,28 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
         (register_file 0) (state Load_regs) (vdd 1)))
+      (Load_mem
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Addi) (alu$data 0) (alu$immediate 1) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16388) (alu$rd 1) (alu$rs1 0) (alu$rs2 0)
+        (alu$store 1) (decoder$binary_variant Addi) (decoder$immediate 1)
+        (decoder$instruction_in 1049875) (decoder$rd 10) (decoder$rs1 0)
+        (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
+        (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 1049875) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16388) (memory_controller$store 0)
+        (register_file 0) (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -628,7 +689,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -644,7 +705,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -660,7 +721,7 @@ module Tests = struct
         (decoder$rs2 1) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
@@ -676,7 +737,7 @@ module Tests = struct
         (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -692,12 +753,28 @@ module Tests = struct
         (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
         (register_file 0) (state Load_regs) (vdd 1)))
+      (Load_mem
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Addi) (alu$data 0) (alu$immediate 3) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16392) (alu$rd 3) (alu$rs1 0) (alu$rs2 0)
+        (alu$store 1) (decoder$binary_variant Addi) (decoder$immediate 3)
+        (decoder$instruction_in 3147155) (decoder$rd 11) (decoder$rs1 0)
+        (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
+        (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 1)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 3147155) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16392) (memory_controller$store 0)
+        (register_file 0) (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -708,7 +785,7 @@ module Tests = struct
         (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 1)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -724,7 +801,7 @@ module Tests = struct
         (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 3)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -740,7 +817,7 @@ module Tests = struct
         (decoder$rs2 3) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0)
         (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 3)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
@@ -756,7 +833,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 3) (memory_controller$data_in 3)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -772,12 +849,28 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 0) (memory_controller$data_in 3)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
         (register_file 0) (state Load_regs) (vdd 1)))
+      (Load_mem
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Sll) (alu$data 0) (alu$immediate 0) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16396) (alu$rd 8) (alu$rs1 1) (alu$rs2 3)
+        (alu$store 1) (decoder$binary_variant Sll) (decoder$immediate 0)
+        (decoder$instruction_in 11867443) (decoder$rd 10) (decoder$rs1 10)
+        (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
+        (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 3)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 11867443) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16396) (memory_controller$store 0)
+        (register_file 0) (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -788,7 +881,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 3)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -804,7 +897,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 8)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -820,7 +913,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 8)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
@@ -836,7 +929,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 8)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -852,12 +945,28 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 1) (memory_controller$data_in 8)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
         (register_file 0) (state Load_regs) (vdd 1)))
+      (Load_mem
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Add) (alu$data 0) (alu$immediate 0) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16400) (alu$rd 11) (alu$rs1 8) (alu$rs2 3)
+        (alu$store 1) (decoder$binary_variant Add) (decoder$immediate 0)
+        (decoder$instruction_in 11863347) (decoder$rd 10) (decoder$rs1 10)
+        (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
+        (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 8)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 11863347) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16400) (memory_controller$store 0)
+        (register_file 0) (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -868,7 +977,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 8)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -884,7 +993,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 11)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -900,7 +1009,7 @@ module Tests = struct
         (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
         (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 11)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
@@ -916,7 +1025,7 @@ module Tests = struct
         (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0) (imem_0 0)
         (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 11)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -932,7 +1041,7 @@ module Tests = struct
         (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0) (imem_0 0)
         (imem_1 0) (imem_2 0) (load_registers 1)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 8) (memory_controller$data_in 11)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
@@ -948,7 +1057,7 @@ module Tests = struct
         (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0) (imem_0 0)
         (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
-        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_address 0) (memory_controller$data_in 11)
         (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
