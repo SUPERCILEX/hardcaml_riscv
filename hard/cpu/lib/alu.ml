@@ -68,31 +68,25 @@ let create _scope { I.pc; data; instruction; rs1; rs2; immediate } =
              ; And
              ]
           |> List.map ~f:(fun op -> op, [ store <-- vdd ]))
+      ; rd <-- data
+      ; jump_target <-- pc +: immediate
       ; Instruction.Binary.Of_always.match_
           ~default:[]
           instruction
           [ Lui, [ rd <-- immediate ]
           ; Auipc, [ rd <-- pc +: immediate ]
-          ; Jal, [ rd <-- pc +:. 4; jump <-- vdd; jump_target <-- pc +: immediate ]
+          ; Jal, [ rd <-- pc +:. 4; jump <-- vdd ]
           ; ( Jalr
             , [ rd <-- pc +:. 4
               ; jump <-- vdd
               ; jump_target <-- concat_msb [ msbs (rs1 +: immediate); gnd ]
               ] )
-          ; Beq, [ jump <-- (rs1 ==: rs2); jump_target <-- pc +: immediate ]
-          ; Bne, [ jump <-- (rs1 <>: rs2); jump_target <-- pc +: immediate ]
-          ; Blt, [ jump <-- (rs1 <: rs2); jump_target <-- pc +: immediate ]
-          ; Bge, [ jump <-- (rs1 >=: rs2); jump_target <-- pc +: immediate ]
-          ; Bltu, [ jump <-- (rs1 <+ rs2); jump_target <-- pc +: immediate ]
-          ; Bgeu, [ jump <-- (rs1 >=+ rs2); jump_target <-- pc +: immediate ]
-          ; Lb, [ rd <-- sresize (sel_bottom data 8) 32 ]
-          ; Lh, [ rd <-- sresize (sel_bottom data 16) 32 ]
-          ; Lw, [ rd <-- data ]
-          ; Lbu, [ rd <-- uresize (sel_bottom data 8) 32 ]
-          ; Lhu, [ rd <-- uresize (sel_bottom data 16) 32 ]
-          ; Sb, [ rd <-- uresize (sel_bottom rs2 8) 32 ]
-          ; Sh, [ rd <-- uresize (sel_bottom rs2 16) 32 ]
-          ; Sw, [ rd <-- rs2 ]
+          ; Beq, [ jump <-- (rs1 ==: rs2) ]
+          ; Bne, [ jump <-- (rs1 <>: rs2) ]
+          ; Blt, [ jump <-- (rs1 <: rs2) ]
+          ; Bge, [ jump <-- (rs1 >=: rs2) ]
+          ; Bltu, [ jump <-- (rs1 <+ rs2) ]
+          ; Bgeu, [ jump <-- (rs1 >=+ rs2) ]
           ; Addi, [ rd <-- rs1 +: immediate ]
           ; Slti, [ rd <-- uresize (rs1 <: immediate) 32 ]
           ; Sltiu, [ rd <-- uresize (rs1 <+ immediate) 32 ]
@@ -220,7 +214,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001011000) (int 88))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Auipc)
        (inputs
@@ -233,7 +227,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000010000000011000111100100) (int 4207076))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Jal)
        (inputs
@@ -270,7 +264,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -283,7 +277,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump true)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -296,7 +290,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -309,7 +303,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump true)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -322,7 +316,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -335,7 +329,7 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000000000) (int 0))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump true)
          (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
@@ -350,7 +344,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Lh)
        (inputs
@@ -363,7 +357,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Lw)
        (inputs
@@ -376,7 +370,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Lbu)
        (inputs
@@ -389,7 +383,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Lhu)
        (inputs
@@ -402,7 +396,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000101) (int 69))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sb)
        (inputs
@@ -413,9 +407,9 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sh)
        (inputs
@@ -426,9 +420,9 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sw)
        (inputs
@@ -439,9 +433,9 @@ module Tests = struct
          (rs2 ((bits 00000000000000000000000000101010) (int 42)))
          (immediate ((bits 00000000000000000000000001011000) (int 88)))))
        (outputs
-        ((rd ((bits 00000000000000000000000000101010) (int 42))) (store false)
+        ((rd ((bits 00000000000000000000000001000101) (int 69))) (store false)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Addi)
        (inputs
@@ -454,7 +448,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000010011101) (int 157))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Slti)
        (inputs
@@ -467,7 +461,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000001) (int 1))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sltiu)
        (inputs
@@ -480,7 +474,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000001) (int 1))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Xori)
        (inputs
@@ -493,7 +487,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000011101) (int 29))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Ori)
        (inputs
@@ -506,7 +500,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001011101) (int 93))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Andi)
        (inputs
@@ -519,7 +513,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001000000) (int 64))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Slli)
        (inputs
@@ -532,7 +526,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 01000101000000000000000000000000) (int 1157627904)))
          (store true) (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Srli)
        (inputs
@@ -545,7 +539,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Srai)
        (inputs
@@ -558,7 +552,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Add)
        (inputs
@@ -571,7 +565,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sub)
        (inputs
@@ -584,7 +578,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000011011) (int 27))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sll)
        (inputs
@@ -597,7 +591,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000010001010000000000) (int 70656))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Slt)
        (inputs
@@ -610,7 +604,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sltu)
        (inputs
@@ -623,7 +617,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Xor)
        (inputs
@@ -636,7 +630,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Srl)
        (inputs
@@ -649,7 +643,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Sra)
        (inputs
@@ -662,7 +656,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction Or)
        (inputs
@@ -675,7 +669,7 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0))))))
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076))))))
 
       ((instruction And)
        (inputs
@@ -688,6 +682,6 @@ module Tests = struct
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0))) (store true)
          (jump false)
-         (jump_target ((bits 00000000000000000000000000000000) (int 0)))))) |}]
+         (jump_target ((bits 00000000010000000011000111100100) (int 4207076)))))) |}]
   ;;
 end
