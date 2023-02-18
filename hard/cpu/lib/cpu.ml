@@ -32,44 +32,6 @@ module State = struct
   [@@deriving sexp_of, compare, enumerate]
 end
 
-let register_file
-  ~clock
-  ~write_address
-  ~read_address1
-  ~read_address2
-  ~write_enable
-  ~read_enable
-  ~write_data
-  =
-  let open Signal in
-  let _checks =
-    assert (width write_address = 5);
-    assert (width read_address1 = 5);
-    assert (width read_address2 = 5);
-    assert (width write_data = Parameters.word_size)
-  in
-  match
-    Ram.create
-      ~name:"register_file"
-      ~collision_mode:Read_before_write
-      ~size:32
-      ~write_ports:
-        [| { Ram.Write_port.write_clock = clock
-           ; write_address
-           ; write_enable = write_enable &: (write_address <>:. 0)
-           ; write_data
-           }
-        |]
-      ~read_ports:
-        [| { Ram.Read_port.read_clock = clock; read_address = read_address1; read_enable }
-         ; { Ram.Read_port.read_clock = clock; read_address = read_address2; read_enable }
-        |]
-      ()
-  with
-  | [| rs1; rs2 |] -> rs1, rs2
-  | _ -> assert false
-;;
-
 let do_on_load instruction ~s =
   Instruction.Binary.Of_always.match_
     ~default:[]
@@ -219,17 +181,19 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let alu_feedback = Alu.O.Of_signal.wires () in
   let load_registers = Always.Variable.wire ~default:gnd in
-  let rs1, rs2 =
+  let { Register_file.O.rs1; rs2 } =
     let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
     let { Decoder.O.rd; rs1; rs2; _ } = decoder in
-    register_file
-      ~clock
-      ~write_address:rd
-      ~read_address1:rs1
-      ~read_address2:rs2
-      ~write_enable:(reg_store &: sm.is Writeback)
-      ~read_enable:load_registers.value
-      ~write_data:alu_result
+    Register_file.circuit
+      scope
+      { Register_file.I.clock
+      ; write_address = rd
+      ; read_address1 = rs1
+      ; read_address2 = rs2
+      ; store = reg_store &: sm.is Writeback
+      ; load = load_registers.value
+      ; write_data = alu_result
+      }
   in
   memory_controller.data_address.value <== rs1 +: decoder.immediate;
   let alu =
@@ -464,7 +428,11 @@ module Tests = struct
         (memory_controller$instruction 50462976) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -480,7 +448,11 @@ module Tests = struct
         (memory_controller$instruction 50462976) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0) (state Decode)
+        (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -496,7 +468,11 @@ module Tests = struct
         (memory_controller$instruction 50462976) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 4) (register_file$read_address2 16)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 2) (register_file$write_data 0)
+        (state Load_regs) (vdd 1)))
       (Error
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -512,7 +488,11 @@ module Tests = struct
         (memory_controller$instruction 50462976) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Error) (vdd 1))) |}]
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 4) (register_file$read_address2 16)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 2) (register_file$write_data 0) (state Error)
+        (vdd 1))) |}]
   ;;
 
   let%expect_test "Simple program" =
@@ -534,7 +514,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -550,7 +534,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0) (state Decode)
+        (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -566,7 +554,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0)
+        (state Load_regs) (vdd 1)))
       (Load_mem
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -582,7 +574,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Load_mem) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0)
+        (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -598,7 +594,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Execute) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 0)
+        (state Execute) (vdd 1)))
       (Writeback
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -614,7 +614,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16384) (memory_controller$store 0)
-        (register_file 0) (state Writeback) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 1)
+        (register_file$write_address 0) (register_file$write_data 1)
+        (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -630,7 +634,11 @@ module Tests = struct
         (memory_controller$instruction 1048595) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 1) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -646,7 +654,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 1) (state Decode)
+        (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -662,7 +674,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 1)
+        (state Load_regs) (vdd 1)))
       (Load_mem
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -678,7 +694,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Load_mem) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 1)
+        (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -694,7 +714,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Execute) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 1)
+        (state Execute) (vdd 1)))
       (Writeback
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -710,7 +734,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16388) (memory_controller$store 0)
-        (register_file 0) (state Writeback) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 1)
+        (register_file$write_address 10) (register_file$write_data 1)
+        (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -726,7 +754,11 @@ module Tests = struct
         (memory_controller$instruction 1049875) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 1) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -742,7 +774,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 1)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 1)
+        (state Decode) (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -758,7 +794,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 11) (register_file$write_data 1)
+        (state Load_regs) (vdd 1)))
       (Load_mem
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -774,7 +814,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Load_mem) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 11) (register_file$write_data 1)
+        (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -790,7 +834,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Execute) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 11) (register_file$write_data 1)
+        (state Execute) (vdd 1)))
       (Writeback
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -806,7 +854,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16392) (memory_controller$store 0)
-        (register_file 0) (state Writeback) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 1)
+        (register_file$write_address 11) (register_file$write_data 3)
+        (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -822,7 +874,11 @@ module Tests = struct
         (memory_controller$instruction 3147155) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 11) (register_file$write_data 3) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -838,7 +894,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 3)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 11) (register_file$write_data 3)
+        (state Decode) (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -854,7 +914,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 3)
+        (state Load_regs) (vdd 1)))
       (Load_mem
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -870,7 +934,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Load_mem) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 3)
+        (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -886,7 +954,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Execute) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 3)
+        (state Execute) (vdd 1)))
       (Writeback
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -902,7 +974,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16396) (memory_controller$store 0)
-        (register_file 0) (state Writeback) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 1)
+        (register_file$write_address 10) (register_file$write_data 8)
+        (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -918,7 +994,11 @@ module Tests = struct
         (memory_controller$instruction 11867443) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 8) (state Fetch)
+        (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -934,7 +1014,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 8)
+        (state Decode) (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -950,7 +1034,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 1) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 8)
+        (state Load_regs) (vdd 1)))
       (Load_mem
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -966,7 +1054,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Load_mem) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 8)
+        (state Load_mem) (vdd 1)))
       (Execute
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -982,7 +1074,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Execute) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 8)
+        (state Execute) (vdd 1)))
       (Writeback
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -998,7 +1094,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16400) (memory_controller$store 0)
-        (register_file 0) (state Writeback) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 1)
+        (register_file$write_address 10) (register_file$write_data 11)
+        (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1014,7 +1114,11 @@ module Tests = struct
         (memory_controller$instruction 11863347) (memory_controller$load 0)
         (memory_controller$load_instruction 1)
         (memory_controller$program_counter 16404) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 11)
+        (state Fetch) (vdd 1)))
       (Decode
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1030,7 +1134,11 @@ module Tests = struct
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16404) (memory_controller$store 0)
-        (register_file 0) (state Decode) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 10) (register_file$read_address2 11)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 10) (register_file$write_data 11)
+        (state Decode) (vdd 1)))
       (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1046,7 +1154,11 @@ module Tests = struct
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16404) (memory_controller$store 0)
-        (register_file 0) (state Load_regs) (vdd 1)))
+        (register_file 0) (register_file$clock 0) (register_file$load 1)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 8) (register_file$rs2 3) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 11)
+        (state Load_regs) (vdd 1)))
       (Error
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
@@ -1062,6 +1174,10 @@ module Tests = struct
         (memory_controller$instruction 0) (memory_controller$load 0)
         (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16404) (memory_controller$store 0)
-        (register_file 0) (state Error) (vdd 1))) |}]
+        (register_file 0) (register_file$clock 0) (register_file$load 0)
+        (register_file$read_address1 0) (register_file$read_address2 0)
+        (register_file$rs1 0) (register_file$rs2 0) (register_file$store 0)
+        (register_file$write_address 0) (register_file$write_data 11) (state Error)
+        (vdd 1))) |}]
   ;;
 end
