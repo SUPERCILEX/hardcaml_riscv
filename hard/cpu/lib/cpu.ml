@@ -487,7 +487,7 @@ module Tests = struct
   ;;
 
   let%expect_test "Simple program" =
-    sim ~program:(Bootloader.For_testing.sample Simple) ~termination:(( = ) 27);
+    sim ~program:(Bootloader.For_testing.sample Simple) ~termination:(( = ) 29);
     [%expect
       {|
       (Fetch
@@ -892,7 +892,23 @@ module Tests = struct
         (register_file 0) (state Writeback) (vdd 1)))
       (Fetch
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
-       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Add) (alu$data 0) (alu$immediate 0) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16404) (alu$rd 11) (alu$rs1 8) (alu$rs2 3)
+        (alu$store 1) (decoder$binary_variant Add) (decoder$immediate 0)
+        (decoder$instruction_in 11863347) (decoder$rd 10) (decoder$rs1 10)
+        (decoder$rs2 11) (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0)
+        (imem 0) (imem_0 0) (imem_1 0) (imem_2 0) (load_registers 0)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 11863347) (memory_controller$load 0)
+        (memory_controller$load_instruction 1)
+        (memory_controller$program_counter 16404) (memory_controller$store 0)
+        (register_file 0) (state Fetch) (vdd 1)))
+      (Decode
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 0) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
        ((alu$binary_variant Add) (alu$data 0) (alu$immediate 0) (alu$jump 0)
         (alu$jump_target 0) (alu$pc 16404) (alu$rd 11) (alu$rs1 8) (alu$rs2 3)
         (alu$store 1) (decoder$binary_variant Invalid) (decoder$immediate 0)
@@ -901,16 +917,32 @@ module Tests = struct
         (imem_1 0) (imem_2 0) (load_registers 0)
         (memory_controller$binary_variant Byte) (memory_controller$clock 0)
         (memory_controller$data_address 0) (memory_controller$data_in 0)
-        (memory_controller$data_out 0) (memory_controller$error 1)
+        (memory_controller$data_out 0) (memory_controller$error 0)
         (memory_controller$instruction 0) (memory_controller$load 0)
-        (memory_controller$load_instruction 1)
+        (memory_controller$load_instruction 0)
         (memory_controller$program_counter 16404) (memory_controller$store 0)
-        (register_file 0) (state Fetch) (vdd 1)))
-      (Error
+        (register_file 0) (state Decode) (vdd 1)))
+      (Load_regs
        ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
        ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
        ((alu$binary_variant Invalid) (alu$data 0) (alu$immediate 0) (alu$jump 0)
         (alu$jump_target 0) (alu$pc 16404) (alu$rd 0) (alu$rs1 8) (alu$rs2 3)
+        (alu$store 0) (decoder$binary_variant Invalid) (decoder$immediate 0)
+        (decoder$instruction_in 0) (decoder$rd 0) (decoder$rs1 0) (decoder$rs2 0)
+        (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0) (imem_0 0)
+        (imem_1 0) (imem_2 0) (load_registers 1)
+        (memory_controller$binary_variant Byte) (memory_controller$clock 0)
+        (memory_controller$data_address 0) (memory_controller$data_in 0)
+        (memory_controller$data_out 0) (memory_controller$error 0)
+        (memory_controller$instruction 0) (memory_controller$load 0)
+        (memory_controller$load_instruction 0)
+        (memory_controller$program_counter 16404) (memory_controller$store 0)
+        (register_file 0) (state Load_regs) (vdd 1)))
+      (Error
+       ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+       ((error 1) (uart ((write_data 65) (write_ready 1) (read_ready 1))))
+       ((alu$binary_variant Invalid) (alu$data 0) (alu$immediate 0) (alu$jump 0)
+        (alu$jump_target 0) (alu$pc 16404) (alu$rd 0) (alu$rs1 0) (alu$rs2 0)
         (alu$store 0) (decoder$binary_variant Invalid) (decoder$immediate 0)
         (decoder$instruction_in 0) (decoder$rd 0) (decoder$rs1 0) (decoder$rs2 0)
         (dmem 0) (dmem_0 0) (dmem_1 0) (dmem_2 0) (gnd 0) (imem 0) (imem_0 0)
