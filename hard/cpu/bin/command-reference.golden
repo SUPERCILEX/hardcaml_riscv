@@ -5,9 +5,10 @@ Hardware dev tools
 === subcommands and flags ===
 
   waves                      . Open waveform viewer
-  . -cycles Number, -n       . of cycles to simulate
-  . -program Program         . to simulate (can be: Invalid, Simple,
+  . -cycles N, -n            . Number of cycles to simulate
+  . -program NAME            . Program to simulate (can be: Invalid, Simple,
                                String_search)
+  . [-start-cycle N]         . Start cycle
   version                    . print version information
   . [-build-info]            . print build info for this build
   . [-version]               . print the version of this build

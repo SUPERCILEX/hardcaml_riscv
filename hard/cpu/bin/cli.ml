@@ -7,12 +7,13 @@ let waves =
       let%map_open cycles =
         flag
           ~aliases:[ "-n" ]
-          ~doc:"Number of cycles to simulate"
+          ~doc:"N Number of cycles to simulate"
           "-cycles"
           (required int)
+      and start_cycle = flag ~doc:"N Start cycle" "-start-cycle" (optional int)
       and program =
         flag
-          ~doc:"Program to simulate"
+          ~doc:"NAME Program to simulate"
           "-program"
           (required
              (Arg_type.enumerated_sexpable
@@ -23,6 +24,7 @@ let waves =
         Cpu.Tests.waves ~program ~cycles (fun ~display_rules waves ->
           Hardcaml_waveterm_interactive.run
             ~signals_width:30
+            ?start_cycle
             ~wave_width:5
             ~display_rules
             waves))
