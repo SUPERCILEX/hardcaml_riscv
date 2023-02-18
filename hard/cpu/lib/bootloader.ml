@@ -9,6 +9,7 @@ module For_testing = struct
     type t =
       | Invalid
       | Simple
+      | String_search
     [@@deriving sexp_of, compare, enumerate]
   end
 
@@ -16,6 +17,10 @@ module For_testing = struct
     | Sample_programs.Invalid -> List.init 8 ~f:(Signal.of_int ~width:8)
     | Simple ->
       [%blob "cpu/test_binaries/simple.bin"]
+      |> String.to_list
+      |> List.map ~f:Signal.of_char
+    | String_search ->
+      [%blob "cpu/test_binaries/strchr.bin"]
       |> String.to_list
       |> List.map ~f:Signal.of_char
   ;;

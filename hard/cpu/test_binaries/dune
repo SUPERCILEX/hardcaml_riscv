@@ -17,3 +17,22 @@
      -o
      simple)
     (run riscv64-linux-gnu-objcopy -O binary simple %{target})))))
+
+(rule
+ (target strchr.bin)
+ (deps
+  (:src strchr.s)
+  sample.lds)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32i
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -Tsample.lds
+    %{src}
+    -o
+    strchr)
+   (run riscv64-linux-gnu-objcopy -O binary strchr %{target}))))

@@ -6,7 +6,8 @@ Hardware dev tools
 
   waves                      . Open waveform viewer
   . -cycles Number, -n       . of cycles to simulate
-  . -program Program         . to simulate (can be: Invalid, Simple)
+  . -program Program         . to simulate (can be: Invalid, Simple,
+                               String_search)
   version                    . print version information
   . [-build-info]            . print build info for this build
   . [-version]               . print the version of this build
