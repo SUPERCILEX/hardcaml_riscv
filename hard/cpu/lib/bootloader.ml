@@ -12,6 +12,7 @@ module For_testing = struct
       | String_search
       | Fibonacci
       | Atoi
+      | Uart_echo
     [@@deriving sexp_of, compare, enumerate]
   end
 
@@ -23,5 +24,6 @@ module For_testing = struct
     | String_search -> bin [%blob "cpu/test_binaries/strchr.bin"]
     | Fibonacci -> bin [%blob "cpu/test_binaries/fibonacci.bin"]
     | Atoi -> bin [%blob "cpu/test_binaries/atoi.bin"]
+    | Uart_echo -> bin [%blob "cpu/test_binaries/uart_echo.bin"]
   ;;
 end

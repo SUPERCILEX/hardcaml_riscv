@@ -109,7 +109,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4084)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4008) (alu$pc 0x4008) (alu$rd 0x0) (alu$rs1 0x0)
@@ -175,7 +175,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x1) (alu$jump 0x0)
   (alu$jump_target 0x4011) (alu$pc 0x4010) (alu$rd 0x1) (alu$rs1 0x0)
@@ -230,7 +230,7 @@
   (register_file$write_address 0x10) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Beq) (alu$immediate 0x50) (alu$jump 0x0)
   (alu$jump_target 0x4064) (alu$pc 0x4014) (alu$rd 0x0) (alu$rs1 0x4084)
@@ -351,7 +351,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Bne) (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x402c) (alu$pc 0x4024) (alu$rd 0x0) (alu$rs1 0x2d)
@@ -362,7 +362,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Bne) (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x402c) (alu$pc 0x4024) (alu$rd 0x0) (alu$rs1 0x2d)
@@ -472,7 +472,7 @@
   (register_file$write_address 0xc) (register_file$write_data 0x2d)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Bne) (alu$immediate 0xc) (alu$jump 0x0)
   (alu$jump_target 0x4038) (alu$pc 0x402c) (alu$rd 0x0) (alu$rs1 0x2d)
@@ -549,7 +549,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4085)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0xffffffff) (alu$jump 0x0)
   (alu$jump_target 0x4033) (alu$pc 0x4034) (alu$rd 0xffffffff) (alu$rs1 0x0)
@@ -593,7 +593,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0xffffffff)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Lb) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4038) (alu$pc 0x4038) (alu$rd 0x0) (alu$rs1 0x4085)
@@ -714,7 +714,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4044) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x0)
@@ -736,7 +736,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Slli) (alu$immediate 0x3) (alu$jump 0x0)
   (alu$jump_target 0x4047) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x0)
@@ -835,7 +835,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x4050) (alu$rd 0x0) (alu$rs1 0x0)
@@ -923,7 +923,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4058) (alu$rd 0x1) (alu$rs1 0x0)
@@ -956,7 +956,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x1) (alu$jump 0x0)
   (alu$jump_target 0x4059) (alu$pc 0x4058) (alu$rd 0x4086) (alu$rs1 0x4085)
@@ -1077,7 +1077,7 @@
   (register_file$write_address 0xb) (register_file$write_data 0x2058263)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Beq) (alu$immediate 0x24) (alu$jump 0x0)
   (alu$jump_target 0x4060) (alu$pc 0x403c) (alu$rd 0x0) (alu$rs1 0x32)
@@ -1110,7 +1110,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Beq) (alu$immediate 0x24) (alu$jump 0x0)
   (alu$jump_target 0x4064) (alu$pc 0x4040) (alu$rd 0x0) (alu$rs1 0x32)
@@ -1198,7 +1198,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x8)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Slli) (alu$immediate 0x3) (alu$jump 0x0)
   (alu$jump_target 0x404b) (alu$pc 0x4048) (alu$rd 0x8) (alu$rs1 0x1)
@@ -1297,7 +1297,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xa)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0xffffffd0) (alu$jump 0x0)
   (alu$jump_target 0x4020) (alu$pc 0x4050) (alu$rd 0x2) (alu$rs1 0x32)
@@ -1319,7 +1319,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x2)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0xffffffd0) (alu$jump 0x0)
   (alu$jump_target 0x4024) (alu$pc 0x4054) (alu$rd 0x2) (alu$rs1 0x32)
@@ -1440,7 +1440,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4087)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Jal) (alu$immediate 0xffffffdc) (alu$jump 0x1)
   (alu$jump_target 0x4038) (alu$pc 0x405c) (alu$rd 0x4060) (alu$rs1 0x0)
@@ -1484,7 +1484,7 @@
   (register_file$write_address 0xb) (register_file$write_data 0x50583)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Lb) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4038) (alu$pc 0x4038) (alu$rd 0x0) (alu$rs1 0x4087)
@@ -1561,7 +1561,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4040) (alu$pc 0x4040) (alu$rd 0xc) (alu$rs1 0xc)
@@ -1671,7 +1671,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x404c) (alu$pc 0x404c) (alu$rd 0x6c) (alu$rs1 0x60)
@@ -1682,7 +1682,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x404c) (alu$pc 0x404c) (alu$rd 0x6c) (alu$rs1 0x60)
@@ -1803,7 +1803,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x7b)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4058) (alu$rd 0x7b) (alu$rs1 0x78)
@@ -1858,7 +1858,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4088)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x1) (alu$jump 0x0)
   (alu$jump_target 0x405d) (alu$pc 0x405c) (alu$rd 0x4088) (alu$rs1 0x4087)
@@ -1924,7 +1924,7 @@
   (register_file$write_address 0xb) (register_file$write_data 0x50583)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Lb) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4038) (alu$pc 0x4038) (alu$rd 0x0) (alu$rs1 0x4088)
@@ -2045,7 +2045,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Slli) (alu$immediate 0x3) (alu$jump 0x0)
   (alu$jump_target 0x4047) (alu$pc 0x4044) (alu$rd 0x3d8) (alu$rs1 0x7b)
@@ -2173,7 +2173,7 @@
   (register_file$write_data 0x4ce) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x4050) (alu$rd 0x4ce) (alu$rs1 0x453)
@@ -2240,7 +2240,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Add) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4054) (alu$rd 0x4d2) (alu$rs1 0x4ce)
@@ -2295,7 +2295,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4089)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Addi) (alu$immediate 0x1) (alu$jump 0x0)
   (alu$jump_target 0x405d) (alu$pc 0x405c) (alu$rd 0x4089) (alu$rs1 0x4088)
@@ -2416,7 +2416,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Beq) (alu$immediate 0x24) (alu$jump 0x1)
   (alu$jump_target 0x4060) (alu$pc 0x403c) (alu$rd 0x0) (alu$rs1 0x0)
@@ -2427,7 +2427,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Beq) (alu$immediate 0x24) (alu$jump 0x1)
   (alu$jump_target 0x4084) (alu$pc 0x4060) (alu$rd 0x0) (alu$rs1 0x0)
@@ -2537,7 +2537,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x9a4)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Slt) (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4068) (alu$pc 0x4068) (alu$rd 0x0) (alu$rs1 0x0)
@@ -2618,7 +2618,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 1) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Slli) (alu$immediate 0x1f) (alu$jump 0x0)
   (alu$jump_target 0x408f) (alu$pc 0x4070) (alu$rd 0x0) (alu$rs1 0x0)
@@ -2662,7 +2662,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Srai) (alu$immediate 0x1f) (alu$jump 0x0)
   (alu$jump_target 0x4093) (alu$pc 0x4074) (alu$rd 0x0) (alu$rs1 0x0)
@@ -2783,7 +2783,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4080)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 1))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
  ((alu$binary_variant Jalr) (alu$immediate 0x0) (alu$jump 0x1)
   (alu$jump_target 0x0) (alu$pc 0x0) (alu$rd 0x4) (alu$rs1 0x0) (alu$rs2 0x0)

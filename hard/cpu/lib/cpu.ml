@@ -125,7 +125,6 @@ let writeback
 let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
-  let sm = Always.State_machine.create (module State) spec in
   let memory_controller =
     { (Memory_controller.I.Of_always.wire zero) with
       program_counter =
@@ -140,6 +139,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; read_data = memory_read_data
       ; error = invalid_address
       ; uart = uart_out
+      ; stall
       }
     =
     Memory_controller.circuit
@@ -147,6 +147,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { (Memory_controller.I.Of_always.value memory_controller) with clock; uart }
       ~bootloader
   in
+  let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
     decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
@@ -244,6 +245,8 @@ module Tests = struct
     in
     reset ();
     let rec run i =
+      inputs.uart.read_done := if i % 11 = 0 then vdd else gnd;
+      inputs.uart.write_done := if i % 17 = 0 then vdd else gnd;
       Cyclesim.cycle sim;
       if step i then () else run (i + 1)
     in

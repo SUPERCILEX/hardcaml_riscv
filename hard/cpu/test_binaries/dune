@@ -134,3 +134,33 @@
   (with-outputs-to
    %{target}
    (run %{deps} -cycles 254 -program atoi))))
+
+(rule
+ (target uart_echo.bin)
+ (deps
+  (:src uart_echo.s)
+  sample.lds)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32i
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    uart_echo)
+   (run riscv64-linux-gnu-objcopy -O binary uart_echo %{target}))))
+
+(rule
+ (target uart_echo.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 21 -program uart_echo))))
