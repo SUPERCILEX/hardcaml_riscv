@@ -7,7 +7,7 @@ module I = struct
   type 'a t =
     { clock : 'a
     ; clear : 'a
-    ; uart : 'a Uart.I.t
+    ; uart : 'a Uart.I.t [@rtlmangle true]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -15,7 +15,7 @@ end
 module O = struct
   type 'a t =
     { error : 'a
-    ; uart : 'a Uart.O.t
+    ; uart : 'a Uart.O.t [@rtlmangle true]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -139,11 +139,12 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let { Memory_controller.O.instruction = raw_instruction
       ; read_data = memory_read_data
       ; error = invalid_address
+      ; uart = uart_out
       }
     =
     Memory_controller.circuit
       scope
-      { (Memory_controller.I.Of_always.value memory_controller) with clock }
+      { (Memory_controller.I.Of_always.value memory_controller) with clock; uart }
       ~bootloader
   in
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
@@ -221,45 +222,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ]
       ; when_ invalid_address [ sm.set_next Error ]
       ]);
-  let counter = Always.Variable.reg ~width:10 spec in
-  let raw_data =
-    "A description of the events in figure 4 follows:\n\n\
-    \  The Master puts an address on the Write Address channel and data on the Write \
-     data channel. At the same time it asserts AWVALID and WVALID indicating the address \
-     and data on the respective channels is valid. BREADY is also asserted by the \
-     Master, indicating it is ready to receive a response.\n\
-    \  The Slave asserts AWREADY and WREADY on the Write Address and Write Data \
-     channels, respectively.\n\
-    \  Since Valid and Ready signals are present on both the Write Address and Write \
-     Data channels, the handshakes on those channels occur and the associated Valid and \
-     Ready signals can be deasserted. (After both handshakes occur, the slave has the \
-     write address and data)\n\
-    \  The Slave asserts BVALID, indicating there is a valid reponse on the Write \
-     response channel. (in this case the response is 2’b00, that being ‘OKAY’).\n\
-    \  The next rising clock edge completes the transaction, with both the Ready and \
-     Valid signals on the write response channel high."
-    |> String.to_list
-    |> List.map ~f:of_char
-  in
-  let is_dumping = counter.value <:. List.length raw_data in
-  let data = mux counter.value raw_data |> reg spec in
-  let pending_write = Always.Variable.reg ~width:1 spec in
-  let pending_data = Always.Variable.reg ~width:8 spec in
-  Always.(
-    compile
-      [ when_
-          (uart.write_done &: ~:is_dumping &: pending_write.value)
-          [ pending_write <-- gnd ]
-      ; when_ (uart.write_done &: is_dumping) [ counter <-- counter.value +:. 1 ]
-      ; when_ uart.read_done [ pending_write <-- vdd; pending_data <-- uart.read_data ]
-      ]);
-  { O.error = sm.is Error
-  ; uart =
-      { Uart.O.write_data = mux2 is_dumping data pending_data.value
-      ; write_ready = is_dumping |: pending_write.value
-      ; read_ready = ~:(pending_write.value)
-      }
-  }
+  { O.error = sm.is Error; uart = uart_out }
 ;;
 
 let circuit scope =

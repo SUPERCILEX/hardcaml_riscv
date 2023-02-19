@@ -6,7 +6,7 @@ module I = struct
     { clock : 'a
     ; reset : 'a
     ; receive : 'a
-    ; uart : 'a Cpu.Uart.O.t [@rtlname "uart_in"]
+    ; uart : 'a Cpu.Uart.O.t
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -14,7 +14,7 @@ end
 module O = struct
   type 'a t =
     { transmit : 'a
-    ; uart : 'a Cpu.Uart.I.t [@rtlname "uart_out"]
+    ; uart : 'a Cpu.Uart.I.t
     }
   [@@deriving sexp_of, hardcaml]
 end
