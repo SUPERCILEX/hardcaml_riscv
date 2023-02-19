@@ -166,9 +166,7 @@ end
 
 module Segment = struct
   type 'a t =
-    { is_pc_in_range : 'a
-    ; is_data_address_in_range : 'a
-    ; read_data : 'a [@bits Parameters.word_size]
+    { read_data : 'a [@bits Parameters.word_size]
     ; error : 'a
     }
   [@@deriving sexp_of, hardcaml]
@@ -176,11 +174,9 @@ end
 
 module Local_ram = struct
   let create
-    scope
+    _scope
     ~name
     ~size
-    ~is_in_range
-    ~route
     { I.clock
     ; load_instruction
     ; load
@@ -197,47 +193,34 @@ module Local_ram = struct
         let size = size
       end)
     in
-    let is_pc_in_range, is_data_address_in_range =
-      is_in_range program_counter, is_in_range data_address
-    in
-    let load_instruction = load_instruction &: is_pc_in_range in
-    let load = load &: is_data_address_in_range in
-    { Segment.is_pc_in_range
-    ; is_data_address_in_range
-    ; read_data =
-        (let program_counter, data_address =
-           let route address = route address ~bits:Ram.address_bits in
-           route program_counter, route data_address
-         in
-         Ram.ram
-           ~name
-           { Ram.I.clock
-           ; read_address =
-               { Ram.Address.address = mux2 load data_address program_counter
-               ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
-               }
-           ; write_address = { Ram.Address.address = data_address; size = data_size }
-           ; read_enable = load_instruction |: load
-           ; write_enable = store &: is_data_address_in_range
-           ; write_data
-           })
+    { Segment.read_data =
+        Ram.ram
+          ~name
+          { Ram.I.clock
+          ; read_address =
+              { Ram.Address.address = mux2 load data_address program_counter
+              ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
+              }
+          ; write_address = { Ram.Address.address = data_address; size = data_size }
+          ; read_enable = load_instruction |: load
+          ; write_enable = store
+          ; write_data
+          }
     ; error = load_instruction &: load
     }
-    |> Segment.Of_signal.apply_names ~naming_op:(Scope.naming scope)
   ;;
 
-  let circuit scope ~name ~size ~is_in_range ~route =
+  let circuit scope ~name ~size =
     let module H = Hierarchy.In_scope (I) (Segment) in
-    H.hierarchical ~scope ~name (create ~name ~size ~is_in_range ~route)
+    let module D = Debugging.In_scope (I) (Segment) in
+    H.hierarchical ~scope ~name (D.create ~create_fn:(create ~name ~size))
   ;;
 end
 
 module Rom = struct
   let create
-    scope
+    _scope
     ~data
-    ~is_in_range
-    ~route
     { I.clock
     ; load_instruction
     ; load
@@ -250,24 +233,9 @@ module Rom = struct
     =
     let open Signal in
     List.iter data ~f:(fun data -> assert (width data = 8));
-    let size = List.length data in
-    let is_pc_in_range, is_data_address_in_range =
-      let is_in_range address = is_in_range address ~size in
-      is_in_range program_counter, is_in_range data_address
-    in
-    let load_instruction = load_instruction &: is_pc_in_range in
-    let load = load &: is_data_address_in_range in
-    { Segment.is_pc_in_range
-    ; is_data_address_in_range
-    ; read_data =
+    { Segment.read_data =
         (let bytes = 4 in
-         let address =
-           let program_counter, data_address =
-             let route address = route address ~bits:(address_bits_for size) in
-             route program_counter, route data_address
-           in
-           mux2 load data_address program_counter
-         in
+         let address = mux2 load data_address program_counter in
          combine_data
            ~bank_selector:(sel_bottom address (address_bits_for bytes))
            ~data:
@@ -277,87 +245,97 @@ module Rom = struct
                   mux (srl address (address_bits_for bytes)) byte_bank))
            ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
          |> reg ~enable:(load_instruction |: load) (Reg_spec.create ~clock ()))
-    ; error = store &: is_data_address_in_range |: (load_instruction &: load)
+    ; error = store |: (load_instruction &: load)
     }
-    |> Segment.Of_signal.apply_names ~naming_op:(Scope.naming scope)
   ;;
 
-  let circuit scope ~name ~data ~is_in_range ~route =
+  let circuit scope ~name ~data =
     let module H = Hierarchy.In_scope (I) (Segment) in
-    H.hierarchical ~scope ~name (create ~data ~is_in_range ~route)
+    let module D = Debugging.In_scope (I) (Segment) in
+    H.hierarchical ~scope ~name (D.create ~create_fn:(create ~data))
   ;;
 end
 
 let create
   scope
   ~bootloader
-  ({ I.clock = _
-   ; load_instruction
-   ; load
-   ; store
-   ; program_counter
-   ; data_address
-   ; data_size
-   ; write_data = _
-   } as i)
+  { I.clock
+  ; load_instruction
+  ; load
+  ; store
+  ; program_counter
+  ; data_address
+  ; data_size
+  ; write_data
+  }
   =
   let open Signal in
   let segments =
-    [ Local_ram.circuit
-        scope
-        ~size:Parameters.imem_size
-        ~name:"imem"
-        ~is_in_range:(fun address ->
-          Parameters.(address >=:. code_bottom &: (address <:. code_bottom + imem_size)))
-        ~route:(fun address ~bits -> uresize (address -:. Parameters.code_bottom) bits)
-        i
-    ; Local_ram.circuit
-        scope
-        ~size:Parameters.dmem_size
-        ~name:"dmem"
-        ~is_in_range:(fun address ->
-          Parameters.(address >=:. stack_top - dmem_size &: (address <:. stack_top)))
-        ~route:(fun address ~bits ->
-          uresize (address -:. Parameters.(stack_top - dmem_size)) bits)
-        i
-    ; Rom.circuit
-        scope
-        ~name:"bootloader"
-        ~data:bootloader
-        ~is_in_range:(fun address ~size ->
-          Parameters.(
-            address >=:. bootloader_start &: (address <:. bootloader_start + size)))
-        ~route:(fun address ~bits ->
-          uresize (address -:. Parameters.bootloader_start) bits)
-        i
+    let build_input ~is_in_range ~route =
+      { I.clock
+      ; load_instruction = load_instruction &: is_in_range program_counter
+      ; load = load &: is_in_range data_address
+      ; store = store &: is_in_range data_address
+      ; program_counter = route program_counter
+      ; data_address = route data_address
+      ; data_size
+      ; write_data
+      }
+    in
+    [ (let open Parameters in
+      let size = imem_size in
+      let input =
+        build_input
+          ~is_in_range:(fun address ->
+            address >=:. code_bottom &: (address <:. code_bottom + imem_size))
+          ~route:(code_bottom |> Fn.flip ( -:. ))
+      in
+      input, Local_ram.circuit scope ~size ~name:"imem" input)
+    ; (let open Parameters in
+      let size = dmem_size in
+      let input =
+        build_input
+          ~is_in_range:(fun address ->
+            address >=:. stack_top - dmem_size &: (address <:. stack_top))
+          ~route:(stack_top - dmem_size |> Fn.flip ( -:. ))
+      in
+      input, Local_ram.circuit scope ~size ~name:"dmem" input)
+    ; (let open Parameters in
+      let input =
+        build_input
+          ~is_in_range:(fun address ->
+            address
+            >=:. bootloader_start
+            &: (address <:. bootloader_start + List.length bootloader))
+          ~route:(bootloader_start |> Fn.flip ( -:. ))
+      in
+      input, Rom.circuit scope ~name:"bootloader" ~data:bootloader input)
     ]
   in
-  let fold_data is_in_range =
-    List.fold
-      ~init:(List.hd_exn segments).read_data
-      segments
-      ~f:(fun acc ({ Segment.read_data; _ } as segment) ->
-      mux2 (is_in_range segment) read_data acc)
+  let read_data activator =
+    mux
+      (let activations = List.map segments ~f:activator in
+       List.mapi activations ~f:(fun i active ->
+         sresize active (address_bits_for (List.length segments)) &:. i)
+       |> List.reduce_exn ~f:( |: )
+       |> reg ~enable:(List.reduce_exn activations ~f:( |: )) (Reg_spec.create ~clock ()))
+      (List.map segments ~f:(fun (_, { Segment.read_data; _ }) -> read_data))
   in
-  { O.instruction = fold_data (fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
-  ; read_data =
-      fold_data (fun { Segment.is_data_address_in_range; _ } -> is_data_address_in_range)
+  { O.instruction = read_data (fun ({ I.load_instruction; _ }, _) -> load_instruction)
+  ; read_data = read_data (fun ({ I.load; _ }, _) -> load)
   ; error =
-      (List.map segments ~f:(fun { Segment.error; _ } -> error)
+      List.map segments ~f:(fun (_, { Segment.error; _ }) -> error)
       @ [ is_unaligned_address ~size:data_size data_address &: (load |: store)
         ; is_unaligned_address ~size:(Size.Binary.Of_signal.of_enum Word) program_counter
           &: load_instruction
         ]
-      @
-      let any_in_range = List.reduce_exn ~f:( |: ) in
-      [ ~:(List.map segments ~f:(fun { Segment.is_pc_in_range; _ } -> is_pc_in_range)
-          |> any_in_range)
-        &: load_instruction
-      ; ~:(List.map segments ~f:(fun { Segment.is_data_address_in_range; _ } ->
-             is_data_address_in_range)
-          |> any_in_range)
-        &: (load |: store)
-      ])
+      @ [ ~:(List.map segments ~f:(fun ({ I.load_instruction; _ }, _) -> load_instruction)
+            |> List.reduce_exn ~f:( |: ))
+          &: load_instruction
+        ; ~:(List.map segments ~f:(fun ({ I.load; store; _ }, _) -> load |: store)
+            |> List.reduce_exn ~f:( |: ))
+          &: (load |: store)
+        ]
       |> List.reduce_exn ~f:( |: )
   }
 ;;
@@ -445,7 +423,7 @@ module Tests = struct
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
         (write_data 0xdeadbeef))
-       ((instruction 0x0) (read_data 0x0) (error 0x0)))
+       ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
