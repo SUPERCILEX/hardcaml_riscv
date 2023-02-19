@@ -57,7 +57,10 @@
   bus_skew.rpt
   utilization.rpt
   suggestions.rpt
-  design_analysis.rpt)
+  design_analysis.rpt
+  power.rpt
+  ram_utilization.rpt
+  high_fanout_nets.rpt)
  (deps
   (glob_files *.v)
   (source_tree boards)
