@@ -23,8 +23,7 @@ end
 module State = struct
   type t =
     | Fetch
-    | Decode
-    | Load_regs
+    | Decode_and_load
     | Execute
     | Writeback
     | Error
@@ -51,30 +50,7 @@ end
 
 let fetch ~(sm : State.t Always.State_machine.t) { Fetch_stage.load_instruction } =
   let open Signal in
-  Always.[ load_instruction <-- vdd; sm.set_next Decode ]
-;;
-
-let decode ~(sm : State.t Always.State_machine.t) = [ sm.set_next Load_regs ]
-
-module Load_regs_stage = struct
-  type ('a, 'b) t =
-    { instruction : 'a Instruction.Binary.t
-    ; load_registers : 'b
-    }
-end
-
-let load_regs
-  ~(sm : State.t Always.State_machine.t)
-  { Load_regs_stage.instruction; load_registers }
-  =
-  let open Signal in
-  Always.
-    [ load_registers <-- vdd
-    ; if_
-        (Instruction.Binary.Of_signal.is instruction Invalid)
-        [ sm.set_next Error ]
-        [ sm.set_next Execute ]
-    ]
+  Always.[ load_instruction <-- vdd; sm.set_next Decode_and_load ]
 ;;
 
 module Load_mem_stage = struct
@@ -170,23 +146,22 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { (Memory_controller.I.Of_always.value memory_controller) with clock }
       ~bootloader
   in
-  let ({ Decoder.O.instruction; _ } as decoder) =
-    Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
-    |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode) spec)
+  let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
+  let ({ Decoder.O.instruction; immediate; _ } as decoder) =
+    decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
   in
   let alu_feedback = Alu.O.Of_signal.wires () in
-  let load_registers = Always.Variable.wire ~default:gnd in
   let { Register_file.O.rs1; rs2 } =
     let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
-    let { Decoder.O.rd; rs1; rs2; _ } = decoder in
+    let { Decoder.O.rs1; rs2; _ } = decoder_raw in
     Register_file.circuit
       scope
       { Register_file.I.clock
-      ; write_address = rd
+      ; write_address = decoder.rd
       ; read_address1 = rs1
       ; read_address2 = rs2
       ; store = reg_store &: sm.is Writeback
-      ; load = load_registers.value
+      ; load = sm.is Decode_and_load
       ; write_data =
           Instruction.Binary.Of_signal.match_
             ~default:alu_result
@@ -195,7 +170,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
             |> List.map ~f:(fun i -> i, memory_read_data))
       }
   in
-  memory_controller.data_address.value <== rs1 +: decoder.immediate;
+  memory_controller.data_address.value <== rs1 +: immediate;
+  memory_controller.write_data.value <== rs2;
   let alu =
     Alu.circuit
       scope
@@ -203,16 +179,14 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; instruction
       ; rs1
       ; rs2
-      ; immediate = decoder.immediate
+      ; immediate
       }
     |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec)
   in
-  memory_controller.write_data.value <== rs2;
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    ignore (sm.current -- "state");
-    ignore (load_registers.value -- "load_registers")
+    ignore (sm.current -- "state")
   in
   Always.(
     compile
@@ -221,15 +195,18 @@ let create scope ~bootloader { I.clock; clear; uart } =
             , fetch
                 ~sm
                 { Fetch_stage.load_instruction = memory_controller.load_instruction } )
-          ; Decode, decode ~sm
-          ; Load_regs, load_regs ~sm { Load_regs_stage.instruction; load_registers }
+          ; Decode_and_load, [ sm.set_next Execute ]
           ; ( Execute
             , load_mem
                 { Load_mem_stage.instruction
                 ; load = memory_controller.load
                 ; data_size = memory_controller.data_size
                 }
-              @ execute ~sm )
+              @ execute ~sm
+              @ [ when_
+                    (Instruction.Binary.Of_signal.is instruction Invalid)
+                    [ sm.set_next Error ]
+                ] )
           ; ( Writeback
             , writeback
                 ~sm

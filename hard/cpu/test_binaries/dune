@@ -43,7 +43,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 29 -program simple))))
+   (run %{deps} -cycles 24 -program simple))))
 
 (rule
  (target strchr.bin)
@@ -73,7 +73,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 177 -program string_search))))
+   (run %{deps} -cycles 142 -program string_search))))
 
 (rule
  (target fibonacci.bin)
@@ -103,7 +103,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 9290 -program fibonacci))))
+   (run %{deps} -cycles 7432 -program fibonacci))))
 
 (rule
  (target atoi.bin)
@@ -133,4 +133,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 317 -program atoi))))
+   (run %{deps} -cycles 254 -program atoi))))
