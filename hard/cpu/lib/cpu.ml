@@ -25,7 +25,6 @@ module State = struct
     | Fetch
     | Decode
     | Load_regs
-    | Load_mem
     | Execute
     | Writeback
     | Error
@@ -74,7 +73,7 @@ let load_regs
     ; if_
         (Instruction.Binary.Of_signal.is instruction Invalid)
         [ sm.set_next Error ]
-        [ sm.set_next Load_mem ]
+        [ sm.set_next Execute ]
     ]
 ;;
 
@@ -86,10 +85,7 @@ module Load_mem_stage = struct
     }
 end
 
-let load_mem
-  ~(sm : State.t Always.State_machine.t)
-  { Load_mem_stage.instruction; load; data_size }
-  =
+let load_mem { Load_mem_stage.instruction; load; data_size } =
   let open Signal in
   Always.
     [ do_on_load instruction ~s:[ load <-- vdd ]
@@ -107,7 +103,6 @@ let load_mem
              , [ Memory_controller.Size.Binary.(
                    Of_always.assign data_size (Of_signal.of_enum s))
                ] )))
-    ; sm.set_next Execute
     ]
 ;;
 
@@ -175,7 +170,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { (Memory_controller.I.Of_always.value memory_controller) with clock }
       ~bootloader
   in
-  let decoder =
+  let ({ Decoder.O.instruction; _ } as decoder) =
     Decoder.circuit scope { Decoder.I.instruction = raw_instruction }
     |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode) spec)
   in
@@ -192,7 +187,12 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; read_address2 = rs2
       ; store = reg_store &: sm.is Writeback
       ; load = load_registers.value
-      ; write_data = alu_result
+      ; write_data =
+          Instruction.Binary.Of_signal.match_
+            ~default:alu_result
+            instruction
+            (Instruction.RV32I.[ Lb; Lbu; Lh; Lhu; Lw ]
+            |> List.map ~f:(fun i -> i, memory_read_data))
       }
   in
   memory_controller.data_address.value <== rs1 +: decoder.immediate;
@@ -200,15 +200,14 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Alu.circuit
       scope
       { Alu.I.pc = memory_controller.program_counter.value
-      ; data = memory_read_data
-      ; instruction = decoder.instruction
+      ; instruction
       ; rs1
       ; rs2
       ; immediate = decoder.immediate
       }
     |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec)
   in
-  memory_controller.write_data.value <== alu.rd;
+  memory_controller.write_data.value <== rs2;
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =
     let ( -- ) = Scope.naming scope in
@@ -223,22 +222,18 @@ let create scope ~bootloader { I.clock; clear; uart } =
                 ~sm
                 { Fetch_stage.load_instruction = memory_controller.load_instruction } )
           ; Decode, decode ~sm
-          ; ( Load_regs
-            , load_regs
-                ~sm
-                { Load_regs_stage.instruction = decoder.instruction; load_registers } )
-          ; ( Load_mem
+          ; Load_regs, load_regs ~sm { Load_regs_stage.instruction; load_registers }
+          ; ( Execute
             , load_mem
-                ~sm
-                { Load_mem_stage.instruction = decoder.instruction
+                { Load_mem_stage.instruction
                 ; load = memory_controller.load
                 ; data_size = memory_controller.data_size
-                } )
-          ; Execute, execute ~sm
+                }
+              @ execute ~sm )
           ; ( Writeback
             , writeback
                 ~sm
-                { Writeback_stage.instruction = decoder.instruction
+                { Writeback_stage.instruction
                 ; jump = alu.jump
                 ; jump_target = alu.jump_target
                 ; store = memory_controller.store

@@ -128,7 +128,7 @@ struct
     match
       Array.init bytes ~f:(fun bank ->
         Ram.create
-          ~name
+          ~name:(Printf.sprintf "%s_%d" name bank)
           ~collision_mode:Read_before_write
           ~size:(Params.size / bytes)
           ~write_ports:
