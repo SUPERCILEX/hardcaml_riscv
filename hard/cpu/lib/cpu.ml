@@ -239,7 +239,7 @@ module Tests = struct
 
   let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~step ~uart_data =
     let open Bits in
-    let inputs = Cyclesim.inputs sim in
+    let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let reset () =
       Cyclesim.reset sim;
       inputs.clear := vdd;
@@ -249,12 +249,18 @@ module Tests = struct
     reset ();
     let rec run i uart_data =
       let read_done = i % 11 = 0 in
+      let write_done = i % 17 = 0 in
       inputs.uart.read_done := if read_done then vdd else gnd;
-      inputs.uart.write_done := if i % 17 = 0 then vdd else gnd;
+      inputs.uart.write_done := if write_done then vdd else gnd;
       inputs.uart.read_data
         := (if read_done then List.hd uart_data else None)
            |> Option.value ~default:0
            |> of_int ~width:8;
+      if write_done && to_bool !(outputs.uart.write_ready)
+      then
+        Stdio.print_string
+          (to_int !(outputs.uart.write_data) |> Char.of_int_exn |> String.of_char)
+      else ();
       Cyclesim.cycle sim;
       if step i
       then ()
