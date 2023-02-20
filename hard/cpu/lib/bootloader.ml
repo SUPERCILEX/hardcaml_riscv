@@ -1,7 +1,6 @@
 open! Core
 
-(* TODO use real bootloader. *)
-let bytes = List.init 8 ~f:Char.of_int_exn |> String.of_char_list
+let bytes = [%blob "cpu/test_binaries/test.bin"]
 
 module For_testing = struct
   module Sample_programs = struct

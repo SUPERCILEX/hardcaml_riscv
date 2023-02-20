@@ -1,8 +1,6 @@
 #![no_std]
 
-pub use stdio::_print;
-
-mod stdio;
+pub mod stdio;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {

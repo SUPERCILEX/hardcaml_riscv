@@ -1,8 +1,13 @@
 SECTIONS {
   . = 0x4000;
-  .text 0x4000 : {
-    *(.text*)
+  .text : {
+    *(.start);
+    KEEP(*(.text.runtime));
+    runtime = .;
+    *(.text*);
     LONG(0);
   }
   .rodata : { *(.rodata*) }
+  .comment : {}
+  .riscv.attributes : {}
 }

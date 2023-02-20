@@ -4,4 +4,5 @@ target = "riscv32i-unknown-none-elf"
 [target.riscv32i-unknown-none-elf]
 rustflags = [
     "-C", "link-arg=-Tboot.lds",
+    "-C", "relocation-model=pic",
 ]

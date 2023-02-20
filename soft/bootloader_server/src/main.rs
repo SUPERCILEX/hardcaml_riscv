@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::arch::asm;
+use core::arch::global_asm;
 
 use slib::println;
 
@@ -9,10 +9,19 @@ fn main() {
     println!("Hello, world!");
 }
 
+global_asm!(
+    r"
+    .pushsection .start
+
+    .globl _start
+    _start:
+        li sp, 0x80000000
+
+    .popsection
+"
+);
+
 #[no_mangle]
-pub extern "C" fn _start() {
-    unsafe {
-        asm!("li sp, 0x80000000", options(nostack));
-    }
+extern "C" fn runtime() {
     main();
 }
