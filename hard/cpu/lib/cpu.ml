@@ -148,7 +148,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Memory_controller.circuit
       scope
       { (Memory_controller.I.Of_always.value memory_controller) with clock; uart }
-      ~bootloader
+      ~bootloader:(String.to_list bootloader |> List.map ~f:Signal.of_char)
   in
   stall <== mem_stall;
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
@@ -315,7 +315,7 @@ module Tests = struct
     let sim =
       Simulator.create
         ~config:Cyclesim.Config.trace_all
-        (create scope ~bootloader:(Bootloader.For_testing.sample program))
+        (create scope ~bootloader:program)
     in
     let waves, sim = Waveform.create sim in
     test_bench sim ~step:(( = ) cycles) ~uart_data:[ 0x42; 0 ];
