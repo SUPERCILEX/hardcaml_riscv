@@ -9,4 +9,4 @@ set_property generate_synth_checkpoint false [get_files ips/axi_uartlite_0/axi_u
 generate_target all [get_ips]
 validate_ip [get_ips]
 
-synth_design -top top
+synth_design -flatten_hierarchy full -top top
