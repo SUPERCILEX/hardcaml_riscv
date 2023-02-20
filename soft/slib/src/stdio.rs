@@ -1,7 +1,5 @@
 use core::fmt;
 
-use spin::mutex::Mutex;
-
 #[macro_export]
 macro_rules! println {
     () => (print!("\n"));
@@ -16,8 +14,10 @@ macro_rules! print {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    static WRITER: Mutex<Writer> = Mutex::new(Writer);
-    WRITER.lock().write_fmt(args).unwrap();
+    static mut WRITER: Writer = Writer;
+    unsafe {
+        WRITER.write_fmt(args).unwrap();
+    }
 }
 
 struct Writer;

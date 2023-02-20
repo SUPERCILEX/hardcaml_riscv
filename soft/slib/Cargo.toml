@@ -3,6 +3,3 @@ name = "slib"
 version = "0.1.0"
 edition.workspace = true
 publish = false
-
-[dependencies]
-spin = { version = "0.9.5", default-features = false, features = ["spin_mutex", "portable_atomic"] }
