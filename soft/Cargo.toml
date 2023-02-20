@@ -1,8 +1,24 @@
+[workspace]
+members = [
+    "bootloader_server",
+    "slib",
+]
+
+[workspace.package]
+edition = "2021"
+
 [package]
 name = "cse469"
-version = "0.1.0"
-edition = "2021"
+version = "0.0.0"
 publish = false
 
-[dev-dependencies]
-supercilex-tests = "0.2.2"
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dr]
+inherits = "release"
+debug = true
+strip = false

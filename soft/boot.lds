@@ -4,5 +4,5 @@ SECTIONS {
     *(.text*)
     LONG(0);
   }
-  .note.gnu.build-id : {}
+  .rodata : { *(.rodata*) }
 }
