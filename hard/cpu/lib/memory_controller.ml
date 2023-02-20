@@ -275,7 +275,7 @@ module Uart_io = struct
 
   let create
     _scope
-    { I.clock = _
+    { I.clock
     ; load_instruction
     ; load
     ; store
@@ -293,7 +293,9 @@ module Uart_io = struct
         ; read_ready = load
         }
     ; segment =
-        { Segment.read_data = uresize read_data Parameters.word_size
+        { Segment.read_data =
+            uresize read_data Parameters.word_size
+            |> reg ~enable:load (Reg_spec.create ~clock ())
         ; error =
             [ load_instruction
             ; ~:(Size.Binary.Of_signal.is data_size Byte) &: (load |: store)

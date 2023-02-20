@@ -163,4 +163,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 21 -program uart_echo))))
+   (run %{deps} -cycles 59 -program uart_echo))))

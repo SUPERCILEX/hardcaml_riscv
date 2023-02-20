@@ -125,10 +125,13 @@ let writeback
 let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let spec = Reg_spec.create ~clock ~clear () in
+  let stall = wire 1 in
+  let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
   let memory_controller =
     { (Memory_controller.I.Of_always.wire zero) with
       program_counter =
         Always.Variable.reg
+          ~enable:~:stall
           ~width:Parameters.word_size
           (Reg_spec.override
              spec
@@ -139,7 +142,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; read_data = memory_read_data
       ; error = invalid_address
       ; uart = uart_out
-      ; stall
+      ; stall = mem_stall
       }
     =
     Memory_controller.circuit
@@ -147,7 +150,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { (Memory_controller.I.Of_always.value memory_controller) with clock; uart }
       ~bootloader
   in
-  let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
+  stall <== mem_stall;
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
     decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
@@ -234,7 +237,7 @@ let circuit scope =
 module Tests = struct
   module Simulator = Cyclesim.With_interface (I) (O)
 
-  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~step =
+  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~step ~uart_data =
     let open Bits in
     let inputs = Cyclesim.inputs sim in
     let reset () =
@@ -244,13 +247,20 @@ module Tests = struct
       inputs.clear := gnd
     in
     reset ();
-    let rec run i =
-      inputs.uart.read_done := if i % 11 = 0 then vdd else gnd;
+    let rec run i uart_data =
+      let read_done = i % 11 = 0 in
+      inputs.uart.read_done := if read_done then vdd else gnd;
       inputs.uart.write_done := if i % 17 = 0 then vdd else gnd;
+      inputs.uart.read_data
+        := (if read_done then List.hd uart_data else None)
+           |> Option.value ~default:0
+           |> of_int ~width:8;
       Cyclesim.cycle sim;
-      if step i then () else run (i + 1)
+      if step i
+      then ()
+      else run (i + 1) (if read_done then List.drop uart_data 1 else uart_data)
     in
-    run 1
+    run 1 uart_data
   ;;
 
   let prettify_enum ~sim ~(enums : 'a list) ~signal_name : 'a =
@@ -272,7 +282,7 @@ module Tests = struct
         (create scope ~bootloader:program)
     in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    test_bench sim ~step:(fun i ->
+    test_bench sim ~uart_data:[ 0x42; 0 ] ~step:(fun i ->
       let open Bits in
       let all_signals =
         Cyclesim.internal_ports sim
@@ -308,7 +318,7 @@ module Tests = struct
         (create scope ~bootloader:(Bootloader.For_testing.sample program))
     in
     let waves, sim = Waveform.create sim in
-    test_bench sim ~step:(( = ) cycles);
+    test_bench sim ~step:(( = ) cycles) ~uart_data:[ 0x42; 0 ];
     let open Hardcaml_waveterm.Display_rule in
     let input_rules =
       I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
