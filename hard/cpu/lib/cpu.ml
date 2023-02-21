@@ -138,6 +138,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
              ~clear_to:(of_int ~width:Parameters.word_size Parameters.bootloader_start))
     }
   in
+  let signed_read = wire 1 in
   let { Memory_controller.O.instruction = raw_instruction
       ; read_data = memory_read_data
       ; error = invalid_address
@@ -147,7 +148,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
     =
     Memory_controller.circuit
       scope
-      { (Memory_controller.I.Of_always.value memory_controller) with clock; uart }
+      { (Memory_controller.I.Of_always.value memory_controller) with
+        clock
+      ; uart
+      ; signed = signed_read
+      }
       ~bootloader:(String.to_list bootloader |> List.map ~f:Signal.of_char)
   in
   stall <== mem_stall;
@@ -155,6 +160,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
     decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
   in
+  signed_read
+  <== Instruction.Binary.Of_signal.match_
+        ~default:gnd
+        instruction
+        ([ Instruction.RV32I.Lb; Lh; Lw ] |> List.map ~f:(fun i -> i, vdd));
   let alu_feedback = Alu.O.Of_signal.wires () in
   let { Register_file.O.rs1; rs2 } =
     let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
@@ -171,7 +181,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           Instruction.Binary.Of_signal.match_
             ~default:alu_result
             instruction
-            (Instruction.RV32I.[ Lb; Lbu; Lh; Lhu; Lw ]
+            ([ Instruction.RV32I.Lb; Lbu; Lh; Lhu; Lw ]
             |> List.map ~f:(fun i -> i, memory_read_data))
       }
   in
