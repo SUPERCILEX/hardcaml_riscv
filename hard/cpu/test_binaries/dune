@@ -163,3 +163,33 @@
   (with-outputs-to
    %{target}
    (run %{deps} -cycles 59 -program uart_echo -uart-data "0x42 0x00"))))
+
+(rule
+ (target instruction_tests.bin)
+ (deps
+  (:src instruction_tests.s)
+  sample.lds)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32i
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    instruction_tests)
+   (run riscv64-linux-gnu-objcopy -O binary instruction_tests %{target}))))
+
+(rule
+ (target instruction_tests.signals)
+ (deps test.exe)
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{deps} -cycles 160 -program instruction_tests))))

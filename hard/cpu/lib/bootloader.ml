@@ -11,6 +11,7 @@ module For_testing = struct
       | Fibonacci
       | Atoi
       | Uart_echo
+      | Instruction_tests
     [@@deriving sexp_of, compare, enumerate]
   end
 
@@ -21,5 +22,6 @@ module For_testing = struct
     | Fibonacci -> [%blob "hard/cpu/test_binaries/fibonacci.bin"]
     | Atoi -> [%blob "hard/cpu/test_binaries/atoi.bin"]
     | Uart_echo -> [%blob "hard/cpu/test_binaries/uart_echo.bin"]
+    | Instruction_tests -> [%blob "hard/cpu/test_binaries/instruction_tests.bin"]
   ;;
 end

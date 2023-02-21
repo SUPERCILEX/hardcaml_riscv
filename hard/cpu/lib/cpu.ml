@@ -337,25 +337,31 @@ module Tests = struct
             ~wave_format:
               (Index
                  (List.map State.all ~f:(State.sexp_of_t |> Fn.compose Sexp.to_string)))
-        ; port_name_is
-            "decoder$binary_variant"
-            ~wave_format:
-              (Index
-                 Instruction.(
-                   List.map RV32I.all ~f:(RV32I.sexp_of_t |> Fn.compose Sexp.to_string)))
-        ; port_name_is
-            "alu$binary_variant"
-            ~wave_format:
-              (Index
-                 Instruction.(
-                   List.map RV32I.all ~f:(RV32I.sexp_of_t |> Fn.compose Sexp.to_string)))
-        ; port_name_is
-            "memory_controller$binary_variant"
-            ~wave_format:
-              (Index
-                 Memory_controller.Size.(
-                   List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string)))
         ]
+      @ ([ "decoder$binary_variant"; "alu$binary_variant" ]
+        |> List.map
+             ~f:
+               (port_name_is
+                  ~wave_format:
+                    (Index
+                       Instruction.(
+                         List.map
+                           RV32I.all
+                           ~f:(RV32I.sexp_of_t |> Fn.compose Sexp.to_string)))))
+      @ ([ "memory_controller$binary_variant"
+         ; "memory_controller$bootloader$binary_variant"
+         ; "memory_controller$dmem$binary_variant"
+         ; "memory_controller$imem$binary_variant"
+         ; "memory_controller$uart_io$binary_variant"
+         ]
+        |> List.map
+             ~f:
+               (port_name_is
+                  ~wave_format:
+                    (Index
+                       Memory_controller.Size.(
+                         List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string))))
+        )
     in
     f ~display_rules:(input_rules @ output_rules @ [ default ]) waves
   ;;
