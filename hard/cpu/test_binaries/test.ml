@@ -14,11 +14,17 @@ let simulate =
              (Arg_type.enumerated_sexpable
                 ~case_sensitive:false
                 (module Cpu.Bootloader.For_testing.Sample_programs)))
+      and uart_data =
+        flag ~doc:"BYTES UART input stream" "-uart-data" (optional string)
       in
       fun () ->
         Cpu.Tests.sim
           ~program:(Cpu.Bootloader.For_testing.sample program)
-          ~termination:(( = ) cycles))
+          ?uart_data:
+            (Option.map uart_data ~f:(fun s ->
+               String.split s ~on:' '
+               |> List.map ~f:(Int.of_string |> Fn.compose Char.of_int_exn)))
+          (( = ) cycles))
 ;;
 
 let () = Command_unix.run simulate

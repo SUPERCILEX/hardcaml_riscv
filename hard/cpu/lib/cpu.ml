@@ -254,8 +254,8 @@ module Tests = struct
       inputs.uart.write_done := if write_done then vdd else gnd;
       inputs.uart.read_data
         := (if read_done then List.hd uart_data else None)
-           |> Option.value ~default:0
-           |> of_int ~width:8;
+           |> Option.value ~default:(Char.of_int_exn 0)
+           |> of_char;
       if write_done && to_bool !(outputs.uart.write_ready)
       then
         Stdio.print_string
@@ -280,7 +280,7 @@ module Tests = struct
              ~equal:String.equal))
   ;;
 
-  let sim ~program ~termination =
+  let sim ~program ?uart_data termination =
     let scope = Scope.create ~flatten_design:true () in
     let sim =
       Simulator.create
@@ -288,7 +288,7 @@ module Tests = struct
         (create scope ~bootloader:program)
     in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    test_bench sim ~uart_data:[ 0x42; 0 ] ~step:(fun i ->
+    test_bench sim ~uart_data:(Option.value uart_data ~default:[]) ~step:(fun i ->
       let open Bits in
       let all_signals =
         Cyclesim.internal_ports sim
@@ -315,7 +315,7 @@ module Tests = struct
       termination i)
   ;;
 
-  let waves ~program ~cycles f =
+  let waves ~program ~cycles ?uart_data f =
     let open Hardcaml_waveterm in
     let scope = Scope.create ~flatten_design:true () in
     let sim =
@@ -324,7 +324,7 @@ module Tests = struct
         (create scope ~bootloader:program)
     in
     let waves, sim = Waveform.create sim in
-    test_bench sim ~step:(( = ) cycles) ~uart_data:[ 0x42; 0 ];
+    test_bench sim ~step:(( = ) cycles) ~uart_data:(Option.value uart_data ~default:[]);
     let open Hardcaml_waveterm.Display_rule in
     let input_rules =
       I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)

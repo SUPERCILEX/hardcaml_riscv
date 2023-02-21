@@ -26,6 +26,11 @@ let waves =
              (Arg_type.enumerated_sexpable ~case_sensitive:false (module Programs)))
       and file_name =
         flag ~doc:"FILE Binary program file" "-binary" (optional Filename_unix.arg_type)
+      and uart_data_file =
+        flag
+          ~doc:"FILE UART input stream file"
+          "-uart-data-file"
+          (optional Filename_unix.arg_type)
       in
       fun () ->
         Cpu.Tests.waves
@@ -40,6 +45,10 @@ let waves =
                  ~f:In_channel.input_all
              | Sample program -> Cpu.Bootloader.For_testing.sample program)
           ~cycles
+          ?uart_data:
+            (Option.map uart_data_file ~f:(fun s ->
+               In_channel.with_file ~binary:true s ~f:In_channel.input_all
+               |> String.to_list))
           (fun ~display_rules waves ->
             Hardcaml_waveterm_interactive.run
               ~signals_width:30

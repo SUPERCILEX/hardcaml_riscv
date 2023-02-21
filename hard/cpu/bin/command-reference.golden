@@ -12,6 +12,7 @@ Hardware dev tools
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-start-cycle N]         . Start cycle
+  . [-uart-data-file FILE]   . UART input stream file
   version                    . print version information
   . [-build-info]            . print build info for this build
   . [-version]               . print the version of this build
