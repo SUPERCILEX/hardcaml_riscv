@@ -243,15 +243,19 @@ module Rom = struct
     { Segment.read_data =
         (let bytes = 4 in
          let address = mux2 load data_address program_counter in
+         let spec = Reg_spec.create ~clock () in
+         let enable = load_instruction |: load in
          combine_data
-           ~bank_selector:(sel_bottom address (address_bits_for bytes))
+           ~bank_selector:(sel_bottom address (address_bits_for bytes) |> reg ~enable spec)
            ~data:
              (List.chunks_of ~length:bytes data
              |> List.transpose_exn
              |> List.map ~f:(fun byte_bank ->
-                  mux (srl address (address_bits_for bytes)) byte_bank))
-           ~size:Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
-         |> reg ~enable:(load_instruction |: load) (Reg_spec.create ~clock ()))
+                  mux (srl address (address_bits_for bytes)) byte_bank |> reg ~enable spec)
+             )
+           ~size:
+             Size.Binary.Of_signal.(
+               mux2 load data_size (of_enum Word) |> reg ~enable spec))
     ; error = store |: (load_instruction &: load)
     ; stall = gnd
     }
