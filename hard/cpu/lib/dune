@@ -5,4 +5,5 @@
  (preprocess
   (pps ppx_jane ppx_expect ppx_deriving_hardcaml ppx_blob))
  (preprocessor_deps
+  ../../../soft/boot.bin
   (glob_files ../test_binaries/*.bin)))

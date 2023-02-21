@@ -21,19 +21,18 @@
   sample.lds)
  (action
   (progn
-   (progn
-    (run
-     riscv64-linux-gnu-gcc
-     -march=rv32i
-     -mabi=ilp32
-     -nostdlib
-     -static
-     -fno-pie
-     -Tsample.lds
-     %{src}
-     -o
-     simple)
-    (run riscv64-linux-gnu-objcopy -O binary simple %{target})))))
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32i
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    simple)
+   (run riscv64-linux-gnu-objcopy -O binary simple %{target}))))
 
 (rule
  (target simple.signals)
