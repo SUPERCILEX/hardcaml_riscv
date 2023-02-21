@@ -14,14 +14,7 @@
     onchip/bootloader_server
     (progn
      (run cargo clean)
-     (run
-      cargo
-      rustc
-      --release
-      --target=riscv32i-unknown-none-elf
-      --
-      -Clink-arg=-Tonchip/boot.lds
-      -Crelocation-model=pic)))
+     (run cargo build --release)))
    (run
     riscv64-linux-gnu-objcopy
     -O
