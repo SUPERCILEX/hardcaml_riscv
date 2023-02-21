@@ -162,7 +162,11 @@ struct
       |> Array.map ~f:Array.to_list
     with
     | [| data |] ->
-      combine_data ~bank_selector:(bank_selector read_address) ~data ~size:read_size
+      let spec = Reg_spec.create ~clock () in
+      combine_data
+        ~bank_selector:(bank_selector read_address |> reg ~enable:read_enable spec)
+        ~data
+        ~size:(Size.Binary.Of_signal.reg ~enable:read_enable spec read_size)
     | _ -> assert false
   ;;
 end
