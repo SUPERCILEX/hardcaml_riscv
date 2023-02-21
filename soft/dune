@@ -1,0 +1,30 @@
+(rule
+ (target boot.bin)
+ (deps
+  (source_tree bootloader)
+  (source_tree offchip)
+  (source_tree onchip)
+  (source_tree src)
+  (glob_files Cargo.*))
+ (action
+  (progn
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (chdir
+    onchip/bootloader_server
+    (progn
+     (run cargo clean)
+     (run
+      cargo
+      rustc
+      --release
+      --target=riscv32i-unknown-none-elf
+      --
+      -Clink-arg=-Tonchip/boot.lds
+      -Crelocation-model=pic)))
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    target/riscv32i-unknown-none-elf/release/bootloader_server
+    %{target}))))

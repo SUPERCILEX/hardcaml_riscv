@@ -5,4 +5,5 @@ edition.workspace = true
 publish = false
 
 [dependencies]
+bootloader = { path = "../../bootloader" }
 slib = { path = "../slib" }

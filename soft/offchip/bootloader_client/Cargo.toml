@@ -1,0 +1,9 @@
+[package]
+name = "bootloader_client"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[dependencies]
+clap2 = { version = "4.0.32", features = ["derive", "wrap_help"] }
+bootloader = { path = "../../bootloader" }

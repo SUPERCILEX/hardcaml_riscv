@@ -1,7 +1,9 @@
 [workspace]
 members = [
-    "bootloader_server",
-    "slib",
+    "bootloader",
+    "offchip/bootloader_client",
+    "onchip/bootloader_server",
+    "onchip/slib",
 ]
 
 [workspace.package]
