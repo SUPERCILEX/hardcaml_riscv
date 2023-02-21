@@ -327,11 +327,9 @@ module Tests = struct
     test_bench sim ~step:(( = ) cycles) ~uart_data:(Option.value uart_data ~default:[]);
     let open Hardcaml_waveterm.Display_rule in
     let input_rules =
-      I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)) |> to_list)
+      I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex)) |> to_list)
     in
-    let output_rules =
-      O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Unsigned_int)))
-    in
+    let output_rules = O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex))) in
     let output_rules =
       (output_rules |> O.to_list)
       @ [ port_name_is
