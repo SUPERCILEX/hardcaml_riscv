@@ -2,7 +2,7 @@ open! Core
 
 module Programs = struct
   type t =
-    | Sample of Cpu.Bootloader.For_testing.Sample_programs.t
+    | Sample of Sample_programs.t
     | Custom
   [@@deriving sexp_of, compare, enumerate]
 end
@@ -43,7 +43,7 @@ let waves =
                     ~message:"Supply the program binary with -binary"
                     file_name)
                  ~f:In_channel.input_all
-             | Sample program -> Cpu.Bootloader.For_testing.sample program)
+             | Sample program -> Sample_programs.program_bytes program)
           ~cycles
           ?uart_data:
             (Option.map uart_data_file ~f:(fun s ->

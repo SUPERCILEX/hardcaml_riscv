@@ -1,7 +1,6 @@
 open! Core
 open Hardcaml
 module Uart = Uart
-module Bootloader = Bootloader
 
 module I = struct
   type 'a t =
@@ -241,7 +240,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
 
 let circuit scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"cpu" (create ~bootloader:Bootloader.bytes)
+  H.hierarchical ~scope ~name:"cpu" (create ~bootloader:Parameters.bootloader_bytes)
 ;;
 
 module Tests = struct

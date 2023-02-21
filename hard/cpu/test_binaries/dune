@@ -1,6 +1,16 @@
+(library
+ (name sample_programs)
+ (modules sample_programs)
+ (libraries base core)
+ (preprocess
+  (pps ppx_jane ppx_blob))
+ (preprocessor_deps
+  (glob_files *.bin)))
+
 (executable
  (name test)
- (libraries cpu core_unix.command_unix)
+ (modules test)
+ (libraries cpu sample_programs core_unix.command_unix)
  (preprocess
   (pps ppx_jane)))
 

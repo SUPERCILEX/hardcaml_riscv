@@ -11,15 +11,13 @@ let simulate =
           ~doc:"NAME Program to simulate"
           "-program"
           (required
-             (Arg_type.enumerated_sexpable
-                ~case_sensitive:false
-                (module Cpu.Bootloader.For_testing.Sample_programs)))
+             (Arg_type.enumerated_sexpable ~case_sensitive:false (module Sample_programs)))
       and uart_data =
         flag ~doc:"BYTES UART input stream" "-uart-data" (optional string)
       in
       fun () ->
         Cpu.Tests.sim
-          ~program:(Cpu.Bootloader.For_testing.sample program)
+          ~program:(Sample_programs.program_bytes program)
           ?uart_data:
             (Option.map uart_data ~f:(fun s ->
                String.split s ~on:' '
