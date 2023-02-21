@@ -22,7 +22,7 @@ module I = struct
     ; program_counter : 'a [@bits Parameters.word_size]
     ; data_address : 'a [@bits Parameters.word_size]
     ; data_size : 'a Size.Binary.t
-    ; signed : 'a
+    ; signed : 'a [@rtlname "signed_"]
     ; write_data : 'a [@bits Parameters.word_size]
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
@@ -112,7 +112,7 @@ struct
       ; read_address : 'a Address.t
       ; write_address : 'a Address.t
       ; read_enable : 'a
-      ; signed : 'a
+      ; signed : 'a [@rtlname "signed_"]
       ; write_enable : 'a
       ; write_data : 'a [@bits Parameters.word_size]
       }
