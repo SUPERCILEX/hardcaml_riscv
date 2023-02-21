@@ -258,15 +258,17 @@ module Tests = struct
     in
     reset ();
     let rec run i uart_data =
-      let read_done = i % 11 = 0 in
+      let read_done = i % 11 = 0 && List.is_empty uart_data |> not in
       let write_done = i % 17 = 0 in
       inputs.uart.read_done := if read_done then vdd else gnd;
       inputs.uart.write_done := if write_done then vdd else gnd;
+      let read_done = read_done && to_bool !(outputs.uart.read_ready) in
+      let write_done = write_done && to_bool !(outputs.uart.write_ready) in
       inputs.uart.read_data
         := (if read_done then List.hd uart_data else None)
            |> Option.value ~default:(Char.of_int_exn 0)
            |> of_char;
-      if write_done && to_bool !(outputs.uart.write_ready)
+      if write_done
       then
         Stdio.print_string
           (to_int !(outputs.uart.write_data) |> Char.of_int_exn |> String.of_char)
