@@ -2,7 +2,9 @@ use std::{fs::File, path::PathBuf};
 
 use clap::{Parser, ValueHint};
 use clap2 as clap;
-use rustix::termios::{tcgetattr2, tcsetattr2, OptionalActions, BOTHER, CBAUD};
+use rustix::termios::{
+    cfmakeraw, tcgetattr, tcgetattr2, tcsetattr, tcsetattr2, OptionalActions, BOTHER, CBAUD,
+};
 
 #[derive(Parser, Debug)]
 #[command(version, author = "Alex Saveau (@SUPERCILEX)")]
@@ -22,10 +24,18 @@ fn main() {
     let Baud { device, baud_rate } = Baud::parse();
 
     let device = File::open(device).unwrap();
-    let mut termios = tcgetattr2(&device).unwrap();
-    termios.c_cflag &= !CBAUD;
-    termios.c_cflag |= BOTHER;
-    termios.c_ispeed = baud_rate;
-    termios.c_ospeed = baud_rate;
-    tcsetattr2(&device, OptionalActions::Drain, &termios).unwrap();
+    {
+        let mut termios = tcgetattr(&device).unwrap();
+        cfmakeraw(&mut termios);
+        tcsetattr(&device, OptionalActions::Drain, &termios).unwrap();
+    }
+
+    {
+        let mut termios = tcgetattr2(&device).unwrap();
+        termios.c_cflag &= !CBAUD;
+        termios.c_cflag |= BOTHER;
+        termios.c_ispeed = baud_rate;
+        termios.c_ospeed = baud_rate;
+        tcsetattr2(&device, OptionalActions::Drain, &termios).unwrap();
+    }
 }
