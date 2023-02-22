@@ -1,1 +1,24 @@
 (dirs :standard .cargo)
+
+(rule
+ (target boot.bin)
+ (deps
+  (source_tree ../bootloader)
+  (source_tree .)
+  (source_tree ../shared)
+  (source_tree ../slib))
+ (action
+  (progn
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (chdir
+    bootloader_server
+    (progn
+     (run cargo clean)
+     (run cargo build --release)))
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    target/riscv32i-unknown-none-elf/release/bootloader_server
+    %{target}))))

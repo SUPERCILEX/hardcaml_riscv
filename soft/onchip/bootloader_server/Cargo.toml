@@ -6,4 +6,4 @@ publish = false
 
 [dependencies]
 bootloader = { path = "../../bootloader" }
-slib = { path = "../slib" }
+slib = { path = "../../slib" }
