@@ -7,22 +7,16 @@
  (preprocessor_deps
   (glob_files *.bin)))
 
-(executable
- (name test)
- (modules test)
- (libraries cpu sample_programs core_unix.command_unix)
- (preprocess
-  (pps ppx_jane)))
-
 (rule
  (target invalid.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 4 -program invalid))))
+   (run %{exe} sim -cycles 4 -program "(sample invalid)"))))
 
 (rule
  (target simple.bin)
@@ -46,13 +40,14 @@
 
 (rule
  (target simple.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 24 -program simple))))
+   (run %{exe} sim -cycles 24 -program "(sample simple)"))))
 
 (rule
  (target strchr.bin)
@@ -76,13 +71,14 @@
 
 (rule
  (target strchr.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 142 -program string_search))))
+   (run %{exe} sim -cycles 142 -program "(sample string_search)"))))
 
 (rule
  (target fibonacci.bin)
@@ -106,13 +102,14 @@
 
 (rule
  (target fibonacci.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 7432 -program fibonacci))))
+   (run %{exe} sim -cycles 7432 -program "(sample fibonacci)"))))
 
 (rule
  (target atoi.bin)
@@ -136,13 +133,14 @@
 
 (rule
  (target atoi.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 254 -program atoi))))
+   (run %{exe} sim -cycles 254 -program "(sample atoi)"))))
 
 (rule
  (target uart_echo.bin)
@@ -165,14 +163,26 @@
    (run riscv64-linux-gnu-objcopy -O binary uart_echo %{target}))))
 
 (rule
- (target uart_echo.signals)
- (deps test.exe)
+ (targets uart_echo.signals uart_echo.output)
+ (deps
+  (:exe ../bin/cli.exe)
+  (:input uart_echo.input))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
-   %{target}
-   (run %{deps} -cycles 59 -program uart_echo -uart-data "0x42 0x00"))))
+   uart_echo.signals
+   (run
+    %{exe}
+    sim
+    -cycles
+    59
+    -program
+    "(sample uart_echo)"
+    -input-data-file
+    %{input}
+    -output-data-file
+    uart_echo.output))))
 
 (rule
  (target instruction_tests.bin)
@@ -196,10 +206,11 @@
 
 (rule
  (target instruction_tests.signals)
- (deps test.exe)
+ (deps
+  (:exe ../bin/cli.exe))
  (mode promote)
  (alias runtest)
  (action
   (with-outputs-to
    %{target}
-   (run %{deps} -cycles 160 -program instruction_tests))))
+   (run %{exe} sim -cycles 160 -program "(sample instruction_tests)"))))

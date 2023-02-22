@@ -246,8 +246,20 @@ let circuit scope =
 module Tests = struct
   module Simulator = Cyclesim.With_interface (I) (O)
 
-  let test_bench (sim : (_ I.t, _ O.t) Cyclesim.t) ~step ~uart_data =
+  let test_bench
+    ~step
+    ?input_data_file
+    ?output_data_file
+    (sim : (_ I.t, _ O.t) Cyclesim.t)
+    =
     let open Bits in
+    let uart_input =
+      Option.value input_data_file ~default:"/dev/null" |> In_channel.create ~binary:true
+    in
+    let uart_output =
+      Option.map output_data_file ~f:(Out_channel.create ~binary:true)
+      |> Option.value ~default:Out_channel.stdout
+    in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     let reset () =
       Cyclesim.reset sim;
@@ -256,28 +268,25 @@ module Tests = struct
       inputs.clear := gnd
     in
     reset ();
-    let rec run i uart_data =
-      let read_done = i % 11 = 0 && List.is_empty uart_data |> not in
-      let write_done = i % 17 = 0 in
+    let rec run i =
+      let read_done = i % 11 = 0 && to_bool !(outputs.uart.read_ready) in
+      let write_done = i % 17 = 0 && to_bool !(outputs.uart.write_ready) in
       inputs.uart.read_done := if read_done then vdd else gnd;
       inputs.uart.write_done := if write_done then vdd else gnd;
-      let read_done = read_done && to_bool !(outputs.uart.read_ready) in
-      let write_done = write_done && to_bool !(outputs.uart.write_ready) in
       inputs.uart.read_data
-        := (if read_done then List.hd uart_data else None)
+        := (if read_done then In_channel.input_char uart_input else None)
            |> Option.value ~default:(Char.of_int_exn 0)
            |> of_char;
       if write_done
       then
-        Stdio.print_string
-          (to_int !(outputs.uart.write_data) |> Char.of_int_exn |> String.of_char)
+        to_int !(outputs.uart.write_data)
+        |> Char.of_int_exn
+        |> Out_channel.output_char uart_output
       else ();
       Cyclesim.cycle sim;
-      if step i
-      then ()
-      else run (i + 1) (if read_done then List.drop uart_data 1 else uart_data)
+      if step i then () else run (i + 1)
     in
-    run 1 uart_data
+    run 1
   ;;
 
   let prettify_enum ~sim ~(enums : 'a list) ~signal_name : 'a =
@@ -291,7 +300,7 @@ module Tests = struct
              ~equal:String.equal))
   ;;
 
-  let sim ~program ?uart_data termination =
+  let sim ~program ?input_data_file ?output_data_file termination =
     let scope = Scope.create ~flatten_design:true () in
     let sim =
       Simulator.create
@@ -299,7 +308,7 @@ module Tests = struct
         (create scope ~bootloader:program)
     in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    test_bench sim ~uart_data:(Option.value uart_data ~default:[]) ~step:(fun i ->
+    test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
       let open Bits in
       let all_signals =
         Cyclesim.internal_ports sim
@@ -326,17 +335,17 @@ module Tests = struct
       termination i)
   ;;
 
-  let execute ~program ?uart_data cycles =
+  let execute ~program ?input_data_file ?output_data_file cycles =
     let scope = Scope.create ~flatten_design:true () in
     let sim =
       Simulator.create
         ~config:Cyclesim.Config.trace_all
         (create scope ~bootloader:program)
     in
-    test_bench sim ~step:(( = ) cycles) ~uart_data:(Option.value uart_data ~default:[])
+    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file
   ;;
 
-  let waves ~program ~cycles ?uart_data f =
+  let waves ~program ~cycles ?input_data_file ?output_data_file f =
     let open Hardcaml_waveterm in
     let scope = Scope.create ~flatten_design:true () in
     let sim =
@@ -345,7 +354,7 @@ module Tests = struct
         (create scope ~bootloader:program)
     in
     let waves, sim = Waveform.create sim in
-    test_bench sim ~step:(( = ) cycles) ~uart_data:(Option.value uart_data ~default:[]);
+    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
     let open Hardcaml_waveterm.Display_rule in
     let input_rules =
       I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex)) |> to_list)
