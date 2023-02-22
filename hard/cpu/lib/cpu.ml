@@ -278,10 +278,11 @@ module Tests = struct
            |> Option.value ~default:(Char.of_int_exn 0)
            |> of_char;
       if write_done
-      then
+      then (
         to_int !(outputs.uart.write_data)
         |> Char.of_int_exn
-        |> Out_channel.output_char uart_output
+        |> Out_channel.output_char uart_output;
+        Out_channel.flush uart_output)
       else ();
       Cyclesim.cycle sim;
       if step i then () else run (i + 1)
