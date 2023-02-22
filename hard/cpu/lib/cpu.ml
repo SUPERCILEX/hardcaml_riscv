@@ -326,6 +326,16 @@ module Tests = struct
       termination i)
   ;;
 
+  let execute ~program ?uart_data cycles =
+    let scope = Scope.create ~flatten_design:true () in
+    let sim =
+      Simulator.create
+        ~config:Cyclesim.Config.trace_all
+        (create scope ~bootloader:program)
+    in
+    test_bench sim ~step:(( = ) cycles) ~uart_data:(Option.value uart_data ~default:[])
+  ;;
+
   let waves ~program ~cycles ?uart_data f =
     let open Hardcaml_waveterm in
     let scope = Scope.create ~flatten_design:true () in
