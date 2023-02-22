@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "bootloader",
+    "shared",
     "offchip/baud",
     "offchip/bootloader_client",
     "onchip/bootloader_server",

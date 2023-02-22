@@ -1,5 +1,6 @@
 #![feature(maybe_uninit_uninit_array_transpose)]
 #![feature(maybe_uninit_slice)]
+#![feature(ptr_from_ref)]
 #![no_std]
 
 use core::{
@@ -36,6 +37,7 @@ enum RawCommand {
     },
 }
 
+#[must_use]
 pub fn encode(command: Command) -> Option<[u8; COMMAND_BUF_SIZE]> {
     let raw_command = match command {
         Command::Load {
@@ -88,7 +90,8 @@ pub fn decode<'a>(
     buf: &'a mut [MaybeUninit<&'a str>],
 ) -> Option<Command<'a>> {
     Some(
-        match *unsafe { transmute::<_, &'a RawCommand>(raw_command) } {
+        #[allow(clippy::cast_ptr_alignment)]
+        match *unsafe { &*ptr::from_ref(raw_command).cast::<RawCommand>() } {
             RawCommand::Load {
                 into_address,
                 len,
@@ -156,7 +159,7 @@ mod tests {
         assert_serde(Command::Start {
             address: 0x1234,
             args: &["arg1", "arg2"],
-        })
+        });
     }
 
     #[test]
@@ -164,7 +167,7 @@ mod tests {
         assert_serde(Command::Start {
             address: 0x1234,
             args: &[],
-        })
+        });
     }
 
     fn assert_serde(command: Command) {

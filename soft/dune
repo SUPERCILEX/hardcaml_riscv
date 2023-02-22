@@ -4,6 +4,7 @@
   (source_tree bootloader)
   (source_tree offchip)
   (source_tree onchip)
+  (source_tree shared)
   (source_tree src)
   (glob_files Cargo.*))
  (action

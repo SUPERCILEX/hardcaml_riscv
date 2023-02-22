@@ -1,5 +1,7 @@
 use core::{fmt, mem::MaybeUninit};
 
+use shared::PACKET_SIZE;
+
 #[macro_export]
 macro_rules! println {
     () => (print!("\n"));
@@ -44,8 +46,15 @@ pub fn _print(args: fmt::Arguments) {
 }
 
 pub fn read_buf(buf: &mut [MaybeUninit<u8>]) {
-    for byte in buf {
-        byte.write(read_byte());
+    write_byte(0xFF);
+    for packet in buf.chunks_mut(PACKET_SIZE) {
+        for byte in &mut *packet {
+            byte.write(read_byte());
+        }
+        for _ in 0..PACKET_SIZE - packet.len() {
+            read_byte();
+        }
+        write_byte(0xFF);
     }
 }
 

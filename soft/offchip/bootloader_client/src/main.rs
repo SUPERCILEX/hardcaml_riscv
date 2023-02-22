@@ -1,12 +1,15 @@
 use std::{
     fs::File,
+    io,
     io::{Read, Write},
     path::PathBuf,
+    slice,
 };
 
 use bootloader::{encode, Command};
 use clap::{Args, Parser, Subcommand, ValueHint};
 use clap2 as clap;
+use shared::PACKET_SIZE;
 
 #[derive(Parser, Debug)]
 #[command(version, author = "Alex Saveau (@SUPERCILEX)")]
@@ -15,8 +18,12 @@ use clap2 as clap;
 #[cfg_attr(test, command(help_expected = true))]
 struct BootloaderClient {
     #[arg(value_hint = ValueHint::DirPath)]
-    #[arg(short = 'd', long = "device")]
-    device: PathBuf,
+    #[arg(short = 'o', long = "output")]
+    output: PathBuf,
+
+    #[arg(value_hint = ValueHint::DirPath)]
+    #[arg(short = 'i', long = "input")]
+    input: PathBuf,
 
     #[command(subcommand)]
     cmd: Cmd,
@@ -49,13 +56,16 @@ struct Start {
 }
 
 fn main() {
-    let BootloaderClient { device, cmd } = BootloaderClient::parse();
-    let mut device = File::options()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(device)
-        .unwrap();
+    let BootloaderClient { output, input, cmd } = BootloaderClient::parse();
+    let mut device = FlowProtocol {
+        device_out: File::options()
+            .write(true)
+            .append(true)
+            .create(true)
+            .open(output)
+            .unwrap(),
+        device_in: File::open(input).unwrap(),
+    };
 
     match cmd {
         Cmd::Load(Load { file, address }) => {
@@ -94,5 +104,50 @@ fn main() {
                 )
                 .unwrap();
         }
+    }
+}
+
+struct FlowProtocol {
+    device_out: File,
+    device_in: File,
+}
+
+impl Write for FlowProtocol {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        loop {
+            let mut ack = 0;
+            if self.device_in.read(slice::from_mut(&mut ack))? != 1 {
+                return Err(io::Error::new(io::ErrorKind::Other, "No start ACK"));
+            }
+            if ack == 0xFF {
+                break;
+            }
+        }
+
+        let mut written = 0;
+        for packet in buf.chunks(PACKET_SIZE) {
+            self.device_out.write_all(packet)?;
+            if packet.len() < PACKET_SIZE {
+                self.device_out
+                    .write_all(&[0; PACKET_SIZE][packet.len()..])?;
+            }
+
+            {
+                let mut ack = 0;
+                assert_eq!(
+                    self.device_in.read(slice::from_mut(&mut ack))?,
+                    1,
+                    "Failed to receive ACK"
+                );
+                assert_eq!(ack, 0xFF, "Invalid ACK");
+            }
+
+            written += packet.len();
+        }
+        Ok(written)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.device_out.flush()
     }
 }

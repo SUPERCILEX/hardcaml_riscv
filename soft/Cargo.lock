@@ -26,6 +26,7 @@ version = "0.1.0"
 dependencies = [
  "bootloader",
  "clap2",
+ "shared",
 ]
 
 [[package]]
@@ -249,8 +250,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared"
+version = "0.1.0"
+
+[[package]]
 name = "slib"
 version = "0.1.0"
+dependencies = [
+ "shared",
+]
 
 [[package]]
 name = "strsim"
