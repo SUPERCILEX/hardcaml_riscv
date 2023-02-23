@@ -33,14 +33,15 @@ let do_on_load instruction ~s =
   Instruction.Binary.Of_always.match_
     ~default:[]
     instruction
-    (Instruction.RV32I.[ Lb; Lbu; Lh; Lhu; Lw ] |> List.map ~f:(fun i -> i, s))
+    (Instruction.RV32I.[ Lb; Lbu; Lh; Lhu; Lw ]
+    |> List.map ~f:(fun i -> Instruction.All.Rv32i i, s))
 ;;
 
 let do_on_store instruction ~s =
   Instruction.Binary.Of_always.match_
     ~default:[]
     instruction
-    (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> i, s))
+    (Instruction.RV32I.[ Sb; Sh; Sw ] |> List.map ~f:(fun i -> Instruction.All.Rv32i i, s))
 ;;
 
 module Fetch_stage = struct
@@ -74,7 +75,7 @@ let load_mem { Load_mem_stage.instruction; load; data_size } =
         |> List.map ~f:(fun (instructions, s) -> List.map instructions ~f:(fun i -> i, s))
         |> List.concat
         |> List.map ~f:(fun (i, s) ->
-             ( i
+             ( Instruction.All.Rv32i i
              , [ Memory_controller.Size.Binary.(
                    Of_always.assign data_size (Of_signal.of_enum s))
                ] )))
@@ -113,7 +114,7 @@ let writeback
          ; Sw, Word
          ]
         |> List.map ~f:(fun (i, s) ->
-             ( i
+             ( Instruction.All.Rv32i i
              , [ Memory_controller.Size.Binary.(
                    Of_always.assign data_size (Of_signal.of_enum s))
                ] )))
@@ -163,7 +164,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
   <== Instruction.Binary.Of_signal.match_
         ~default:gnd
         instruction
-        ([ Instruction.RV32I.Lb; Lh; Lw ] |> List.map ~f:(fun i -> i, vdd));
+        ([ Instruction.RV32I.Lb; Lh; Lw ]
+        |> List.map ~f:(fun i -> Instruction.All.Rv32i i, vdd));
   let alu_feedback = Alu.O.Of_signal.wires () in
   let { Register_file.O.rs1; rs2 } =
     let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
@@ -181,7 +183,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
             ~default:alu_result
             instruction
             ([ Instruction.RV32I.Lb; Lbu; Lh; Lhu; Lw ]
-            |> List.map ~f:(fun i -> i, memory_read_data))
+            |> List.map ~f:(fun i -> Instruction.All.Rv32i i, memory_read_data))
       }
   in
   memory_controller.data_address.value <== rs1 +: immediate;
@@ -218,7 +220,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
                 }
               @ execute ~sm
               @ [ when_
-                    (Instruction.Binary.Of_signal.is instruction Invalid)
+                    (Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
                     [ sm.set_next Error ]
                 ] )
           ; ( Writeback
@@ -319,7 +321,7 @@ module Tests = struct
              (if is_signal "state"
              then prettify_enum State.all |> State.sexp_of_t |> Some
              else if is_signal "alu$binary_variant"
-             then Instruction.(prettify_enum RV32I.all |> RV32I.sexp_of_t) |> Some
+             then Instruction.(prettify_enum All.all |> All.sexp_of_t) |> Some
              else if String.is_prefix ~prefix:"alu" signal_name
                      || String.is_prefix ~prefix:"register_file" signal_name
              then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
@@ -376,9 +378,8 @@ module Tests = struct
                   ~wave_format:
                     (Index
                        Instruction.(
-                         List.map
-                           RV32I.all
-                           ~f:(RV32I.sexp_of_t |> Fn.compose Sexp.to_string)))))
+                         List.map All.all ~f:(All.sexp_of_t |> Fn.compose Sexp.to_string))))
+        )
       @ ([ "memory_controller$binary_variant"
          ; "memory_controller$bootloader$binary_variant"
          ; "memory_controller$dmem$binary_variant"

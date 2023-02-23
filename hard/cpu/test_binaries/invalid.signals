@@ -1,7 +1,7 @@
 (Fetch
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
- ((alu$binary_variant Invalid) (alu$immediate 0x0) (alu$jump 0x0)
+ ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$store 0x0) (register_file 0x0) (register_file$clock 0x0)
   (register_file$load 0x0) (register_file$read_address1 0x0)
@@ -12,7 +12,7 @@
 (Decode_and_load
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
- ((alu$binary_variant Invalid) (alu$immediate 0x0) (alu$jump 0x0)
+ ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$store 0x0) (register_file 0x0) (register_file$clock 0x0)
   (register_file$load 0x1) (register_file$read_address1 0x4)
@@ -23,7 +23,7 @@
 (Execute
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
- ((alu$binary_variant Invalid) (alu$immediate 0x0) (alu$jump 0x0)
+ ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$store 0x0) (register_file 0x0) (register_file$clock 0x0)
   (register_file$load 0x0) (register_file$read_address1 0x4)
@@ -34,7 +34,7 @@
 (Error
  ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
- ((alu$binary_variant Invalid) (alu$immediate 0x0) (alu$jump 0x0)
+ ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$store 0x0) (register_file 0x0) (register_file$clock 0x0)
   (register_file$load 0x0) (register_file$read_address1 0x4)

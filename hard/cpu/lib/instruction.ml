@@ -44,4 +44,24 @@ module RV32I = struct
   [@@deriving sexp_of, compare, enumerate]
 end
 
-include Interface.Make_enums (RV32I)
+module RV32M = struct
+  type t =
+    | Mul (* Multiply *)
+    | Mulh (* Multiply high *)
+    | Mulhsu (* Multiply high signed unsigned *)
+    | Mulhu (* Multiply high unsigned *)
+    | Div (* Divide *)
+    | Divu (* Divide unsigned *)
+    | Rem (* Remainder *)
+    | Remu (* Remainder unsigned *)
+  [@@deriving sexp_of, compare, enumerate]
+end
+
+module All = struct
+  type t =
+    | Rv32i of RV32I.t
+    | Rv32m of RV32M.t
+  [@@deriving sexp_of, compare, enumerate]
+end
+
+include Interface.Make_enums (All)

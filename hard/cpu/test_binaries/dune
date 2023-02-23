@@ -193,7 +193,7 @@
   (progn
    (run
     riscv64-linux-gnu-gcc
-    -march=rv32i
+    -march=rv32im
     -mabi=ilp32
     -nostdlib
     -static
@@ -213,4 +213,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 160 -program "(sample instruction_tests)"))))
+   (run %{exe} sim -cycles 204 -program "(sample instruction_tests)"))))
