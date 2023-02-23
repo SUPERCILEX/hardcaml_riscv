@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "bootloader_server",
+    "donut",
     "fibonacci",
 ]
 

@@ -1,0 +1,79 @@
+(rule
+ (target donut.bin)
+ (deps
+  (file ../program.lds)
+  (file Cargo.toml)
+  (glob_files ../Cargo.*)
+  (source_tree ../../bootloader)
+  (source_tree ../../shared)
+  (source_tree ../../slib)
+  (source_tree ../.cargo)
+  (source_tree ../src)
+  (source_tree src))
+ (mode promote)
+ (alias bin)
+ (locks /cargo)
+ (action
+  (progn
+   (chdir
+    ..
+    (progn
+     (run mkdir -p target)
+     (run chmod +rw -R target)
+     (run cargo clean)))
+   (run cargo build --release)
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    ../target/riscv32i-unknown-none-elf/release/donut
+    %{target}))))
+
+(rule
+ (target donut-test.bin)
+ (deps
+  (file ../boot.lds)
+  (file Cargo.toml)
+  (glob_files ../Cargo.*)
+  (source_tree ../../bootloader)
+  (source_tree ../../shared)
+  (source_tree ../../slib)
+  (source_tree ../.cargo)
+  (source_tree ../src)
+  (source_tree src))
+ (locks /cargo)
+ (action
+  (progn
+   (chdir
+    ..
+    (progn
+     (run mkdir -p target)
+     (run chmod +rw -R target)
+     (run cargo clean)))
+   (run cargo rustc --release -- -Clink-arg=-Tboot.lds --cfg test)
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    ../target/riscv32i-unknown-none-elf/release/donut
+    %{target}))))
+
+(rule
+ (target donut.output)
+ (deps
+  (:exe ../../../hard/cpu/bin/cli.exe)
+  (:bin donut-test.bin))
+ (mode promote)
+ (alias runtest)
+ (action
+  (run
+   %{exe}
+   execute
+   -cycles
+   10000
+   -program
+   "custom"
+   -binary
+   %{bin}
+   -output-data-file
+   %{target})))
