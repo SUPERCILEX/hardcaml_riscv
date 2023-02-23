@@ -15,6 +15,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fibonacci"
+version = "0.1.0"
+dependencies = [
+ "slib",
+]
+
+[[package]]
 name = "onchip"
 version = "0.0.0"
 

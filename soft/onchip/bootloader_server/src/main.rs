@@ -46,7 +46,7 @@ fn main() -> ! {
                 }
             }
             Command::Start { address, args } => {
-                let entry = unsafe { transmute::<_, fn(&[&str]) -> usize>(address as *const u8) };
+                let entry = unsafe { transmute::<_, fn(&[&str]) -> i8>(address as *const u8) };
                 println!("Exit code: {}", entry(args));
             }
         }
@@ -54,18 +54,13 @@ fn main() -> ! {
 }
 
 global_asm!(
-    r"
-    .pushsection .start
-
+    r#"
+    .pushsection .start, "ax"
     .globl _start
     _start:
         li sp, 0x80000000
-
+        j {}
     .popsection
-"
+    "#,
+    sym main
 );
-
-#[no_mangle]
-extern "C" fn runtime() {
-    main();
-}

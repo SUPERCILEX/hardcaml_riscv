@@ -3,19 +3,24 @@
 (rule
  (target boot.bin)
  (deps
+  (file boot.lds)
+  (glob_files Cargo.*)
   (source_tree ../bootloader)
-  (source_tree .)
   (source_tree ../shared)
-  (source_tree ../slib))
+  (source_tree ../slib)
+  (source_tree .cargo)
+  (source_tree bootloader_server)
+  (source_tree src))
+ (locks /cargo)
+ (alias bin)
  (action
   (progn
    (run mkdir -p target)
    (run chmod +rw -R target)
+   (run cargo clean)
    (chdir
     bootloader_server
-    (progn
-     (run cargo clean)
-     (run cargo build --release)))
+    (run cargo rustc --release -- -Clink-arg=-Tboot.lds))
    (run
     riscv64-linux-gnu-objcopy
     -O
