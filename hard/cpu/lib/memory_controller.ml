@@ -19,11 +19,11 @@ module I = struct
     ; load_instruction : 'a
     ; load : 'a
     ; store : 'a
-    ; program_counter : 'a [@bits Parameters.word_size]
-    ; data_address : 'a [@bits Parameters.word_size]
+    ; program_counter : 'a [@bits Parameters.word_width]
+    ; data_address : 'a [@bits Parameters.word_width]
     ; data_size : 'a Size.Binary.t
     ; signed : 'a [@rtlname "signed_"]
-    ; write_data : 'a [@bits Parameters.word_size]
+    ; write_data : 'a [@bits Parameters.word_width]
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
   [@@deriving sexp_of, hardcaml]
@@ -32,7 +32,7 @@ end
 module O = struct
   type 'a t =
     { instruction : 'a [@bits 32]
-    ; read_data : 'a [@bits Parameters.word_size]
+    ; read_data : 'a [@bits Parameters.word_width]
     ; error : 'a
     ; uart : 'a Uart.O.t [@rtlmangle true]
     ; stall : 'a
@@ -114,7 +114,7 @@ struct
       ; read_enable : 'a
       ; signed : 'a [@rtlname "signed_"]
       ; write_enable : 'a
-      ; write_data : 'a [@bits Parameters.word_size]
+      ; write_data : 'a [@bits Parameters.word_width]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -180,7 +180,7 @@ end
 
 module Segment = struct
   type 'a t =
-    { read_data : 'a [@bits Parameters.word_size]
+    { read_data : 'a [@bits Parameters.word_width]
     ; error : 'a
     ; stall : 'a
     }
@@ -316,8 +316,8 @@ module Uart_io = struct
         { Segment.read_data =
             mux2
               signed
-              (sresize read_data Parameters.word_size)
-              (uresize read_data Parameters.word_size)
+              (sresize read_data Parameters.word_width)
+              (uresize read_data Parameters.word_width)
             |> reg ~enable:load (Reg_spec.create ~clock ())
         ; error =
             [ load_instruction
@@ -403,7 +403,7 @@ let create
       let input =
         build_input
           ~is_in_range:(uart_io_address |> Fn.flip ( ==:. ))
-          ~route:(fun _ -> zero word_size)
+          ~route:(fun _ -> zero word_width)
       in
       let Uart_io.O.{ uart = uart_out; segment } = Uart_io.circuit scope input in
       (input, segment), uart_out
@@ -465,9 +465,9 @@ module Tests = struct
       ()
     in
     let open Parameters in
-    inputs.write_data := of_int ~width:word_size 0xdeadbeef;
-    inputs.data_address := of_int ~width:word_size (stack_top - word_size);
-    inputs.program_counter := of_int ~width:word_size code_bottom;
+    inputs.write_data := of_int ~width:word_width 0xdeadbeef;
+    inputs.data_address := of_int ~width:word_width (stack_top - word_width);
+    inputs.program_counter := of_int ~width:word_width code_bottom;
     Size.Binary.sim_set inputs.data_size Word;
     f ~step ~inputs;
     ()
@@ -589,7 +589,7 @@ module Tests = struct
       Size.Binary.sim_set inputs.data_size Byte;
       inputs.load := gnd;
       inputs.store := vdd;
-      inputs.write_data := of_int ~width:Parameters.word_size 0x69;
+      inputs.write_data := of_int ~width:Parameters.word_width 0x69;
       step ();
       inputs.load := vdd;
       inputs.store := gnd;
@@ -695,17 +695,17 @@ module Tests = struct
     sim (fun ~step ~inputs ->
       let open Bits in
       let open Parameters in
-      inputs.data_address := of_int ~width:word_size (code_bottom - 1);
+      inputs.data_address := of_int ~width:word_width (code_bottom - 1);
       step ();
       inputs.load := vdd;
       step ();
-      inputs.data_address := of_int ~width:word_size (code_bottom + imem_size);
+      inputs.data_address := of_int ~width:word_width (code_bottom + imem_size);
       step ();
-      inputs.data_address := of_int ~width:word_size stack_top;
+      inputs.data_address := of_int ~width:word_width stack_top;
       step ();
-      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size - 1);
+      inputs.data_address := of_int ~width:word_width (stack_top - dmem_size - 1);
       step ();
-      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
+      inputs.data_address := of_int ~width:word_width (stack_top - dmem_size);
       step ();
       ());
     [%expect
@@ -758,11 +758,11 @@ module Tests = struct
       let open Bits in
       inputs.load := vdd;
       List.map Size.Enum.all ~f:(fun s ->
-        List.init (Parameters.word_size / 8) ~f:(fun i -> s, i))
+        List.init (Parameters.word_width / 8) ~f:(fun i -> s, i))
       |> List.concat
       |> List.iter ~f:(fun (s, offset) ->
            (inputs.data_address
-              := Parameters.(of_int ~width:word_size (code_bottom + offset)));
+              := Parameters.(of_int ~width:word_width (code_bottom + offset)));
            Size.Binary.sim_set inputs.data_size s;
            step ();
            ());
@@ -872,17 +872,17 @@ module Tests = struct
           ());
         ()
       in
-      inputs.data_address := of_int ~width:word_size code_bottom;
-      inputs.program_counter := of_int ~width:word_size (code_bottom + 512);
+      inputs.data_address := of_int ~width:word_width code_bottom;
+      inputs.program_counter := of_int ~width:word_width (code_bottom + 512);
       run ();
-      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
+      inputs.data_address := of_int ~width:word_width (stack_top - dmem_size);
       inputs.program_counter := !(inputs.data_address);
       run ();
-      inputs.data_address := of_int ~width:word_size bootloader_start;
-      inputs.program_counter := of_int ~width:word_size (bootloader_start + 4);
+      inputs.data_address := of_int ~width:word_width bootloader_start;
+      inputs.program_counter := of_int ~width:word_width (bootloader_start + 4);
       run ();
-      inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
-      inputs.program_counter := of_int ~width:word_size code_bottom;
+      inputs.data_address := of_int ~width:word_width (stack_top - dmem_size);
+      inputs.program_counter := of_int ~width:word_width code_bottom;
       run ();
       ());
     [%expect
@@ -1120,7 +1120,7 @@ module Tests = struct
     sim (fun ~step ~inputs ->
       let open Bits in
       Size.Binary.sim_set inputs.data_size Byte;
-      (inputs.data_address := Parameters.(of_int ~width:word_size bootloader_start));
+      (inputs.data_address := Parameters.(of_int ~width:word_width bootloader_start));
       inputs.load := vdd;
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->
@@ -1197,7 +1197,7 @@ module Tests = struct
   let%expect_test "UART errors" =
     sim (fun ~step ~inputs ->
       let open Bits in
-      (inputs.data_address := Parameters.(of_int ~width:word_size uart_io_address));
+      (inputs.data_address := Parameters.(of_int ~width:word_width uart_io_address));
       inputs.program_counter := !(inputs.data_address);
       inputs.load := vdd;
       List.iter (List.rev Size.Enum.all) ~f:(fun size ->
@@ -1242,7 +1242,7 @@ module Tests = struct
   let%expect_test "UART" =
     sim (fun ~step ~inputs ->
       let open Bits in
-      (inputs.data_address := Parameters.(of_int ~width:word_size uart_io_address));
+      (inputs.data_address := Parameters.(of_int ~width:word_width uart_io_address));
       inputs.load := vdd;
       step ();
       step ();

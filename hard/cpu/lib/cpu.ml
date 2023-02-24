@@ -133,10 +133,10 @@ let create scope ~bootloader { I.clock; reset; uart } =
       program_counter =
         Always.Variable.reg
           ~enable:~:stall
-          ~width:Parameters.word_size
+          ~width:Parameters.word_width
           (Reg_spec.override
              spec
-             ~reset_to:(of_int ~width:Parameters.word_size Parameters.bootloader_start))
+             ~reset_to:(of_int ~width:Parameters.word_width Parameters.bootloader_start))
     }
   in
   let signed_read = wire 1 in

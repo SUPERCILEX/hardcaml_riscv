@@ -9,15 +9,15 @@ module I = struct
     ; read_address2 : 'a [@bits 5]
     ; store : 'a
     ; write_address : 'a [@bits 5]
-    ; write_data : 'a [@bits Parameters.word_size]
+    ; write_data : 'a [@bits Parameters.word_width]
     }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
   type 'a t =
-    { rs1 : 'a [@bits Parameters.word_size]
-    ; rs2 : 'a [@bits Parameters.word_size]
+    { rs1 : 'a [@bits Parameters.word_width]
+    ; rs2 : 'a [@bits Parameters.word_width]
     }
   [@@deriving sexp_of, hardcaml]
 end

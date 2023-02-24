@@ -6,10 +6,10 @@ module I = struct
     { clock : 'a
     ; reset : 'a
     ; active : 'a
-    ; pc : 'a [@bits Parameters.word_size]
+    ; pc : 'a [@bits Parameters.word_width]
     ; instruction : 'a Instruction.Binary.t
-    ; rs1 : 'a [@bits Parameters.word_size]
-    ; rs2 : 'a [@bits Parameters.word_size]
+    ; rs1 : 'a [@bits Parameters.word_width]
+    ; rs2 : 'a [@bits Parameters.word_width]
     ; immediate : 'a [@bits 32]
     }
   [@@deriving sexp_of, hardcaml]
@@ -17,10 +17,10 @@ end
 
 module O = struct
   type 'a t =
-    { rd : 'a [@bits Parameters.word_size]
+    { rd : 'a [@bits Parameters.word_width]
     ; store : 'a (* Whether or not to store the result back into the register file. *)
     ; jump : 'a
-    ; jump_target : 'a [@bits Parameters.word_size]
+    ; jump_target : 'a [@bits Parameters.word_width]
     ; stall : 'a
     }
   [@@deriving sexp_of, hardcaml]
@@ -138,7 +138,7 @@ let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate 
   let ({ O.rd; store; jump; jump_target; stall } as out) = O.Of_always.wire zero in
   let module Divider =
     Make_divider (struct
-      let bits = Parameters.word_size
+      let bits = Parameters.word_width
     end)
   in
   let start_divider = Always.Variable.wire ~default:gnd in
@@ -268,7 +268,7 @@ module Tests = struct
       Stdio.print_endline "";
       ()
     in
-    let bit_num = of_int ~width:Parameters.word_size in
+    let bit_num = of_int ~width:Parameters.word_width in
     let runi
       instruction
       ?(rs1 = bit_num 69)
@@ -378,8 +378,8 @@ module Tests = struct
            check_remainder ~remainder:(to_int !(outputs.rd)) to_int;
            ());
       let _overflow =
-        let rs1 = sll (one Parameters.word_size) (Parameters.word_size - 1) in
-        let rs2 = ones Parameters.word_size in
+        let rs1 = sll (one Parameters.word_width) (Parameters.word_width - 1) in
+        let rs2 = ones Parameters.word_width in
         run32m Div ~rs1 ~rs2 ();
         run32m Rem ~rs1 ~rs2 ();
         ()
