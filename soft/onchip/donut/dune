@@ -42,6 +42,9 @@
   (source_tree ../.cargo)
   (source_tree ../src)
   (source_tree src))
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (locks /cargo)
  (action
   (progn

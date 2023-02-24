@@ -12,6 +12,8 @@
   (source_tree bootloader_server)
   (source_tree src))
  (locks /cargo)
+ (mode
+  (promote (until-clean)))
  (alias bin)
  (action
   (progn

@@ -23,6 +23,9 @@
  (deps
   (:src simple.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
@@ -54,6 +57,9 @@
  (deps
   (:src strchr.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
@@ -85,6 +91,9 @@
  (deps
   (:src fibonacci.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
@@ -116,6 +125,9 @@
  (deps
   (:src atoi.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
@@ -147,6 +159,9 @@
  (deps
   (:src uart_echo.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
@@ -189,6 +204,9 @@
  (deps
   (:src instruction_tests.s)
   sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
  (action
   (progn
    (run
