@@ -15,6 +15,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "calculator"
+version = "0.1.0"
+dependencies = [
+ "slib",
+]
+
+[[package]]
 name = "donut"
 version = "0.1.0"
 dependencies = [
