@@ -276,7 +276,8 @@ module Tests = struct
             (inputs : Bits.t ref I.t)
             (outputs : string O.t)
             (id : Instruction.All.t)];
-      Stdio.print_endline ""
+      Stdio.print_endline "";
+      ()
     in
     List.iter2_exn
       (test_instruction_bytes ())
@@ -284,14 +285,16 @@ module Tests = struct
       ~f:(fun bytes instruction ->
       inputs.instruction := bytes;
       Cyclesim.cycle sim;
-      print_state instruction)
+      print_state instruction;
+      ())
   ;;
 
   let sim () =
     let module Simulator = Cyclesim.With_interface (I) (O) in
     let scope = Scope.create ~flatten_design:true () in
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-    test_bench sim
+    test_bench sim;
+    ()
   ;;
 
   let%expect_test "RV32I" =

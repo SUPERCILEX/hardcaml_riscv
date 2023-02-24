@@ -204,7 +204,8 @@ let create scope ~bootloader { I.clock; reset; uart } =
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =
     let ( -- ) = Scope.naming scope in
-    ignore (sm.current -- "state")
+    sm.current -- "state" |> ignore;
+    ()
   in
   Always.(
     compile
@@ -285,7 +286,8 @@ module Tests = struct
       Cyclesim.cycle sim;
       if step i then () else run (i + 1)
     in
-    run 1
+    run 1;
+    ()
   ;;
 
   let prettify_enum ~sim ~(enums : 'a list) ~signal_name : 'a =
@@ -335,7 +337,8 @@ module Tests = struct
            , I.map inputs ~f:(fun p -> to_int !p)
            , O.map outputs ~f:(fun p -> to_int !p)
            , all_signals ));
-      termination i)
+      termination i);
+    ()
   ;;
 
   let execute ~program ?input_data_file ?output_data_file cycles =
@@ -345,7 +348,8 @@ module Tests = struct
         ~config:Cyclesim.Config.trace_all
         (create scope ~bootloader:program)
     in
-    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file
+    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
+    ()
   ;;
 
   let waves ~program ~cycles ?input_data_file ?output_data_file f =
@@ -395,6 +399,7 @@ module Tests = struct
                          List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string))))
         )
     in
-    f ~display_rules:(input_rules @ output_rules @ [ default ]) waves
+    f ~display_rules:(input_rules @ output_rules @ [ default ]) waves;
+    ()
   ;;
 end

@@ -264,9 +264,17 @@ module Tests = struct
       Stdio.print_s
         [%message
           (instruction : Instruction.All.t) (inputs : Sexp.t I.t) (outputs : Sexp.t O.t)];
-      Stdio.print_endline ""
+      Stdio.print_endline "";
+      ()
     in
-    let runi instruction ~rs1 ~rs2 ~immediate =
+    let bit_num = of_int ~width:Parameters.word_size in
+    let runi
+      instruction
+      ?(rs1 = bit_num 69)
+      ?(rs2 = bit_num 42)
+      ?(immediate = bit_num 88)
+      ()
+      =
       Instruction.Binary.sim_set inputs.instruction instruction;
       inputs.rs1 := rs1;
       inputs.rs2 := rs2;
@@ -275,53 +283,53 @@ module Tests = struct
       while to_bool !(outputs.stall) do
         Cyclesim.cycle sim
       done;
-      print_state ()
+      print_state ();
+      ()
     in
-    let run32i instruction ~rs1 ~rs2 ~immediate =
-      runi (Rv32i instruction) ~rs1 ~rs2 ~immediate
+    let run32i instruction ?rs1 ?rs2 ?immediate =
+      runi (Rv32i instruction) ?rs1 ?rs2 ?immediate
     in
-    let run32m instruction ~rs1 ~rs2 ~immediate =
-      runi (Rv32m instruction) ~rs1 ~rs2 ~immediate
+    let run32m instruction ?rs1 ?rs2 ?immediate =
+      runi (Rv32m instruction) ?rs1 ?rs2 ?immediate
     in
-    let bit_num = of_int ~width:Parameters.word_size in
     inputs.pc := bit_num 4206988;
-    run32i Lui ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Auipc ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Jal ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Jalr ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Beq ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Bne ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Blt ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Bge ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Bltu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Bgeu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Lb ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Lh ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Lw ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Lbu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Lhu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sb ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sh ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sw ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Addi ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Slti ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sltiu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Xori ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Ori ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Andi ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Slli ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Srli ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Srai ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Add ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sub ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sll ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Slt ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sltu ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Xor ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Srl ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Sra ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i Or ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
-    run32i And ~rs1:(bit_num 69) ~rs2:(bit_num 42) ~immediate:(bit_num 88);
+    run32i Lui ();
+    run32i Auipc ();
+    run32i Jal ();
+    run32i Jalr ();
+    run32i Beq ();
+    run32i Bne ();
+    run32i Blt ();
+    run32i Bge ();
+    run32i Bltu ();
+    run32i Bgeu ();
+    run32i Lb ();
+    run32i Lh ();
+    run32i Lw ();
+    run32i Lbu ();
+    run32i Lhu ();
+    run32i Sb ();
+    run32i Sh ();
+    run32i Sw ();
+    run32i Addi ();
+    run32i Slti ();
+    run32i Sltiu ();
+    run32i Xori ();
+    run32i Ori ();
+    run32i Andi ();
+    run32i Slli ();
+    run32i Srli ();
+    run32i Srai ();
+    run32i Add ();
+    run32i Sub ();
+    run32i Sll ();
+    run32i Slt ();
+    run32i Sltu ();
+    run32i Xor ();
+    run32i Srl ();
+    run32i Sra ();
+    run32i Or ();
+    run32i And ();
     List.cartesian_product [ 1; -1 ] [ 1; -1 ]
     |> List.map ~f:(fun (a, b) ->
          [ a * 1028091555 |> bit_num, b * 43 |> bit_num
@@ -329,19 +337,20 @@ module Tests = struct
          ])
     |> List.concat
     |> List.iter ~f:(fun (rs1, rs2) ->
-         run32m Mul ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Mulh ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Mulhsu ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Mulhu ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Div ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Divu ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Rem ~rs1 ~rs2 ~immediate:(bit_num 88);
-         run32m Remu ~rs1 ~rs2 ~immediate:(bit_num 88));
+         run32m Mul ~rs1 ~rs2 ();
+         run32m Mulh ~rs1 ~rs2 ();
+         run32m Mulhsu ~rs1 ~rs2 ();
+         run32m Mulhu ~rs1 ~rs2 ();
+         run32m Div ~rs1 ~rs2 ();
+         run32m Divu ~rs1 ~rs2 ();
+         run32m Rem ~rs1 ~rs2 ();
+         run32m Remu ~rs1 ~rs2 ();
+         ());
     let _overflow =
       let rs1 = sll (one Parameters.word_size) (Parameters.word_size - 1) in
       let rs2 = ones Parameters.word_size in
-      run32m Div ~rs1 ~rs2 ~immediate:(bit_num 88);
-      run32m Rem ~rs1 ~rs2 ~immediate:(bit_num 88);
+      run32m Div ~rs1 ~rs2 ();
+      run32m Rem ~rs1 ~rs2 ();
       ()
     in
     ()
@@ -351,7 +360,8 @@ module Tests = struct
     let module Simulator = Cyclesim.With_interface (I) (O) in
     let scope = Scope.create ~flatten_design:true () in
     let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-    test_bench sim
+    test_bench sim;
+    ()
   ;;
 
   let%expect_test "Simple" =

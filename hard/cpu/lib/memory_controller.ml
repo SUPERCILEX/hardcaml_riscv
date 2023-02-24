@@ -461,14 +461,16 @@ module Tests = struct
         (let pretty p = to_int !p |> Printf.sprintf "0x%x" in
          [%sexp_of: string I.t * string O.t]
            (I.map inputs ~f:pretty, O.map outputs ~f:pretty));
-      Stdio.print_endline ""
+      Stdio.print_endline "";
+      ()
     in
     let open Parameters in
     inputs.write_data := of_int ~width:word_size 0xdeadbeef;
     inputs.data_address := of_int ~width:word_size (stack_top - word_size);
     inputs.program_counter := of_int ~width:word_size code_bottom;
     Size.Binary.sim_set inputs.data_size Word;
-    f ~step ~inputs
+    f ~step ~inputs;
+    ()
   ;;
 
   let sim f =
@@ -498,7 +500,8 @@ module Tests = struct
       step ();
       inputs.load_instruction := gnd;
       inputs.store := vdd;
-      step ());
+      step ();
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
@@ -592,7 +595,8 @@ module Tests = struct
       inputs.store := gnd;
       offset_address 0;
       Size.Binary.sim_set inputs.data_size Word;
-      step ());
+      step ();
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
@@ -702,7 +706,8 @@ module Tests = struct
       inputs.data_address := of_int ~width:word_size (stack_top - dmem_size - 1);
       step ();
       inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
-      step ());
+      step ();
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
@@ -759,7 +764,9 @@ module Tests = struct
            (inputs.data_address
               := Parameters.(of_int ~width:word_size (code_bottom + offset)));
            Size.Binary.sim_set inputs.data_size s;
-           step ()));
+           step ();
+           ());
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
@@ -861,7 +868,9 @@ module Tests = struct
           inputs.load := load;
           inputs.load_instruction := load_instruction;
           inputs.store := store;
-          step ())
+          step ();
+          ());
+        ()
       in
       inputs.data_address := of_int ~width:word_size code_bottom;
       inputs.program_counter := of_int ~width:word_size (code_bottom + 512);
@@ -874,7 +883,8 @@ module Tests = struct
       run ();
       inputs.data_address := of_int ~width:word_size (stack_top - dmem_size);
       inputs.program_counter := of_int ~width:word_size code_bottom;
-      run ());
+      run ();
+      ());
     [%expect
       {|
       --------------------------------------------
@@ -1115,13 +1125,15 @@ module Tests = struct
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->
            inputs.data_address := !(inputs.data_address) +:. 1;
-           step ());
+           step ();
+           ());
       Stdio.print_endline "--------------------------------------------";
       Size.Binary.sim_set inputs.data_size Half_word;
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->
            step ();
-           inputs.data_address := !(inputs.data_address) +:. 2));
+           inputs.data_address := !(inputs.data_address) +:. 2);
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
@@ -1190,10 +1202,12 @@ module Tests = struct
       inputs.load := vdd;
       List.iter (List.rev Size.Enum.all) ~f:(fun size ->
         Size.Binary.sim_set inputs.data_size size;
-        step ());
+        step ();
+        ());
       inputs.load := gnd;
       inputs.load_instruction := vdd;
-      step ());
+      step ();
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
@@ -1245,7 +1259,8 @@ module Tests = struct
       step ();
       inputs.store := gnd;
       inputs.uart.write_done := gnd;
-      step ());
+      step ();
+      ());
     [%expect
       {|
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
