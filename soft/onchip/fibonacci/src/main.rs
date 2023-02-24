@@ -46,7 +46,6 @@ mod tests {
     );
 
     fn runtime() {
-        let args = ["11"];
-        main(&args);
+        main(&["11"]);
     }
 }
