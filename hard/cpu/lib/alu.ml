@@ -22,12 +22,6 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let shift_mux ~f a shift =
-  let open Signal in
-  let w = width a in
-  mux (sel_bottom shift (address_bits_for w)) (List.init w ~f:(fun shift -> f a shift))
-;;
-
 let set_store instruction store =
   let open Signal in
   (Instruction.RV32I.
@@ -94,17 +88,17 @@ let create _scope { I.pc; instruction; rs1; rs2; immediate } =
          ; Xori, [ rd <-- rs1 ^: immediate ]
          ; Ori, [ rd <-- (rs1 |: immediate) ]
          ; Andi, [ rd <-- (rs1 &: immediate) ]
-         ; Slli, [ rd <-- shift_mux ~f:sll rs1 immediate ]
-         ; Srli, [ rd <-- shift_mux ~f:srl rs1 immediate ]
-         ; Srai, [ rd <-- shift_mux ~f:sra rs1 immediate ]
+         ; Slli, [ rd <-- log_shift sll rs1 immediate ]
+         ; Srli, [ rd <-- log_shift srl rs1 immediate ]
+         ; Srai, [ rd <-- log_shift sra rs1 immediate ]
          ; Add, [ rd <-- rs1 +: rs2 ]
          ; Sub, [ rd <-- rs1 -: rs2 ]
-         ; Sll, [ rd <-- shift_mux ~f:sll rs1 (sel_bottom rs2 5) ]
+         ; Sll, [ rd <-- log_shift sll rs1 (sel_bottom rs2 5) ]
          ; Slt, [ rd <-- uresize (rs1 <+ rs2) 32 ]
          ; Sltu, [ rd <-- uresize (rs1 <: rs2) 32 ]
          ; Xor, [ rd <-- rs1 ^: rs2 ]
-         ; Srl, [ rd <-- shift_mux ~f:srl rs1 (sel_bottom rs2 5) ]
-         ; Sra, [ rd <-- shift_mux ~f:sra rs1 (sel_bottom rs2 5) ]
+         ; Srl, [ rd <-- log_shift srl rs1 (sel_bottom rs2 5) ]
+         ; Sra, [ rd <-- log_shift sra rs1 (sel_bottom rs2 5) ]
          ; Or, [ rd <-- (rs1 |: rs2) ]
          ; And, [ rd <-- (rs1 &: rs2) ]
          ]
@@ -657,9 +651,7 @@ module Tests = struct
          (immediate
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
-        ((rd
-          ((bits 01000101000000000000000000000000) (int 1157627904)
-           (signed_int 1157627904)))
+        ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
          (store true) (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
