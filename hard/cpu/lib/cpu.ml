@@ -155,7 +155,6 @@ let create scope ~bootloader { I.clock; reset; uart } =
       }
       ~bootloader:(String.to_list bootloader |> List.map ~f:Signal.of_char)
   in
-  stall <== mem_stall;
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
     decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
@@ -188,17 +187,20 @@ let create scope ~bootloader { I.clock; reset; uart } =
   in
   memory_controller.data_address.value <== rs1 +: immediate;
   memory_controller.write_data.value <== rs2;
-  let alu =
+  let alu_raw =
     Alu.circuit
       scope
-      { Alu.I.pc = memory_controller.program_counter.value
+      { Alu.I.clock
+      ; reset
+      ; pc = memory_controller.program_counter.value
       ; instruction
       ; rs1
       ; rs2
       ; immediate
       }
-    |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec)
   in
+  stall <== (mem_stall |: (alu_raw.stall &: sm.is Execute));
+  let alu = alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec) in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =
     let ( -- ) = Scope.naming scope in
@@ -319,7 +321,8 @@ module Tests = struct
              then prettify_enum State.all |> State.sexp_of_t |> Some
              else if is_signal "alu$binary_variant"
              then Instruction.(prettify_enum All.all |> All.sexp_of_t) |> Some
-             else if String.is_prefix ~prefix:"alu" signal_name
+             else if (String.is_prefix ~prefix:"alu" signal_name
+                     && String.is_prefix ~prefix:"alu$divider" signal_name |> not)
                      || String.is_prefix ~prefix:"register_file" signal_name
              then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
              else None)
