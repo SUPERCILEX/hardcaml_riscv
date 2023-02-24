@@ -5,6 +5,7 @@ target = "riscv32i-unknown-none-elf"
 rustflags = [
     "-C", "link-arg=-Tprogram.lds",
     "-C", "relocation-model=pic",
+    "-C", "target-feature=+m",
 ]
 
 [unstable]
