@@ -312,7 +312,10 @@ module Tests = struct
         |> List.filter_map ~f:(fun (signal_name, signal) ->
              let prettify_enum enums = prettify_enum ~sim ~signal_name ~enums in
              let is_signal = String.equal signal_name in
-             (if is_signal "state"
+             (if String.is_substring ~substring:"clock" signal_name
+                 || String.is_substring ~substring:"reset" signal_name
+             then None
+             else if is_signal "state"
              then prettify_enum State.all |> State.sexp_of_t |> Some
              else if is_signal "alu$binary_variant"
              then Instruction.(prettify_enum All.all |> All.sexp_of_t) |> Some
