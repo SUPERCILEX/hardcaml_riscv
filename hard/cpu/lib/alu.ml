@@ -27,24 +27,26 @@ module O = struct
 end
 
 module Make_divider (Params : sig
-  val bits : int
+  val word_size : Parameters.Word_size.t
 end) =
 struct
+  let bits = Parameters.Word_size.bits Params.word_size
+
   module I = struct
     type 'a t =
       { clock : 'a
       ; reset : 'a
       ; start : 'a
-      ; dividend : 'a [@bits Params.bits]
-      ; divisor : 'a [@bits Params.bits]
+      ; dividend : 'a [@bits bits]
+      ; divisor : 'a [@bits bits]
       }
     [@@deriving sexp_of, hardcaml]
   end
 
   module O = struct
     type 'a t =
-      { quotient : 'a [@bits Params.bits]
-      ; remainder : 'a [@bits Params.bits]
+      { quotient : 'a [@bits bits]
+      ; remainder : 'a [@bits bits]
       ; ready : 'a
       ; error : 'a
       }
@@ -55,35 +57,45 @@ struct
     let open Signal in
     let spec = Reg_spec.create ~clock ~reset ~clear:start () in
     let ( -- ) = Scope.naming scope in
+    let depth = 4 in
     let qr =
-      let width = 2 * Params.bits in
-      Always.Variable.reg
-        ~width
-        (spec |> Reg_spec.override ~clear_to:(uresize dividend width))
-    in
-    qr.value -- "qr" |> ignore;
-    let bit =
-      let width = address_bits_for Params.bits + 1 in
+      let width = 2 * bits in
       reg_fb
         ~width
-        ~f:(fun bit -> mux2 (bit ==:. 0) bit (bit -:. 1))
-        (spec |> Reg_spec.override ~clear_to:(of_int ~width Params.bits))
-      -- "bit"
+        ~f:(fun qr ->
+          let rec subdivide steps qr =
+            if steps = 0
+            then qr
+            else (
+              let diff = sel_top qr (bits + 1) -: ue divisor in
+              let subdivide = subdivide (steps - 1) in
+              mux2
+                (diff <+. 0)
+                (subdivide (sll qr 1))
+                (subdivide (lsbs diff @: sel_bottom qr (bits - 1) @: vdd)))
+          in
+          subdivide depth qr)
+        (spec |> Reg_spec.override ~clear_to:(uresize dividend width))
+      -- "qr"
     in
-    let diff = sel_top qr.value (Params.bits + 1) -: ue divisor -- "diff" in
-    Always.(
-      compile
-        [ if_
-            (diff <+. 0)
-            [ qr <-- sll qr.value 1 ]
-            [ qr <-- lsbs diff @: sel_bottom qr.value (Params.bits - 1) @: vdd ]
-        ]);
     let div_by_zero = divisor ==:. 0 in
     let error = div_by_zero in
-    { O.quotient = mux2 div_by_zero (ones Params.bits) (sel_bottom qr.value Params.bits)
-    ; remainder = mux2 div_by_zero dividend (sel_top qr.value Params.bits)
+    { O.quotient = mux2 div_by_zero (ones bits) (sel_bottom qr bits)
+    ; remainder = mux2 div_by_zero dividend (sel_top qr bits)
     ; error
-    ; ready = bit ==:. 0 |: error
+    ; ready =
+        (error
+        |:
+        let steps_remaining =
+          let steps = bits / depth in
+          let width = address_bits_for steps + 1 in
+          reg_fb
+            ~width
+            ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
+            (spec |> Reg_spec.override ~clear_to:(of_int ~width steps))
+          -- "steps_remaining"
+        in
+        steps_remaining ==:. 0)
     }
   ;;
 
@@ -138,7 +150,7 @@ let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate 
   let ({ O.rd; store; jump; jump_target; stall } as out) = O.Of_always.wire zero in
   let module Divider =
     Make_divider (struct
-      let bits = Parameters.word_width
+      let word_size = Parameters.word_size
     end)
   in
   let start_divider = Always.Variable.wire ~default:gnd in
@@ -382,6 +394,15 @@ module Tests = struct
         let rs2 = ones Parameters.word_width in
         run32m Div ~rs1 ~rs2 ();
         run32m Rem ~rs1 ~rs2 ();
+        ()
+      in
+      let _div_by_zero =
+        let rs1 = bit_num 42 in
+        let rs2 = bit_num 0 in
+        run32m Div ~rs1 ~rs2 ();
+        run32m Rem ~rs1 ~rs2 ();
+        run32m Divu ~rs1 ~rs2 ();
+        run32m Remu ~rs1 ~rs2 ();
         ()
       in
       ()
@@ -2798,6 +2819,94 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
+         (store true) (jump false)
+         (jump_target
+          ((bits 00000000010000000011000111100100) (int 4207076)
+           (signed_int 4207076)))
+         (stall false))))
+
+      ((instruction (Rv32m Div))
+       (inputs
+        ((clock ((bits 0) (int 0) (signed_int 0)))
+         (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
+         (pc
+          ((bits 00000000010000000011000110001100) (int 4206988)
+           (signed_int 4206988)))
+         (instruction ((bits 101010) (int 42) (signed_int -22)))
+         (rs1 ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
+         (rs2 ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
+         (immediate
+          ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
+       (outputs
+        ((rd
+          ((bits 11111111111111111111111111111111) (int 4294967295)
+           (signed_int -1)))
+         (store true) (jump false)
+         (jump_target
+          ((bits 00000000010000000011000111100100) (int 4207076)
+           (signed_int 4207076)))
+         (stall false))))
+
+      ((instruction (Rv32m Rem))
+       (inputs
+        ((clock ((bits 0) (int 0) (signed_int 0)))
+         (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
+         (pc
+          ((bits 00000000010000000011000110001100) (int 4206988)
+           (signed_int 4206988)))
+         (instruction ((bits 101100) (int 44) (signed_int -20)))
+         (rs1 ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
+         (rs2 ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
+         (immediate
+          ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
+         (store true) (jump false)
+         (jump_target
+          ((bits 00000000010000000011000111100100) (int 4207076)
+           (signed_int 4207076)))
+         (stall false))))
+
+      ((instruction (Rv32m Divu))
+       (inputs
+        ((clock ((bits 0) (int 0) (signed_int 0)))
+         (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
+         (pc
+          ((bits 00000000010000000011000110001100) (int 4206988)
+           (signed_int 4206988)))
+         (instruction ((bits 101011) (int 43) (signed_int -21)))
+         (rs1 ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
+         (rs2 ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
+         (immediate
+          ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
+       (outputs
+        ((rd
+          ((bits 11111111111111111111111111111111) (int 4294967295)
+           (signed_int -1)))
+         (store true) (jump false)
+         (jump_target
+          ((bits 00000000010000000011000111100100) (int 4207076)
+           (signed_int 4207076)))
+         (stall false))))
+
+      ((instruction (Rv32m Remu))
+       (inputs
+        ((clock ((bits 0) (int 0) (signed_int 0)))
+         (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
+         (pc
+          ((bits 00000000010000000011000110001100) (int 4206988)
+           (signed_int 4206988)))
+         (instruction ((bits 101101) (int 45) (signed_int -19)))
+         (rs1 ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
+         (rs2 ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
+         (immediate
+          ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
+       (outputs
+        ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
          (store true) (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)

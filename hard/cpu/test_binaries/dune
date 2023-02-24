@@ -231,4 +231,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 324 -program "(sample instruction_tests)"))))
+   (run %{exe} sim -cycles 240 -program "(sample instruction_tests)"))))

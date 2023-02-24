@@ -8,7 +8,11 @@ module Word_size : sig
 end = struct
   type t = int
 
-  let of_bytes b = b
+  let of_bytes b =
+    assert (b <> 0);
+    b
+  ;;
+
   let bits size = size * 8
 end
 
