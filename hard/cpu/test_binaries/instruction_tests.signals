@@ -1,6 +1,7 @@
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 1))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -11,7 +12,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 2))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4000) (alu$pc 0x4000) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -22,7 +24,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 3))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x80000000)
   (alu$jump 0x0) (alu$jump_target 0x80004000) (alu$pc 0x4000)
   (alu$rd 0x80000000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -33,7 +36,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 4))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x80000000)
   (alu$jump 0x0) (alu$jump_target 0x80004000) (alu$pc 0x4000)
   (alu$rd 0x80000000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -44,7 +48,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 5))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x80000000)
   (alu$jump 0x0) (alu$jump_target 0x80004004) (alu$pc 0x4004)
   (alu$rd 0x80000000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -55,7 +60,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 6))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x80000000)
   (alu$jump 0x0) (alu$jump_target 0x80004004) (alu$pc 0x4004)
   (alu$rd 0x80000000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -66,7 +72,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 7))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffff10)
   (alu$jump 0x0) (alu$jump_target 0x3f14) (alu$pc 0x4004) (alu$rd 0x7fffff10)
   (alu$rs1 0x80000000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -78,7 +85,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 8))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffff10)
   (alu$jump 0x0) (alu$jump_target 0x3f14) (alu$pc 0x4004) (alu$rd 0x7fffff10)
   (alu$rs1 0x80000000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -90,7 +98,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 9))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffff10)
   (alu$jump 0x0) (alu$jump_target 0x3f18) (alu$pc 0x4008) (alu$rd 0x7fffff10)
   (alu$rs1 0x80000000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -102,7 +111,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 10))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffff10)
   (alu$jump 0x0) (alu$jump_target 0x3f18) (alu$pc 0x4008) (alu$rd 0x7fffff10)
   (alu$rs1 0x80000000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -114,7 +124,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 11))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2a) (alu$jump 0x0)
   (alu$jump_target 0x4032) (alu$pc 0x4008) (alu$rd 0x2a) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -125,7 +136,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 12))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2a) (alu$jump 0x0)
   (alu$jump_target 0x4032) (alu$pc 0x4008) (alu$rd 0x2a) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -136,7 +148,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 13))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2a) (alu$jump 0x0)
   (alu$jump_target 0x4036) (alu$pc 0x400c) (alu$rd 0x2a) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -147,7 +160,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 14))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2a) (alu$jump 0x0)
   (alu$jump_target 0x4036) (alu$pc 0x400c) (alu$rd 0x2a) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -158,7 +172,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 15))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x400c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x2a) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -169,7 +184,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 16))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x400c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x2a) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -180,7 +196,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 42) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 17))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4010) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x2a) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -191,7 +208,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 18))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4010) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x2a) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -202,7 +220,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 19))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4010) (alu$rd 0x7fffff54)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -214,7 +233,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 20))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4010) (alu$rd 0x7fffff54)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -226,7 +246,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 21))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4014) (alu$rd 0x7fffff54)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -238,7 +259,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 22))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4014) (alu$rd 0x7fffff54)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -250,7 +272,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 23))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4014) (alu$pc 0x4014) (alu$rd 0x0) (alu$rs1 0x7fffff54)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -261,7 +284,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 24))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4014) (alu$pc 0x4014) (alu$rd 0x0) (alu$rs1 0x7fffff54)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -272,7 +296,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 25))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4018) (alu$pc 0x4018) (alu$rd 0x0) (alu$rs1 0x7fffff54)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -283,7 +308,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 26))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4018) (alu$pc 0x4018) (alu$rd 0x0) (alu$rs1 0x7fffff54)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -294,7 +320,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 27))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x405c) (alu$pc 0x4018) (alu$rd 0x7fffff98)
   (alu$rs1 0x7fffff54) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -306,7 +333,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 28))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x405c) (alu$pc 0x4018) (alu$rd 0x7fffff98)
   (alu$rs1 0x7fffff54) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -318,7 +346,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 29))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4060) (alu$pc 0x401c) (alu$rd 0x7fffff98)
   (alu$rs1 0x7fffff54) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -330,7 +359,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 30))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x44) (alu$jump 0x0)
   (alu$jump_target 0x4060) (alu$pc 0x401c) (alu$rd 0x7fffff98)
   (alu$rs1 0x7fffff54) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -342,7 +372,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 31))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0xffffffbc) (alu$jump 0x0)
   (alu$jump_target 0x3fd8) (alu$pc 0x401c) (alu$rd 0x0) (alu$rs1 0x7fffff98)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -353,7 +384,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 32))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0xffffffbc) (alu$jump 0x0)
   (alu$jump_target 0x3fd8) (alu$pc 0x401c) (alu$rd 0x0) (alu$rs1 0x7fffff98)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -364,7 +396,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 33))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0xffffffbc) (alu$jump 0x0)
   (alu$jump_target 0x3fdc) (alu$pc 0x4020) (alu$rd 0x0) (alu$rs1 0x7fffff98)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -375,7 +408,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 34))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0xffffffbc) (alu$jump 0x0)
   (alu$jump_target 0x3fdc) (alu$pc 0x4020) (alu$rd 0x0) (alu$rs1 0x7fffff98)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -386,7 +420,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 35))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffbe4)
   (alu$jump 0x0) (alu$jump_target 0x3c04) (alu$pc 0x4020) (alu$rd 0x7ffffaf4)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -398,7 +433,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 36))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffbe4)
   (alu$jump 0x0) (alu$jump_target 0x3c04) (alu$pc 0x4020) (alu$rd 0x7ffffaf4)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -410,7 +446,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 37))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffbe4)
   (alu$jump 0x0) (alu$jump_target 0x3c08) (alu$pc 0x4024) (alu$rd 0x7ffffaf4)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -422,7 +459,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 38))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffbe4)
   (alu$jump 0x0) (alu$jump_target 0x3c08) (alu$pc 0x4024) (alu$rd 0x7ffffaf4)
   (alu$rs1 0x7fffff10) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -434,7 +472,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 39))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x2000) (alu$jump 0x0)
   (alu$jump_target 0x6024) (alu$pc 0x4024) (alu$rd 0x6024) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -445,7 +484,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 40))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x2000) (alu$jump 0x0)
   (alu$jump_target 0x6024) (alu$pc 0x4024) (alu$rd 0x6024) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -456,7 +496,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 41))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x2000) (alu$jump 0x0)
   (alu$jump_target 0x6028) (alu$pc 0x4028) (alu$rd 0x6028) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -467,7 +508,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 42))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x2000) (alu$jump 0x0)
   (alu$jump_target 0x6028) (alu$pc 0x4028) (alu$rd 0x6028) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -478,7 +520,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 43))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2) (alu$jump 0x0)
   (alu$jump_target 0x402a) (alu$pc 0x4028) (alu$rd 0x2) (alu$rs1 0x0)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -489,7 +532,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 44))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2) (alu$jump 0x0)
   (alu$jump_target 0x402a) (alu$pc 0x4028) (alu$rd 0x2) (alu$rs1 0x0)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -500,7 +544,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 45))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2) (alu$jump 0x0)
   (alu$jump_target 0x402e) (alu$pc 0x402c) (alu$rd 0x2) (alu$rs1 0x0)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -511,7 +556,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 46))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x2) (alu$jump 0x0)
   (alu$jump_target 0x402e) (alu$pc 0x402c) (alu$rd 0x2) (alu$rs1 0x0)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -522,7 +568,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 47))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402b) (alu$pc 0x402c) (alu$rd 0x1)
   (alu$rs1 0x2) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -533,7 +580,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 48))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402b) (alu$pc 0x402c) (alu$rd 0x1)
   (alu$rs1 0x2) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -544,7 +592,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 49))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402f) (alu$pc 0x4030) (alu$rd 0x1)
   (alu$rs1 0x2) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -555,7 +604,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 50))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402f) (alu$pc 0x4030) (alu$rd 0x1)
   (alu$rs1 0x2) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -566,7 +616,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 51))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x1) (alu$jump_target 0x402c) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -577,7 +628,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 52))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x1) (alu$jump_target 0x402c) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -588,7 +640,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 53))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x1) (alu$jump_target 0x4028) (alu$pc 0x402c) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -599,7 +652,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 54))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x1) (alu$jump_target 0x4028) (alu$pc 0x402c) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -610,7 +664,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 55))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402b) (alu$pc 0x402c) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -621,7 +676,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 56))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402b) (alu$pc 0x402c) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -632,7 +688,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 57))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402f) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -643,7 +700,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 58))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x402f) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x1) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -654,7 +712,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 59))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x0) (alu$jump_target 0x402c) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -665,7 +724,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 60))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x0) (alu$jump_target 0x402c) (alu$pc 0x4030) (alu$rd 0x0)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -676,7 +736,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 61))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x0) (alu$jump_target 0x4030) (alu$pc 0x4034) (alu$rd 0x0)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -687,7 +748,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 62))
  ((alu$binary_variant "(Rv32i Bne)") (alu$immediate 0xfffffffc)
   (alu$jump 0x0) (alu$jump_target 0x4030) (alu$pc 0x4034) (alu$rd 0x0)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0)
@@ -698,7 +760,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 63))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x12345000)
   (alu$jump 0x0) (alu$jump_target 0x12349034) (alu$pc 0x4034)
   (alu$rd 0x12345000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -709,7 +772,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 64))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x12345000)
   (alu$jump 0x0) (alu$jump_target 0x12349034) (alu$pc 0x4034)
   (alu$rd 0x12345000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -720,7 +784,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 65))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x12345000)
   (alu$jump 0x0) (alu$jump_target 0x12349038) (alu$pc 0x4038)
   (alu$rd 0x12345000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -731,7 +796,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 66))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x12345000)
   (alu$jump 0x0) (alu$jump_target 0x12349038) (alu$pc 0x4038)
   (alu$rd 0x12345000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -742,7 +808,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 67))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x678) (alu$jump 0x0)
   (alu$jump_target 0x46b0) (alu$pc 0x4038) (alu$rd 0x12345678)
   (alu$rs1 0x12345000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -754,7 +821,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 68))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x678) (alu$jump 0x0)
   (alu$jump_target 0x46b0) (alu$pc 0x4038) (alu$rd 0x12345678)
   (alu$rs1 0x12345000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -766,7 +834,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 69))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x678) (alu$jump 0x0)
   (alu$jump_target 0x46b4) (alu$pc 0x403c) (alu$rd 0x12345678)
   (alu$rs1 0x12345000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -778,7 +847,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 70))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x678) (alu$jump 0x0)
   (alu$jump_target 0x46b4) (alu$pc 0x403c) (alu$rd 0x12345678)
   (alu$rs1 0x12345000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -790,7 +860,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 71))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x403c) (alu$pc 0x403c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x12345678) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -801,7 +872,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 72))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x403c) (alu$pc 0x403c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x12345678) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -812,7 +884,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 73))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4040) (alu$pc 0x4040) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x12345678) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -823,7 +896,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 74))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4040) (alu$pc 0x4040) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x12345678) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -834,7 +908,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 75))
  ((alu$binary_variant "(Rv32i Sb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4040) (alu$pc 0x4040) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x6024) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -845,7 +920,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 76))
  ((alu$binary_variant "(Rv32i Sb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4040) (alu$pc 0x4040) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x6024) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -856,7 +932,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 77))
  ((alu$binary_variant "(Rv32i Sb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4044) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x6024) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -867,7 +944,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 78))
  ((alu$binary_variant "(Rv32i Sb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4044) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x6024) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -878,7 +956,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 79))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4044) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -889,7 +968,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 80))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4044) (alu$pc 0x4044) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -900,7 +980,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 81))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4048) (alu$pc 0x4048) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -911,7 +992,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 82))
  ((alu$binary_variant "(Rv32i Lw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4048) (alu$pc 0x4048) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -922,7 +1004,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 83))
  ((alu$binary_variant "(Rv32i Jal)") (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x4050) (alu$pc 0x4048) (alu$rd 0x404c) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -933,7 +1016,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 84))
  ((alu$binary_variant "(Rv32i Jal)") (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x4050) (alu$pc 0x4048) (alu$rd 0x404c) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -944,7 +1028,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 85))
  ((alu$binary_variant "(Rv32i Jal)") (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x4058) (alu$pc 0x4050) (alu$rd 0x4054) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -955,7 +1040,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 86))
  ((alu$binary_variant "(Rv32i Jal)") (alu$immediate 0x8) (alu$jump 0x1)
   (alu$jump_target 0x4058) (alu$pc 0x4050) (alu$rd 0x4054) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -966,7 +1052,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 87))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x4050) (alu$rd 0x12345624)
   (alu$rs1 0x12345624) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -978,7 +1065,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 88))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4050) (alu$pc 0x4050) (alu$rd 0x12345624)
   (alu$rs1 0x12345624) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -990,7 +1078,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 89))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4054) (alu$rd 0x12345624)
   (alu$rs1 0x12345624) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1002,7 +1091,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 90))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4054) (alu$rd 0x12345624)
   (alu$rs1 0x12345624) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1014,7 +1104,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 91))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4054) (alu$rd 0x4054) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1025,7 +1116,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 92))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4054) (alu$pc 0x4054) (alu$rd 0x4054) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1036,7 +1128,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 93))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4058) (alu$rd 0x4058) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1047,7 +1140,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 94))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4058) (alu$pc 0x4058) (alu$rd 0x4058) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1058,7 +1152,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 95))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x10) (alu$jump 0x0)
   (alu$jump_target 0x4068) (alu$pc 0x4058) (alu$rd 0x4064) (alu$rs1 0x4054)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1069,7 +1164,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 96))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x10) (alu$jump 0x0)
   (alu$jump_target 0x4068) (alu$pc 0x4058) (alu$rd 0x4064) (alu$rs1 0x4054)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1080,7 +1176,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 97))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x10) (alu$jump 0x0)
   (alu$jump_target 0x406c) (alu$pc 0x405c) (alu$rd 0x4064) (alu$rs1 0x4054)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1091,7 +1188,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 98))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x10) (alu$jump 0x0)
   (alu$jump_target 0x406c) (alu$pc 0x405c) (alu$rd 0x4064) (alu$rs1 0x4054)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1102,7 +1200,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 99))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$immediate 0x0) (alu$jump 0x1)
   (alu$jump_target 0x4064) (alu$pc 0x405c) (alu$rd 0x4060) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1113,7 +1212,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 100))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$immediate 0x0) (alu$jump 0x1)
   (alu$jump_target 0x4064) (alu$pc 0x405c) (alu$rd 0x4060) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1124,7 +1224,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 101))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$immediate 0x0) (alu$jump 0x1)
   (alu$jump_target 0x4064) (alu$pc 0x4064) (alu$rd 0x4068) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1135,7 +1236,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 102))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$immediate 0x0) (alu$jump 0x1)
   (alu$jump_target 0x4064) (alu$pc 0x4064) (alu$rd 0x4068) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1146,7 +1248,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 103))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4064) (alu$pc 0x4064) (alu$rd 0x4064) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1157,7 +1260,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 104))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4064) (alu$pc 0x4064) (alu$rd 0x4064) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1168,7 +1272,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 105))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4068) (alu$pc 0x4068) (alu$rd 0x4064) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1179,7 +1284,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 106))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4068) (alu$pc 0x4068) (alu$rd 0x4064) (alu$rs1 0x4064)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1190,7 +1296,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 107))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x1c000) (alu$jump 0x0)
   (alu$jump_target 0x20068) (alu$pc 0x4068) (alu$rd 0x1c000) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1201,7 +1308,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 108))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x1c000) (alu$jump 0x0)
   (alu$jump_target 0x20068) (alu$pc 0x4068) (alu$rd 0x1c000) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1212,7 +1320,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 109))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x1c000) (alu$jump 0x0)
   (alu$jump_target 0x2006c) (alu$pc 0x406c) (alu$rd 0x1c000) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1223,7 +1332,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 110))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x1c000) (alu$jump 0x0)
   (alu$jump_target 0x2006c) (alu$pc 0x406c) (alu$rd 0x1c000) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1234,7 +1344,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 111))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x6a2) (alu$jump 0x0)
   (alu$jump_target 0x470e) (alu$pc 0x406c) (alu$rd 0x1c6a2) (alu$rs1 0x1c000)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1245,7 +1356,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 112))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x6a2) (alu$jump 0x0)
   (alu$jump_target 0x470e) (alu$pc 0x406c) (alu$rd 0x1c6a2) (alu$rs1 0x1c000)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1256,7 +1368,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 16) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 113))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x6a2) (alu$jump 0x0)
   (alu$jump_target 0x4712) (alu$pc 0x4070) (alu$rd 0x1c6a2) (alu$rs1 0x1c000)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1267,7 +1380,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 114))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x6a2) (alu$jump 0x0)
   (alu$jump_target 0x4712) (alu$pc 0x4070) (alu$rd 0x1c6a2) (alu$rs1 0x1c000)
   (alu$rs2 0x7fffff10) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1278,7 +1392,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 115))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xe000) (alu$jump 0x0)
   (alu$jump_target 0x12070) (alu$pc 0x4070) (alu$rd 0xe000) (alu$rs1 0x4060)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1289,7 +1404,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 116))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xe000) (alu$jump 0x0)
   (alu$jump_target 0x12070) (alu$pc 0x4070) (alu$rd 0xe000) (alu$rs1 0x4060)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1300,7 +1416,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 117))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xe000) (alu$jump 0x0)
   (alu$jump_target 0x12074) (alu$pc 0x4074) (alu$rd 0xe000) (alu$rs1 0x4060)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1311,7 +1428,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 118))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xe000) (alu$jump 0x0)
   (alu$jump_target 0x12074) (alu$pc 0x4074) (alu$rd 0xe000) (alu$rs1 0x4060)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1322,7 +1440,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 119))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x351) (alu$jump 0x0)
   (alu$jump_target 0x43c5) (alu$pc 0x4074) (alu$rd 0xe351) (alu$rs1 0xe000)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1333,7 +1452,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 120))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x351) (alu$jump 0x0)
   (alu$jump_target 0x43c5) (alu$pc 0x4074) (alu$rd 0xe351) (alu$rs1 0xe000)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1344,7 +1464,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 121))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x351) (alu$jump 0x0)
   (alu$jump_target 0x43c9) (alu$pc 0x4078) (alu$rd 0xe351) (alu$rs1 0xe000)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1355,7 +1476,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 122))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0x351) (alu$jump 0x0)
   (alu$jump_target 0x43c9) (alu$pc 0x4078) (alu$rd 0xe351) (alu$rs1 0xe000)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1366,7 +1488,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 123))
  ((alu$binary_variant "(Rv32i And)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4078) (alu$pc 0x4078) (alu$rd 0xc200) (alu$rs1 0x1c6a2)
   (alu$rs2 0xe351) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1377,7 +1500,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 124))
  ((alu$binary_variant "(Rv32i And)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4078) (alu$pc 0x4078) (alu$rd 0xc200) (alu$rs1 0x1c6a2)
   (alu$rs2 0xe351) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1388,7 +1512,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 125))
  ((alu$binary_variant "(Rv32i And)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x407c) (alu$pc 0x407c) (alu$rd 0xc200) (alu$rs1 0x1c6a2)
   (alu$rs2 0xe351) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1399,7 +1524,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 126))
  ((alu$binary_variant "(Rv32i And)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x407c) (alu$pc 0x407c) (alu$rd 0xc200) (alu$rs1 0x1c6a2)
   (alu$rs2 0xe351) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1410,7 +1536,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 127))
  ((alu$binary_variant "(Rv32i Andi)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x4796) (alu$pc 0x407c) (alu$rd 0x602) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1421,7 +1548,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 128))
  ((alu$binary_variant "(Rv32i Andi)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x4796) (alu$pc 0x407c) (alu$rd 0x602) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1432,7 +1560,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 129))
  ((alu$binary_variant "(Rv32i Andi)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479a) (alu$pc 0x4080) (alu$rd 0x602) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1443,7 +1572,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 130))
  ((alu$binary_variant "(Rv32i Andi)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479a) (alu$pc 0x4080) (alu$rd 0x602) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1454,7 +1584,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 131))
  ((alu$binary_variant "(Rv32i Xori)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479a) (alu$pc 0x4080) (alu$rd 0x1c1b8) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1465,7 +1596,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 132))
  ((alu$binary_variant "(Rv32i Xori)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479a) (alu$pc 0x4080) (alu$rd 0x1c1b8) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1476,7 +1608,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 133))
  ((alu$binary_variant "(Rv32i Xori)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479e) (alu$pc 0x4084) (alu$rd 0x1c1b8) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1487,7 +1620,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 134))
  ((alu$binary_variant "(Rv32i Xori)") (alu$immediate 0x71a) (alu$jump 0x0)
   (alu$jump_target 0x479e) (alu$pc 0x4084) (alu$rd 0x1c1b8) (alu$rs1 0x1c6a2)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1498,7 +1632,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 135))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xfffff000)
   (alu$jump 0x0) (alu$jump_target 0x3084) (alu$pc 0x4084) (alu$rd 0xfffff000)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1509,7 +1644,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 136))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xfffff000)
   (alu$jump 0x0) (alu$jump_target 0x3084) (alu$pc 0x4084) (alu$rd 0xfffff000)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1520,7 +1656,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 137))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xfffff000)
   (alu$jump 0x0) (alu$jump_target 0x3088) (alu$pc 0x4088) (alu$rd 0xfffff000)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1531,7 +1668,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 138))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0xfffff000)
   (alu$jump 0x0) (alu$jump_target 0x3088) (alu$pc 0x4088) (alu$rd 0xfffff000)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1542,7 +1680,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 139))
  ((alu$binary_variant "(Rv32i Slti)") (alu$immediate 0xffffffc0)
   (alu$jump 0x0) (alu$jump_target 0x4048) (alu$pc 0x4088) (alu$rd 0x1)
   (alu$rs1 0xfffff000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1554,7 +1693,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 140))
  ((alu$binary_variant "(Rv32i Slti)") (alu$immediate 0xffffffc0)
   (alu$jump 0x0) (alu$jump_target 0x4048) (alu$pc 0x4088) (alu$rd 0x1)
   (alu$rs1 0xfffff000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1566,7 +1706,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 141))
  ((alu$binary_variant "(Rv32i Slti)") (alu$immediate 0xffffffc0)
   (alu$jump 0x0) (alu$jump_target 0x404c) (alu$pc 0x408c) (alu$rd 0x1)
   (alu$rs1 0xfffff000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1578,7 +1719,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 142))
  ((alu$binary_variant "(Rv32i Slti)") (alu$immediate 0xffffffc0)
   (alu$jump 0x0) (alu$jump_target 0x404c) (alu$pc 0x408c) (alu$rd 0x1)
   (alu$rs1 0xfffff000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1590,7 +1732,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 143))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x408b) (alu$pc 0x408c) (alu$rd 0xffffffff)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1601,7 +1744,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 144))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x408b) (alu$pc 0x408c) (alu$rd 0xffffffff)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1612,7 +1756,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 145))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x408f) (alu$pc 0x4090) (alu$rd 0xffffffff)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1623,7 +1768,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 146))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffff)
   (alu$jump 0x0) (alu$jump_target 0x408f) (alu$pc 0x4090) (alu$rd 0xffffffff)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1634,7 +1780,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 147))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4090) (alu$pc 0x4090) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0xffffffff) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -1645,7 +1792,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 148))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4090) (alu$pc 0x4090) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0xffffffff) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -1656,7 +1804,8 @@
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 149))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4094) (alu$pc 0x4094) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0xffffffff) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -1667,7 +1816,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 150))
  ((alu$binary_variant "(Rv32i Sw)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4094) (alu$pc 0x4094) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0xffffffff) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -1678,7 +1828,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 151))
  ((alu$binary_variant "(Rv32i Lbu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4094) (alu$pc 0x4094) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1689,7 +1840,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 152))
  ((alu$binary_variant "(Rv32i Lbu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4094) (alu$pc 0x4094) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1700,7 +1852,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 153))
  ((alu$binary_variant "(Rv32i Lbu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4098) (alu$pc 0x4098) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1711,7 +1864,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 154))
  ((alu$binary_variant "(Rv32i Lbu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4098) (alu$pc 0x4098) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1722,7 +1876,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 155))
  ((alu$binary_variant "(Rv32i Lb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4098) (alu$pc 0x4098) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1733,7 +1888,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 156))
  ((alu$binary_variant "(Rv32i Lb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x4098) (alu$pc 0x4098) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1744,7 +1900,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 157))
  ((alu$binary_variant "(Rv32i Lb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x409c) (alu$pc 0x409c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1755,7 +1912,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 158))
  ((alu$binary_variant "(Rv32i Lb)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x409c) (alu$pc 0x409c) (alu$rd 0x0) (alu$rs1 0x7fffff10)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -1766,7 +1924,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 159))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x3d477000)
   (alu$jump 0x0) (alu$jump_target 0x3d47b09c) (alu$pc 0x409c)
   (alu$rd 0x3d477000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -1777,7 +1936,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 160))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x3d477000)
   (alu$jump 0x0) (alu$jump_target 0x3d47b09c) (alu$pc 0x409c)
   (alu$rd 0x3d477000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -1788,7 +1948,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 161))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x3d477000)
   (alu$jump 0x0) (alu$jump_target 0x3d47b0a0) (alu$pc 0x40a0)
   (alu$rd 0x3d477000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -1799,7 +1960,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 162))
  ((alu$binary_variant "(Rv32i Lui)") (alu$immediate 0x3d477000)
   (alu$jump 0x0) (alu$jump_target 0x3d47b0a0) (alu$pc 0x40a0)
   (alu$rd 0x3d477000) (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0)
@@ -1810,7 +1972,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 163))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffea3)
   (alu$jump 0x0) (alu$jump_target 0x3f43) (alu$pc 0x40a0) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d477000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1822,7 +1985,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 164))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffea3)
   (alu$jump 0x0) (alu$jump_target 0x3f43) (alu$pc 0x40a0) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d477000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1834,7 +1998,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 165))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffea3)
   (alu$jump 0x0) (alu$jump_target 0x3f47) (alu$pc 0x40a4) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d477000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1846,7 +2011,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 166))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xfffffea3)
   (alu$jump 0x0) (alu$jump_target 0x3f47) (alu$pc 0x40a4) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d477000) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1858,7 +2024,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 167))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffd5)
   (alu$jump 0x0) (alu$jump_target 0x4079) (alu$pc 0x40a4) (alu$rd 0xffffffd5)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1869,7 +2036,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 168))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffd5)
   (alu$jump 0x0) (alu$jump_target 0x4079) (alu$pc 0x40a4) (alu$rd 0xffffffd5)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1880,7 +2048,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 169))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffd5)
   (alu$jump 0x0) (alu$jump_target 0x407d) (alu$pc 0x40a8) (alu$rd 0xffffffd5)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1891,7 +2060,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 170))
  ((alu$binary_variant "(Rv32i Addi)") (alu$immediate 0xffffffd5)
   (alu$jump 0x0) (alu$jump_target 0x407d) (alu$pc 0x40a8) (alu$rd 0xffffffd5)
   (alu$rs1 0x0) (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x1)
@@ -1902,7 +2072,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 171))
  ((alu$binary_variant "(Rv32m Mul)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40a8) (alu$pc 0x40a8) (alu$rd 0xb5006a9f)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1914,7 +2085,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 172))
  ((alu$binary_variant "(Rv32m Mul)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40a8) (alu$pc 0x40a8) (alu$rd 0xb5006a9f)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1926,7 +2098,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 173))
  ((alu$binary_variant "(Rv32m Mul)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40ac) (alu$pc 0x40ac) (alu$rd 0xb5006a9f)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1938,7 +2111,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 174))
  ((alu$binary_variant "(Rv32m Mul)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40ac) (alu$pc 0x40ac) (alu$rd 0xb5006a9f)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1950,7 +2124,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 175))
  ((alu$binary_variant "(Rv32m Mulh)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40ac) (alu$pc 0x40ac) (alu$rd 0xfffffff5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1962,7 +2137,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 176))
  ((alu$binary_variant "(Rv32m Mulh)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40ac) (alu$pc 0x40ac) (alu$rd 0xfffffff5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1974,7 +2150,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 177))
  ((alu$binary_variant "(Rv32m Mulh)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b0) (alu$pc 0x40b0) (alu$rd 0xfffffff5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1986,7 +2163,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 178))
  ((alu$binary_variant "(Rv32m Mulh)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b0) (alu$pc 0x40b0) (alu$rd 0xfffffff5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -1998,7 +2176,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 179))
  ((alu$binary_variant "(Rv32m Mulhsu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b0) (alu$pc 0x40b0) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2010,7 +2189,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 180))
  ((alu$binary_variant "(Rv32m Mulhsu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b0) (alu$pc 0x40b0) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2022,7 +2202,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 181))
  ((alu$binary_variant "(Rv32m Mulhsu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b4) (alu$pc 0x40b4) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2034,7 +2215,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 182))
  ((alu$binary_variant "(Rv32m Mulhsu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b4) (alu$pc 0x40b4) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2046,7 +2228,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 183))
  ((alu$binary_variant "(Rv32m Mulhu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b4) (alu$pc 0x40b4) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2058,7 +2241,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 184))
  ((alu$binary_variant "(Rv32m Mulhu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b4) (alu$pc 0x40b4) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2070,7 +2254,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 185))
  ((alu$binary_variant "(Rv32m Mulhu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2082,7 +2267,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 186))
  ((alu$binary_variant "(Rv32m Mulhu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x3d476e98)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2094,7 +2280,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 187))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x1000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2106,7 +2293,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 188))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xc2b8915d)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2118,7 +2306,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 189))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x857122ba)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2130,7 +2319,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 190))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xae24574)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2142,7 +2332,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 191))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x15c48ae8)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2154,7 +2345,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 192))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x2b8915d0)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2166,7 +2358,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 193))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x57122ba0)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2178,7 +2371,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 194))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xae245740)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2190,7 +2384,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 195))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x5c48ae80)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2202,7 +2397,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 196))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xb8915cff)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2214,7 +2410,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 197))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x7122b9fe)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2226,7 +2423,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 198))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xe24573fb)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2238,7 +2436,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 199))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xc48ae7f5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2250,7 +2449,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 200))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x8915cfea)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2262,7 +2462,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 201))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x122b9fd3)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2274,7 +2475,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 202))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x24573fa5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2286,7 +2488,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 203))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x48ae7f4a)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2298,7 +2501,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 204))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x915cfe94)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2310,7 +2514,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 205))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x22b9fd27)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2322,7 +2527,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 206))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x4573fa4d)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2334,7 +2540,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 207))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x8ae7f49a)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2346,7 +2553,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 208))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x15cfe933)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2358,7 +2566,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 209))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x2b9fd266)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2370,7 +2579,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 210))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x573fa4cc)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2382,7 +2592,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 211))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xae7f4997)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2394,7 +2605,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 212))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x5cfe932e)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2406,7 +2618,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 213))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xb9fd265b)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2418,7 +2631,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 214))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x73fa4cb5)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2430,7 +2644,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 215))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xe7f49969)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2442,7 +2657,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 216))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xcfe932d1)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2454,7 +2670,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 217))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x9fd265a2)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2466,7 +2683,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 218))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x3fa4cb44)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2478,7 +2696,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 219))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0x7f499688)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2490,7 +2709,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 220))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xfe932d0f)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -2502,7 +2722,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 221))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40b8) (alu$pc 0x40b8) (alu$rd 0xc2b8915d)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2514,7 +2735,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 222))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x857122ba)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2526,7 +2748,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 223))
  ((alu$binary_variant "(Rv32m Div)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xae24574)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2538,7 +2761,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 224))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xea3b7518)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2550,7 +2774,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 225))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xd476ea30)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2562,7 +2787,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 226))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xa8edd460)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2574,7 +2800,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 227))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x51dba8c0)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2586,7 +2813,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 228))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xa3b75180)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2598,7 +2826,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 229))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x476ea300)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2610,7 +2839,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 230))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x8edd4600)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2622,7 +2852,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 231))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x1dba8c00)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2634,7 +2865,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 232))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x3b751800)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2646,7 +2878,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 233))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x76ea3000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2658,7 +2891,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 234))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xedd46000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2670,7 +2904,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 235))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xdba8c000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2682,7 +2917,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 236))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xb7518000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2694,7 +2930,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 237))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x6ea30000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2706,7 +2943,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 238))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xdd460000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2718,7 +2956,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 239))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xba8c0000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2730,7 +2969,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 240))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x75180000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2742,7 +2982,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 241))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xea300000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2754,7 +2995,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 242))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xd4600000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2766,7 +3008,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 243))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xa8c00000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2778,7 +3021,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 244))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x51800000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2790,7 +3034,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 245))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xa3000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2802,7 +3047,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 246))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x46000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2814,7 +3060,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 247))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x8c000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2826,7 +3073,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 248))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x18000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2838,7 +3086,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 249))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x30000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2850,7 +3099,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 250))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x60000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2862,7 +3112,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 251))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0xc0000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2874,7 +3125,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 252))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x80000000)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2886,7 +3138,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 253))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -2897,7 +3150,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 254))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40bc) (alu$pc 0x40bc) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2909,7 +3163,8 @@
   (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 255))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x7a8edd46)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2921,7 +3176,8 @@
   (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 256))
  ((alu$binary_variant "(Rv32m Divu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0xf51dba8c)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -2933,7 +3189,8 @@
   (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 257))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x1) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2944,7 +3201,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 258))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x3) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2955,7 +3213,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 259))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x7) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2966,7 +3225,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 260))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0xf) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2977,7 +3237,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 261))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x1e) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2988,7 +3249,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 262))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x12) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -2999,7 +3261,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 263))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x24) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3010,7 +3273,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 264))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x1e) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3021,7 +3285,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 265))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x11) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3032,7 +3297,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 266))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x22) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3043,7 +3309,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 267))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x19) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3054,7 +3321,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 268))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x8) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3065,7 +3333,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 269))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x11) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3076,7 +3345,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 270))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x23) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3087,7 +3357,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 271))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x1b) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3098,7 +3369,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 272))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0xc) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3109,7 +3381,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 273))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x19) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3120,7 +3393,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 274))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x7) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3131,7 +3405,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 275))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0xf) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3142,7 +3417,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 276))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x1f) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3153,7 +3429,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 277))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x14) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3164,7 +3441,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 278))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x28) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3175,7 +3453,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 279))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x26) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3186,7 +3465,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 280))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x21) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3197,7 +3477,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 281))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x18) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3208,7 +3489,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 282))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x5) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3219,7 +3501,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 283))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0xa) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3230,7 +3513,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 284))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x14) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3241,7 +3525,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 285))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x29) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3252,7 +3537,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 286))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x28) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1) (register_file 0x0)
@@ -3263,7 +3549,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 287))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c0) (alu$pc 0x40c0) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3274,7 +3561,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 288))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3285,7 +3573,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 289))
  ((alu$binary_variant "(Rv32m Rem)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3296,7 +3585,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 290))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3307,7 +3597,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 291))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3318,7 +3609,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 292))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3329,7 +3621,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 293))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3340,7 +3633,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 294))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1e) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3351,7 +3645,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 295))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3362,7 +3657,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 296))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3373,7 +3669,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 297))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf5) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3384,7 +3681,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 298))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3396,7 +3694,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 299))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d4)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3408,7 +3707,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 300))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a8)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3420,7 +3720,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 301))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf51)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3432,7 +3733,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 302))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea3)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3444,7 +3746,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 303))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d47)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3456,7 +3759,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 304))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a8e)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3468,7 +3772,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 305))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf51d)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3480,7 +3785,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 306))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea3b)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3492,7 +3798,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 307))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d476)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3504,7 +3811,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 308))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a8ed)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3516,7 +3824,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 309))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf51db)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3528,7 +3837,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 310))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea3b7)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3540,7 +3850,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 311))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d476e)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3552,7 +3863,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 312))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a8edd)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3564,7 +3876,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 313))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf51dba)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3576,7 +3889,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 314))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea3b75)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3588,7 +3902,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 315))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d476ea)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3600,7 +3915,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 316))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x7a8edd4)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3612,7 +3928,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 317))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0xf51dba8)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3624,7 +3941,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 318))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x1ea3b751)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1)
@@ -3636,7 +3954,8 @@
   (state Execute)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 319))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x3d476ea3)
   (alu$rs1 0x3d476ea3) (alu$rs2 0xffffffd5) (alu$stall 0x0) (alu$store 0x1)
@@ -3648,7 +3967,8 @@
   (state Execute)))
 (Writeback
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 320))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c4) (alu$pc 0x40c4) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3659,7 +3979,8 @@
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 213) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 321))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c8) (alu$pc 0x40c8) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3670,7 +3991,8 @@
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 322))
  ((alu$binary_variant "(Rv32m Remu)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c8) (alu$pc 0x40c8) (alu$rd 0x0) (alu$rs1 0x3d476ea3)
   (alu$rs2 0xffffffd5) (alu$stall 0x1) (alu$store 0x1) (register_file 0x0)
@@ -3681,7 +4003,8 @@
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 323))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c8) (alu$pc 0x40c8) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)
@@ -3692,7 +4015,8 @@
   (register_file$write_enable 0x0) (state Execute)))
 (Error
  ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
- ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0))))
+ ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+  (cycles_since_boot 324))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$immediate 0x0) (alu$jump 0x0)
   (alu$jump_target 0x40c8) (alu$pc 0x40c8) (alu$rd 0x0) (alu$rs1 0x0)
   (alu$rs2 0x0) (alu$stall 0x0) (alu$store 0x0) (register_file 0x0)

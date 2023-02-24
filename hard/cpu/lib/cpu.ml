@@ -15,6 +15,7 @@ module O = struct
   type 'a t =
     { error : 'a
     ; uart : 'a Uart.O.t [@rtlmangle true]
+    ; cycles_since_boot : 'a [@bits 64]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -240,7 +241,10 @@ let create scope ~bootloader { I.clock; reset; uart } =
           ]
       ; when_ invalid_address [ sm.set_next Error ]
       ]);
-  { O.error = sm.is Error; uart = uart_out }
+  { O.error = sm.is Error
+  ; uart = uart_out
+  ; cycles_since_boot = reg_fb ~width:64 ~f:(Fn.flip ( +:. ) 1) spec
+  }
 ;;
 
 let circuit scope =
