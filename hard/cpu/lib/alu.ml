@@ -330,27 +330,58 @@ module Tests = struct
     run32i Sra ();
     run32i Or ();
     run32i And ();
-    List.cartesian_product [ 1; -1 ] [ 1; -1 ]
-    |> List.map ~f:(fun (a, b) ->
-         [ a * 1028091555 |> bit_num, b * 43 |> bit_num
-         ; a * 42 |> bit_num, b * 69 |> bit_num
-         ])
-    |> List.concat
-    |> List.iter ~f:(fun (rs1, rs2) ->
-         run32m Mul ~rs1 ~rs2 ();
-         run32m Mulh ~rs1 ~rs2 ();
-         run32m Mulhsu ~rs1 ~rs2 ();
-         run32m Mulhu ~rs1 ~rs2 ();
-         run32m Div ~rs1 ~rs2 ();
-         run32m Divu ~rs1 ~rs2 ();
-         run32m Rem ~rs1 ~rs2 ();
-         run32m Remu ~rs1 ~rs2 ();
-         ());
-    let _overflow =
-      let rs1 = sll (one Parameters.word_size) (Parameters.word_size - 1) in
-      let rs2 = ones Parameters.word_size in
-      run32m Div ~rs1 ~rs2 ();
-      run32m Rem ~rs1 ~rs2 ();
+    let _m =
+      let check_division_equation ?quotient ?remainder convert =
+        let dividend = convert !(inputs.rs1) in
+        let divisor = convert !(inputs.rs2) in
+        let quotient = Option.value quotient ~default:(dividend / divisor) in
+        let remainder = Option.value remainder ~default:(dividend mod divisor) in
+        if not (dividend = (divisor * quotient) + remainder)
+        then
+          raise_s
+            [%message (dividend : int) (divisor : int) (quotient : int) (remainder : int)]
+      in
+      let check_division ~quotient convert =
+        check_division_equation ~quotient convert;
+        let dividend = convert !(inputs.rs1) in
+        let divisor = convert !(inputs.rs2) in
+        if not (quotient = dividend / divisor)
+        then raise_s [%message (dividend : int) (divisor : int) (quotient : int)]
+      in
+      let check_remainder ~remainder convert =
+        check_division_equation ~remainder convert;
+        let dividend = convert !(inputs.rs1) in
+        let divisor = convert !(inputs.rs2) in
+        if not (remainder = dividend mod divisor)
+        then raise_s [%message (dividend : int) (divisor : int) (remainder : int)]
+      in
+      List.cartesian_product [ 1; -1 ] [ 1; -1 ]
+      |> List.map ~f:(fun (a, b) ->
+           [ a * 1028091555 |> bit_num, b * 43 |> bit_num
+           ; a * 42 |> bit_num, b * 69 |> bit_num
+           ])
+      |> List.concat
+      |> List.iter ~f:(fun (rs1, rs2) ->
+           run32m Mul ~rs1 ~rs2 ();
+           run32m Mulh ~rs1 ~rs2 ();
+           run32m Mulhsu ~rs1 ~rs2 ();
+           run32m Mulhu ~rs1 ~rs2 ();
+           run32m Div ~rs1 ~rs2 ();
+           check_division ~quotient:(to_sint !(outputs.rd)) to_sint;
+           run32m Divu ~rs1 ~rs2 ();
+           check_division ~quotient:(to_int !(outputs.rd)) to_int;
+           run32m Rem ~rs1 ~rs2 ();
+           check_remainder ~remainder:(to_sint !(outputs.rd)) to_sint;
+           run32m Remu ~rs1 ~rs2 ();
+           check_remainder ~remainder:(to_int !(outputs.rd)) to_int;
+           ());
+      let _overflow =
+        let rs1 = sll (one Parameters.word_size) (Parameters.word_size - 1) in
+        let rs2 = ones Parameters.word_size in
+        run32m Div ~rs1 ~rs2 ();
+        run32m Rem ~rs1 ~rs2 ();
+        ()
+      in
       ()
     in
     ()
