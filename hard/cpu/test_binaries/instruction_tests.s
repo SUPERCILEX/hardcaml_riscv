@@ -44,8 +44,8 @@ sw a0, (sp)
 lbu a0, (sp)
 lb a0, (sp)
 
-li s6, 1028091555
-li s5, -43
+li s6, -1028091555
+li s5, 43
 mul s7, s6, s5
 mulh s7, s6, s5
 mulhsu s7, s6, s5

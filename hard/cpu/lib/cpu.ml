@@ -193,6 +193,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
       scope
       { Alu.I.clock
       ; reset
+      ; active = sm.is Execute
       ; pc = memory_controller.program_counter.value
       ; instruction
       ; rs1
@@ -200,7 +201,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
       ; immediate
       }
   in
-  stall <== (mem_stall |: (alu_raw.stall &: sm.is Execute));
+  stall <== (mem_stall |: alu_raw.stall);
   let alu = alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec) in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   let _debugging =

@@ -5,6 +5,7 @@ module I = struct
   type 'a t =
     { clock : 'a
     ; reset : 'a
+    ; active : 'a
     ; pc : 'a [@bits Parameters.word_size]
     ; instruction : 'a Instruction.Binary.t
     ; rs1 : 'a [@bits Parameters.word_size]
@@ -132,7 +133,7 @@ let set_store instruction store =
   |> Instruction.Binary.Of_always.match_ ~default:[] instruction
 ;;
 
-let create scope { I.clock; reset; pc; instruction; rs1; rs2; immediate } =
+let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate } =
   let open Signal in
   let ({ O.rd; store; jump; jump_target; stall } as out) = O.Of_always.wire zero in
   let module Divider =
@@ -225,9 +226,9 @@ let create scope { I.clock; reset; pc; instruction; rs1; rs2; immediate } =
          |> List.map ~f:(fun (i, statements) ->
               ( Instruction.All.Rv32m i
               , statements
-                @ [ is_dividing <-- vdd
+                @ [ is_dividing <-- active
                   ; start_divider <-- (ready |: ~:was_dividing)
-                  ; stall <-- (~:ready |: debounce is_dividing.value &: ~:error)
+                  ; stall <-- (~:ready |: debounce is_dividing.value &: ~:error &: active)
                   ] ))
          |> Instruction.Binary.Of_always.match_ ~default:[] instruction)
       ]);
@@ -293,6 +294,7 @@ module Tests = struct
       runi (Rv32m instruction) ?rs1 ?rs2 ?immediate
     in
     inputs.pc := bit_num 4206988;
+    inputs.active := vdd;
     run32i Lui ();
     run32i Auipc ();
     run32i Jal ();
@@ -403,6 +405,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -423,6 +426,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -445,6 +449,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -467,6 +472,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -488,6 +494,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -508,6 +515,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -528,6 +536,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -548,6 +557,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -568,6 +578,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -588,6 +599,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -608,6 +620,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -628,6 +641,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -648,6 +662,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -668,6 +683,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -688,6 +704,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -708,6 +725,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -728,6 +746,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -748,6 +767,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -768,6 +788,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -788,6 +809,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -808,6 +830,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -828,6 +851,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -848,6 +872,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -868,6 +893,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -888,6 +914,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -908,6 +935,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -928,6 +956,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -948,6 +977,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -968,6 +998,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -988,6 +1019,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1009,6 +1041,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1029,6 +1062,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1049,6 +1083,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1069,6 +1104,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1089,6 +1125,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1109,6 +1146,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1129,6 +1167,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1149,6 +1188,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1173,6 +1213,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1195,6 +1236,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1217,6 +1259,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1239,6 +1282,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1263,6 +1307,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1287,6 +1332,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1309,6 +1355,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1331,6 +1378,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1352,6 +1400,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1372,6 +1421,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1392,6 +1442,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1412,6 +1463,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1432,6 +1484,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1452,6 +1505,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1472,6 +1526,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1492,6 +1547,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1518,6 +1574,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1544,6 +1601,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1570,6 +1628,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1596,6 +1655,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1622,6 +1682,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1646,6 +1707,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1670,6 +1732,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1696,6 +1759,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1720,6 +1784,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1744,6 +1809,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1766,6 +1832,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1788,6 +1855,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1810,6 +1878,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1832,6 +1901,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1854,6 +1924,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1876,6 +1947,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1900,6 +1972,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1924,6 +1997,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1948,6 +2022,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1970,6 +2045,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -1994,6 +2070,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2018,6 +2095,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2042,6 +2120,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2064,6 +2143,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2088,6 +2168,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2112,6 +2193,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2136,6 +2218,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2158,6 +2241,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2180,6 +2264,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2204,6 +2289,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2228,6 +2314,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2250,6 +2337,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2276,6 +2364,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2300,6 +2389,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2326,6 +2416,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2352,6 +2443,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2378,6 +2470,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2402,6 +2495,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2428,6 +2522,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2454,6 +2549,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2479,6 +2575,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2503,6 +2600,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2529,6 +2627,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2555,6 +2654,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2579,6 +2679,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2603,6 +2704,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2629,6 +2731,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2653,6 +2756,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
@@ -2679,6 +2783,7 @@ module Tests = struct
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
          (reset ((bits 0) (int 0) (signed_int 0)))
+         (active ((bits 1) (int 1) (signed_int -1)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
            (signed_int 4206988)))
