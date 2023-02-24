@@ -75,7 +75,7 @@
    %{exe}
    execute
    -cycles
-   510000
+   140000
    -program
    "custom"
    -binary
