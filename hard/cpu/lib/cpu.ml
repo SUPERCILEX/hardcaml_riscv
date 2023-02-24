@@ -5,7 +5,7 @@ module Uart = Uart
 module I = struct
   type 'a t =
     { clock : 'a
-    ; clear : 'a
+    ; reset : 'a
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
   [@@deriving sexp_of, hardcaml]
@@ -122,9 +122,9 @@ let writeback
     ]
 ;;
 
-let create scope ~bootloader { I.clock; clear; uart } =
+let create scope ~bootloader { I.clock; reset; uart } =
   let open Signal in
-  let spec = Reg_spec.create ~clock ~clear () in
+  let spec = Reg_spec.create ~clock ~reset () in
   let stall = wire 1 in
   let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
   let memory_controller =
@@ -135,7 +135,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ~width:Parameters.word_size
           (Reg_spec.override
              spec
-             ~clear_to:(of_int ~width:Parameters.word_size Parameters.bootloader_start))
+             ~reset_to:(of_int ~width:Parameters.word_size Parameters.bootloader_start))
     }
   in
   let signed_read = wire 1 in
@@ -263,13 +263,7 @@ module Tests = struct
       |> Option.value ~default:Out_channel.stdout
     in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    let reset () =
-      Cyclesim.reset sim;
-      inputs.clear := vdd;
-      Cyclesim.cycle sim;
-      inputs.clear := gnd
-    in
-    reset ();
+    Cyclesim.reset sim;
     let rec run i =
       let read_done = i % 11 = 0 && to_bool !(outputs.uart.read_ready) in
       let write_done = i % 17 = 0 && to_bool !(outputs.uart.write_ready) in

@@ -31,15 +31,15 @@ let create scope { I.clock; switches = _; buttons = _; reset; uart_receive } =
     =
     Clk_wiz_0.create { clock; reset }
   in
-  let reset = Cdc.flip_flops ~clock ~n:2 locked in
-  let clear = ~:reset in
+  let resetn = Cdc.flip_flops ~clock ~n:2 locked in
+  let reset = ~:reset in
   let uart_feedback = Cpu.Uart.O.Of_signal.wires () in
   let { Uart_wrapper.O.transmit; uart } =
     Uart_wrapper.circuit
       scope
-      { Uart_wrapper.I.clock; reset; receive = uart_receive; uart = uart_feedback }
+      { Uart_wrapper.I.clock; resetn; receive = uart_receive; uart = uart_feedback }
   in
-  let { Cpu.O.error; uart } = Cpu.circuit scope { Cpu.I.clock; clear; uart } in
+  let { Cpu.O.error; uart } = Cpu.circuit scope { Cpu.I.clock; reset; uart } in
   Cpu.Uart.O.iter2 uart_feedback uart ~f:( <== );
   { O.leds = error @: gnd @: gnd @: gnd; uart_transmit = transmit }
 ;;

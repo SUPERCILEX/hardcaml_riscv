@@ -463,7 +463,6 @@ module Tests = struct
            (I.map inputs ~f:pretty, O.map outputs ~f:pretty));
       Stdio.print_endline ""
     in
-    Cyclesim.reset sim;
     let open Parameters in
     inputs.write_data := of_int ~width:word_size 0xdeadbeef;
     inputs.data_address := of_int ~width:word_size (stack_top - word_size);

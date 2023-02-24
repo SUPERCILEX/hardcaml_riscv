@@ -3,7 +3,7 @@ open Hardcaml
 module I = struct
   type 'a t =
     { clock : 'a [@rtlname "s_axi_aclk"]
-    ; reset : 'a [@rtlname "s_axi_aresetn"]
+    ; resetn : 'a [@rtlname "s_axi_aresetn"]
     ; write_address : 'a [@bits 4] [@rtlname "s_axi_awaddr"]
     ; write_address_valid : 'a [@rtlname "s_axi_awvalid"]
     ; write_data : 'a [@bits 32] [@rtlname "s_axi_wdata"]

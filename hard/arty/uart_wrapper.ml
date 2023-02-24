@@ -4,7 +4,7 @@ open Hardcaml
 module I = struct
   type 'a t =
     { clock : 'a
-    ; reset : 'a
+    ; resetn : 'a
     ; receive : 'a
     ; uart : 'a Cpu.Uart.O.t
     }
@@ -21,7 +21,7 @@ end
 
 let create
   _scope
-  { I.clock; reset; receive; uart = { write_data; write_ready; read_ready } }
+  { I.clock; resetn; receive; uart = { write_data; write_ready; read_ready } }
   =
   let open Signal in
   let { Axi_uartlite_0.O.interrupt = _
@@ -38,7 +38,7 @@ let create
     =
     Axi_uartlite_0.create
       { Axi_uartlite_0.I.clock
-      ; reset
+      ; resetn
       ; write_address = of_hex ~width:4 "04"
       ; write_address_valid = write_ready
       ; write_data = uresize write_data 32
