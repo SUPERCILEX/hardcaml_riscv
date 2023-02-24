@@ -4,6 +4,7 @@ members = [
     "calculator",
     "donut",
     "fibonacci",
+    "pi",
 ]
 
 [workspace.package]

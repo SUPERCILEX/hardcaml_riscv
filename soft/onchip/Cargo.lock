@@ -47,6 +47,14 @@ name = "onchip"
 version = "0.0.0"
 
 [[package]]
+name = "pi"
+version = "0.1.0"
+dependencies = [
+ "libm",
+ "slib",
+]
+
+[[package]]
 name = "shared"
 version = "0.1.0"
 
