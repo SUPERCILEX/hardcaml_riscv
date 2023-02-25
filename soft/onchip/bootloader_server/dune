@@ -1,0 +1,25 @@
+(rule
+ (target boot.bin)
+ (deps
+  (file ../boot.lds)
+  (glob_files Cargo.*)
+  (source_tree ../../bootloader)
+  (source_tree ../../shared)
+  (source_tree ../../slib)
+  (source_tree ../.cargo)
+  (source_tree src))
+ (mode
+  (promote (until-clean)))
+ (alias bin)
+ (action
+  (progn
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (run cargo clean)
+   (run cargo rustc --release -- -Clink-arg=-T../boot.lds)
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    target/riscv32i-unknown-none-elf/release/bootloader_server
+    %{target}))))

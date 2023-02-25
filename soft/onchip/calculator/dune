@@ -2,64 +2,52 @@
  (target calculator.bin)
  (deps
   (file ../program.lds)
-  (file Cargo.toml)
-  (glob_files ../Cargo.*)
-  (source_tree ../../bootloader)
+  (glob_files Cargo.*)
   (source_tree ../../shared)
   (source_tree ../../slib)
   (source_tree ../.cargo)
-  (source_tree ../src)
   (source_tree src))
  (mode
   (promote (until-clean)))
  (alias bin)
- (locks /cargo)
+ (locks cargo)
  (action
   (progn
-   (chdir
-    ..
-    (progn
-     (run mkdir -p target)
-     (run chmod +rw -R target)
-     (run cargo clean)))
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (run cargo clean)
    (run cargo build --release)
    (run
     riscv64-linux-gnu-objcopy
     -O
     binary
-    ../target/riscv32i-unknown-none-elf/release/calculator
+    target/riscv32i-unknown-none-elf/release/calculator
     %{target}))))
 
 (rule
  (target calculator-test.bin)
  (deps
   (file ../boot.lds)
-  (file Cargo.toml)
-  (glob_files ../Cargo.*)
-  (source_tree ../../bootloader)
+  (glob_files Cargo.*)
   (source_tree ../../shared)
   (source_tree ../../slib)
   (source_tree ../.cargo)
-  (source_tree ../src)
   (source_tree src))
  (mode
   (promote (until-clean)))
  (alias bin)
- (locks /cargo)
+ (locks cargo)
  (action
   (progn
-   (chdir
-    ..
-    (progn
-     (run mkdir -p target)
-     (run chmod +rw -R target)
-     (run cargo clean)))
-   (run cargo rustc --release -- -Clink-arg=-Tboot.lds --cfg test)
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (run cargo clean)
+   (run cargo rustc --release -- -Clink-arg=-T../boot.lds --cfg test)
    (run
     riscv64-linux-gnu-objcopy
     -O
     binary
-    ../target/riscv32i-unknown-none-elf/release/calculator
+    target/riscv32i-unknown-none-elf/release/calculator
     %{target}))))
 
 (rule
@@ -67,8 +55,7 @@
  (deps
   (:exe ../../../hard/cpu/bin/cli.exe)
   (:bin calculator-test.bin))
- (mode
-  (promote (until-clean)))
+ (mode promote)
  (alias runtest)
  (action
   (run

@@ -1,9 +1,18 @@
+[workspace]
+
 [package]
 name = "pi"
 version = "0.1.0"
-edition.workspace = true
+edition = "2021"
 publish = false
 
 [dependencies]
 libm = "0.2.6"
 slib = { path = "../../slib" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

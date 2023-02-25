@@ -24,4 +24,4 @@ let stack_top = Int.shift_left 1 31
 let code_bottom = Int.shift_left 1 20
 let bootloader_start = Int.shift_left 1 14
 let uart_io_address = Int.shift_left 1 13 + 3
-let bootloader_bytes = [%blob "soft/onchip/boot.bin"]
+let bootloader_bytes = [%blob "soft/onchip/bootloader_server/boot.bin"]
