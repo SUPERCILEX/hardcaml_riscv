@@ -108,39 +108,40 @@ end
 
 let set_store instruction store =
   let open Signal in
-  (Instruction.RV32I.
-     [ Lui
-     ; Auipc
-     ; Jal
-     ; Jalr
-     ; Lb
-     ; Lh
-     ; Lw
-     ; Lbu
-     ; Lhu
-     ; Addi
-     ; Slti
-     ; Sltiu
-     ; Xori
-     ; Ori
-     ; Andi
-     ; Slli
-     ; Srli
-     ; Srai
-     ; Add
-     ; Sub
-     ; Sll
-     ; Slt
-     ; Sltu
-     ; Xor
-     ; Srl
-     ; Sra
-     ; Or
-     ; And
-     ]
-  |> List.map ~f:(fun op -> Instruction.All.Rv32i op))
-  @ ([ Instruction.RV32M.Mul; Mulh; Mulhsu; Mulhu; Div; Divu; Rem; Remu ]
-    |> List.map ~f:(fun op -> Instruction.All.Rv32m op))
+  [ [ Instruction.RV32I.Lui
+    ; Auipc
+    ; Jal
+    ; Jalr
+    ; Lb
+    ; Lh
+    ; Lw
+    ; Lbu
+    ; Lhu
+    ; Addi
+    ; Slti
+    ; Sltiu
+    ; Xori
+    ; Ori
+    ; Andi
+    ; Slli
+    ; Srli
+    ; Srai
+    ; Add
+    ; Sub
+    ; Sll
+    ; Slt
+    ; Sltu
+    ; Xor
+    ; Srl
+    ; Sra
+    ; Or
+    ; And
+    ]
+    |> List.map ~f:(fun op -> Instruction.All.Rv32i op)
+  ; [ Instruction.RV32M.Mul; Mulh; Mulhsu; Mulhu; Div; Divu; Rem; Remu ]
+    |> List.map ~f:(fun op -> Instruction.All.Rv32m op)
+  ]
+  |> List.concat
   |> List.map ~f:(fun op -> op, Always.[ store <-- vdd ])
   |> Instruction.Binary.Of_always.match_ ~default:[] instruction
 ;;
@@ -170,78 +171,78 @@ let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate 
     compile
       [ set_store instruction store
       ; jump_target <-- pc +: immediate
-      ; [ Instruction.RV32I.Lui, [ rd <-- immediate ]
-        ; Auipc, [ rd <-- pc +: immediate ]
-        ; Jal, [ rd <-- pc +:. 4; jump <-- vdd ]
-        ; ( Jalr
-          , [ rd <-- pc +:. 4
-            ; jump <-- vdd
-            ; jump_target <-- concat_msb [ msbs (rs1 +: immediate); gnd ]
-            ] )
-        ; Beq, [ jump <-- (rs1 ==: rs2) ]
-        ; Bne, [ jump <-- (rs1 <>: rs2) ]
-        ; Blt, [ jump <-- (rs1 <+ rs2) ]
-        ; Bge, [ jump <-- (rs1 >=+ rs2) ]
-        ; Bltu, [ jump <-- (rs1 <: rs2) ]
-        ; Bgeu, [ jump <-- (rs1 >=: rs2) ]
-        ; Addi, [ rd <-- rs1 +: immediate ]
-        ; Slti, [ rd <-- uresize (rs1 <+ immediate) 32 ]
-        ; Sltiu, [ rd <-- uresize (rs1 <: immediate) 32 ]
-        ; Xori, [ rd <-- rs1 ^: immediate ]
-        ; Ori, [ rd <-- (rs1 |: immediate) ]
-        ; Andi, [ rd <-- (rs1 &: immediate) ]
-        ; Slli, [ rd <-- log_shift sll rs1 immediate ]
-        ; Srli, [ rd <-- log_shift srl rs1 immediate ]
-        ; Srai, [ rd <-- log_shift sra rs1 immediate ]
-        ; Add, [ rd <-- rs1 +: rs2 ]
-        ; Sub, [ rd <-- rs1 -: rs2 ]
-        ; Sll, [ rd <-- log_shift sll rs1 (sel_bottom rs2 5) ]
-        ; Slt, [ rd <-- uresize (rs1 <+ rs2) 32 ]
-        ; Sltu, [ rd <-- uresize (rs1 <: rs2) 32 ]
-        ; Xor, [ rd <-- rs1 ^: rs2 ]
-        ; Srl, [ rd <-- log_shift srl rs1 (sel_bottom rs2 5) ]
-        ; Sra, [ rd <-- log_shift sra rs1 (sel_bottom rs2 5) ]
-        ; Or, [ rd <-- (rs1 |: rs2) ]
-        ; And, [ rd <-- (rs1 &: rs2) ]
+      ; [ [ Instruction.RV32I.Lui, [ rd <-- immediate ]
+          ; Auipc, [ rd <-- pc +: immediate ]
+          ; Jal, [ rd <-- pc +:. 4; jump <-- vdd ]
+          ; ( Jalr
+            , [ rd <-- pc +:. 4
+              ; jump <-- vdd
+              ; jump_target <-- concat_msb [ msbs (rs1 +: immediate); gnd ]
+              ] )
+          ; Beq, [ jump <-- (rs1 ==: rs2) ]
+          ; Bne, [ jump <-- (rs1 <>: rs2) ]
+          ; Blt, [ jump <-- (rs1 <+ rs2) ]
+          ; Bge, [ jump <-- (rs1 >=+ rs2) ]
+          ; Bltu, [ jump <-- (rs1 <: rs2) ]
+          ; Bgeu, [ jump <-- (rs1 >=: rs2) ]
+          ; Addi, [ rd <-- rs1 +: immediate ]
+          ; Slti, [ rd <-- uresize (rs1 <+ immediate) 32 ]
+          ; Sltiu, [ rd <-- uresize (rs1 <: immediate) 32 ]
+          ; Xori, [ rd <-- rs1 ^: immediate ]
+          ; Ori, [ rd <-- (rs1 |: immediate) ]
+          ; Andi, [ rd <-- (rs1 &: immediate) ]
+          ; Slli, [ rd <-- log_shift sll rs1 immediate ]
+          ; Srli, [ rd <-- log_shift srl rs1 immediate ]
+          ; Srai, [ rd <-- log_shift sra rs1 immediate ]
+          ; Add, [ rd <-- rs1 +: rs2 ]
+          ; Sub, [ rd <-- rs1 -: rs2 ]
+          ; Sll, [ rd <-- log_shift sll rs1 (sel_bottom rs2 5) ]
+          ; Slt, [ rd <-- uresize (rs1 <+ rs2) 32 ]
+          ; Sltu, [ rd <-- uresize (rs1 <: rs2) 32 ]
+          ; Xor, [ rd <-- rs1 ^: rs2 ]
+          ; Srl, [ rd <-- log_shift srl rs1 (sel_bottom rs2 5) ]
+          ; Sra, [ rd <-- log_shift sra rs1 (sel_bottom rs2 5) ]
+          ; Or, [ rd <-- (rs1 |: rs2) ]
+          ; And, [ rd <-- (rs1 &: rs2) ]
+          ]
+          |> List.map ~f:(Tuple2.map_fst ~f:(fun i -> Instruction.All.Rv32i i))
+        ; [ Instruction.RV32M.Mul, [ rd <-- sel_bottom (rs1 *: rs2) 32 ]
+          ; Mulh, [ rd <-- sel_top (rs1 *+ rs2) 32 ]
+          ; Mulhu, [ rd <-- sel_top (rs1 *: rs2) 32 ]
+          ; ( Mulhsu
+            , [ rd <-- (se rs1 *+ ue rs2 |> Fn.flip drop_top 2 |> Fn.flip sel_top 32) ] )
+          ]
+          |> List.map ~f:(Tuple2.map_fst ~f:(fun i -> Instruction.All.Rv32m i))
+        ; (let { Divider.O.quotient; remainder; ready; error } = divided in
+           let debounce p =
+             let p_delayed = reg (Reg_spec.create ~clock ~reset ()) p in
+             p &: ~:p_delayed
+           in
+           let abs p = mux2 (p <+. 0) (negate p) p in
+           [ ( Instruction.RV32M.Div
+             , [ rd <-- mux2 (msb rs1 <>: msb rs2) (negate quotient) quotient
+               ; dividend <-- abs rs1
+               ; divisor <-- abs rs2
+               ] )
+           ; Divu, [ rd <-- quotient ]
+           ; ( Rem
+             , [ rd <-- mux2 (rs1 <+. 0) (negate remainder) remainder
+               ; dividend <-- abs rs1
+               ; divisor <-- abs rs2
+               ] )
+           ; Remu, [ rd <-- remainder ]
+           ]
+           |> List.map ~f:(fun (i, statements) ->
+                ( Instruction.All.Rv32m i
+                , statements
+                  @
+                  let first_cycle = debounce active in
+                  [ start_divider <-- (ready |: first_cycle)
+                  ; stall <-- (~:ready |: first_cycle &: ~:error)
+                  ] )))
         ]
-        |> List.map ~f:(Tuple2.map_fst ~f:(fun i -> Instruction.All.Rv32i i))
+        |> List.concat
         |> Instruction.Binary.Of_always.match_ ~default:[] instruction
-      ; [ Instruction.RV32M.Mul, [ rd <-- sel_bottom (rs1 *: rs2) 32 ]
-        ; Mulh, [ rd <-- sel_top (rs1 *+ rs2) 32 ]
-        ; Mulhu, [ rd <-- sel_top (rs1 *: rs2) 32 ]
-        ; ( Mulhsu
-          , [ rd <-- (se rs1 *+ ue rs2 |> Fn.flip drop_top 2 |> Fn.flip sel_top 32) ] )
-        ]
-        |> List.map ~f:(Tuple2.map_fst ~f:(fun i -> Instruction.All.Rv32m i))
-        |> Instruction.Binary.Of_always.match_ ~default:[] instruction
-      ; (let { Divider.O.quotient; remainder; ready; error } = divided in
-         let debounce p =
-           let p_delayed = reg (Reg_spec.create ~clock ~reset ()) p in
-           p &: ~:p_delayed
-         in
-         let abs p = mux2 (p <+. 0) (negate p) p in
-         [ ( Instruction.RV32M.Div
-           , [ rd <-- mux2 (msb rs1 <>: msb rs2) (negate quotient) quotient
-             ; dividend <-- abs rs1
-             ; divisor <-- abs rs2
-             ] )
-         ; Instruction.RV32M.Divu, [ rd <-- quotient ]
-         ; ( Instruction.RV32M.Rem
-           , [ rd <-- mux2 (rs1 <+. 0) (negate remainder) remainder
-             ; dividend <-- abs rs1
-             ; divisor <-- abs rs2
-             ] )
-         ; Instruction.RV32M.Remu, [ rd <-- remainder ]
-         ]
-         |> List.map ~f:(fun (i, statements) ->
-              ( Instruction.All.Rv32m i
-              , statements
-                @
-                let first_cycle = debounce active in
-                [ start_divider <-- (ready |: first_cycle)
-                ; stall <-- (~:ready |: first_cycle &: ~:error)
-                ] ))
-         |> Instruction.Binary.Of_always.match_ ~default:[] instruction)
       ]);
   O.Of_always.value out
 ;;
