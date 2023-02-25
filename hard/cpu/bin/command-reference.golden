@@ -13,6 +13,9 @@ Hardware dev tools
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
+  locate-net                 . Trace the origin of a net to hardcaml
+  . -circuit-name CIRCUIT-NAME
+                             . Name of the circuit/module
   simulate                   . Simulate execution with cycle state dump
   . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),

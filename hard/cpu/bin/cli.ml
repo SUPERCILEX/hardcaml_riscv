@@ -127,10 +127,40 @@ let simulate =
           (( = ) cycles))
 ;;
 
+let locate =
+  Command.basic
+    ~summary:"Trace the origin of a net to hardcaml"
+    Command.Let_syntax.(
+      let%map_open name =
+        flag
+          ~doc:"CIRCUIT-NAME Name of the circuit/module"
+          "-circuit-name"
+          (required string)
+      and uid = anon ("UID" %: int) in
+      fun () ->
+        let open Hardcaml in
+        let circuits =
+          Caller_id.set_mode Full_trace;
+          let scope = Scope.create () in
+          let circuit =
+            let module C = Circuit.With_interface (Cpu.I) (Cpu.O) in
+            C.create_exn ~name:"top" (Cpu.circuit scope)
+          in
+          circuit :: (Scope.circuit_database scope |> Circuit_database.get_circuits)
+          |> List.map ~f:(fun c -> Circuit.name c, Circuit.signal_map c)
+        in
+        match List.Assoc.find circuits name ~equal:String.equal with
+        | None -> raise_s [%message "No such circuit"]
+        | Some circuit ->
+          (match Map.find circuit (Int64.of_int uid) with
+           | None -> raise_s [%message "No such uid in circuit"]
+           | Some signal -> print_s [%message (signal : Signal.t)]))
+;;
+
 let command =
   Command.group
     ~summary:"Hardware dev tools"
-    [ "waves", waves; "execute", execute; "simulate", simulate ]
+    [ "waves", waves; "execute", execute; "simulate", simulate; "locate-net", locate ]
 ;;
 
 let () = Command_unix.run command
