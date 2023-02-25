@@ -220,8 +220,6 @@ let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate 
            p &: ~:p_delayed
          in
          let abs p = mux2 (p <+. 0) (negate p) p in
-         let is_dividing = Variable.wire ~default:gnd in
-         let was_dividing = is_dividing.value |> reg (Reg_spec.create ~clock ~reset ()) in
          [ ( Instruction.RV32M.Div
            , [ rd <-- mux2 (msb rs1 <>: msb rs2) (negate quotient) quotient
              ; dividend <-- abs rs1
@@ -238,10 +236,11 @@ let create scope { I.clock; reset; active; pc; instruction; rs1; rs2; immediate 
          |> List.map ~f:(fun (i, statements) ->
               ( Instruction.All.Rv32m i
               , statements
-                @ [ is_dividing <-- active
-                  ; start_divider <-- (ready |: ~:was_dividing)
-                  ; stall <-- (~:ready |: debounce is_dividing.value &: ~:error &: active)
-                  ] ))
+                @
+                let first_cycle = debounce active in
+                [ start_divider <-- (ready |: first_cycle)
+                ; stall <-- (~:ready |: first_cycle &: ~:error)
+                ] ))
          |> Instruction.Binary.Of_always.match_ ~default:[] instruction)
       ]);
   O.Of_always.value out

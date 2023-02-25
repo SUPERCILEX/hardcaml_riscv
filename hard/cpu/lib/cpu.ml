@@ -125,9 +125,11 @@ let writeback
 
 let create scope ~bootloader { I.clock; reset; uart } =
   let open Signal in
+  let ( -- ) = Scope.naming scope in
   let spec = Reg_spec.create ~clock ~reset () in
-  let stall = wire 1 in
+  let stall = wire 1 -- "stall" in
   let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
+  sm.current -- "state" |> ignore;
   let memory_controller =
     { (Memory_controller.I.Of_always.wire zero) with
       program_counter =
@@ -201,14 +203,9 @@ let create scope ~bootloader { I.clock; reset; uart } =
       ; immediate
       }
   in
-  stall <== (mem_stall |: alu_raw.stall);
+  stall <== (mem_stall |: (alu_raw.stall &: sm.is Execute));
   let alu = alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec) in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
-  let _debugging =
-    let ( -- ) = Scope.naming scope in
-    sm.current -- "state" |> ignore;
-    ()
-  in
   Always.(
     compile
       [ sm.switch
