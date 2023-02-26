@@ -3,7 +3,7 @@ open Hardcaml
 module I = struct
   type 'a t =
     { clock : 'a [@rtlname "clk_in1"]
-    ; reset : 'a [@rtlname "resetn"]
+    ; resetn : 'a [@rtlname "resetn"]
     }
   [@@deriving sexp_of, hardcaml]
 end

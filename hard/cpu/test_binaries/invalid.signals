@@ -1,5 +1,5 @@
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 1))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -11,7 +11,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 2))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -23,7 +23,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 3))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -35,7 +35,7 @@
   (register_file$write_address 0x2) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Error
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 4))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)

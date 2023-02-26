@@ -4,7 +4,7 @@ open Hardcaml
 module I = struct
   type 'a t =
     { clock : 'a
-    ; reset : 'a
+    ; clear : 'a
     ; start : 'a
     ; pc : 'a [@bits Parameters.word_width]
     ; instruction : 'a Instruction.Binary.t
@@ -35,7 +35,7 @@ struct
   module I = struct
     type 'a t =
       { clock : 'a
-      ; reset : 'a
+      ; clear : 'a
       ; start : 'a
       ; dividend : 'a [@bits bits]
       ; divisor : 'a [@bits bits]
@@ -52,9 +52,9 @@ struct
     [@@deriving sexp_of, hardcaml]
   end
 
-  let create scope { I.clock; reset; start; dividend; divisor } =
+  let create scope { I.clock; clear; start; dividend; divisor } =
     let open Signal in
-    let spec = Reg_spec.create ~clock ~reset ~clear:start () in
+    let spec = Reg_spec.create ~clock ~clear:(clear |: start) () in
     let ( -- ) = Scope.naming scope in
     let depth = 4 in
     let done_ =
@@ -64,7 +64,8 @@ struct
         reg_fb
           ~width
           ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
-          (spec |> Reg_spec.override ~clear_to:(of_int ~width steps))
+          (spec
+          |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
         -- "steps_remaining"
       in
       steps_remaining ==:. 0
@@ -144,7 +145,7 @@ let set_store instruction store =
   |> Instruction.Binary.Of_always.match_ ~default:[] instruction
 ;;
 
-let create scope { I.clock; reset; start; pc; instruction; rs1; rs2; immediate } =
+let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate } =
   let open Signal in
   let ({ O.rd; store; jump; jump_target; done_ } as out) =
     { (O.Of_always.wire zero) with done_ = Always.Variable.wire ~default:vdd }
@@ -161,7 +162,7 @@ let create scope { I.clock; reset; start; pc; instruction; rs1; rs2; immediate }
     Divider.circuit
       scope
       { Divider.I.clock
-      ; reset
+      ; clear
       ; start = start_divider.value
       ; dividend = dividend.value
       ; divisor = divisor.value
@@ -417,7 +418,7 @@ module Tests = struct
       ((instruction (Rv32i Lui))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -438,7 +439,7 @@ module Tests = struct
       ((instruction (Rv32i Auipc))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -461,7 +462,7 @@ module Tests = struct
       ((instruction (Rv32i Jal))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -484,7 +485,7 @@ module Tests = struct
       ((instruction (Rv32i Jalr))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -506,7 +507,7 @@ module Tests = struct
       ((instruction (Rv32i Beq))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -527,7 +528,7 @@ module Tests = struct
       ((instruction (Rv32i Bne))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -548,7 +549,7 @@ module Tests = struct
       ((instruction (Rv32i Blt))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -569,7 +570,7 @@ module Tests = struct
       ((instruction (Rv32i Bge))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -590,7 +591,7 @@ module Tests = struct
       ((instruction (Rv32i Bltu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -611,7 +612,7 @@ module Tests = struct
       ((instruction (Rv32i Bgeu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -632,7 +633,7 @@ module Tests = struct
       ((instruction (Rv32i Lb))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -653,7 +654,7 @@ module Tests = struct
       ((instruction (Rv32i Lh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -674,7 +675,7 @@ module Tests = struct
       ((instruction (Rv32i Lw))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -695,7 +696,7 @@ module Tests = struct
       ((instruction (Rv32i Lbu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -716,7 +717,7 @@ module Tests = struct
       ((instruction (Rv32i Lhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -737,7 +738,7 @@ module Tests = struct
       ((instruction (Rv32i Sb))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -758,7 +759,7 @@ module Tests = struct
       ((instruction (Rv32i Sh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -779,7 +780,7 @@ module Tests = struct
       ((instruction (Rv32i Sw))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -800,7 +801,7 @@ module Tests = struct
       ((instruction (Rv32i Addi))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -821,7 +822,7 @@ module Tests = struct
       ((instruction (Rv32i Slti))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -842,7 +843,7 @@ module Tests = struct
       ((instruction (Rv32i Sltiu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -863,7 +864,7 @@ module Tests = struct
       ((instruction (Rv32i Xori))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -884,7 +885,7 @@ module Tests = struct
       ((instruction (Rv32i Ori))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -905,7 +906,7 @@ module Tests = struct
       ((instruction (Rv32i Andi))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -926,7 +927,7 @@ module Tests = struct
       ((instruction (Rv32i Slli))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -947,7 +948,7 @@ module Tests = struct
       ((instruction (Rv32i Srli))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -968,7 +969,7 @@ module Tests = struct
       ((instruction (Rv32i Srai))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -989,7 +990,7 @@ module Tests = struct
       ((instruction (Rv32i Add))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1010,7 +1011,7 @@ module Tests = struct
       ((instruction (Rv32i Sub))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1031,7 +1032,7 @@ module Tests = struct
       ((instruction (Rv32i Sll))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1053,7 +1054,7 @@ module Tests = struct
       ((instruction (Rv32i Slt))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1074,7 +1075,7 @@ module Tests = struct
       ((instruction (Rv32i Sltu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1095,7 +1096,7 @@ module Tests = struct
       ((instruction (Rv32i Xor))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1116,7 +1117,7 @@ module Tests = struct
       ((instruction (Rv32i Srl))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1137,7 +1138,7 @@ module Tests = struct
       ((instruction (Rv32i Sra))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1158,7 +1159,7 @@ module Tests = struct
       ((instruction (Rv32i Or))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1179,7 +1180,7 @@ module Tests = struct
       ((instruction (Rv32i And))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1200,7 +1201,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1225,7 +1226,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1248,7 +1249,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1271,7 +1272,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1294,7 +1295,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1319,7 +1320,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1344,7 +1345,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1367,7 +1368,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1390,7 +1391,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1412,7 +1413,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1433,7 +1434,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1454,7 +1455,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1475,7 +1476,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1496,7 +1497,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1517,7 +1518,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1538,7 +1539,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1559,7 +1560,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1586,7 +1587,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1613,7 +1614,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1640,7 +1641,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1667,7 +1668,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1694,7 +1695,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1719,7 +1720,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1744,7 +1745,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1771,7 +1772,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1796,7 +1797,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1821,7 +1822,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1844,7 +1845,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1867,7 +1868,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1890,7 +1891,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1913,7 +1914,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1936,7 +1937,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1959,7 +1960,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -1984,7 +1985,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2009,7 +2010,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2034,7 +2035,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2057,7 +2058,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2082,7 +2083,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2107,7 +2108,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2132,7 +2133,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2155,7 +2156,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2180,7 +2181,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2205,7 +2206,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2230,7 +2231,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2253,7 +2254,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2276,7 +2277,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2301,7 +2302,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2326,7 +2327,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2349,7 +2350,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2376,7 +2377,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2401,7 +2402,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2428,7 +2429,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2455,7 +2456,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2482,7 +2483,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2507,7 +2508,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2534,7 +2535,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2561,7 +2562,7 @@ module Tests = struct
       ((instruction (Rv32m Mul))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2587,7 +2588,7 @@ module Tests = struct
       ((instruction (Rv32m Mulh))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2612,7 +2613,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhsu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2639,7 +2640,7 @@ module Tests = struct
       ((instruction (Rv32m Mulhu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2666,7 +2667,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2691,7 +2692,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2716,7 +2717,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2743,7 +2744,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2768,7 +2769,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2795,7 +2796,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2820,7 +2821,7 @@ module Tests = struct
       ((instruction (Rv32m Div))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2843,7 +2844,7 @@ module Tests = struct
       ((instruction (Rv32m Rem))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2864,7 +2865,7 @@ module Tests = struct
       ((instruction (Rv32m Divu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)
@@ -2887,7 +2888,7 @@ module Tests = struct
       ((instruction (Rv32m Remu))
        (inputs
         ((clock ((bits 0) (int 0) (signed_int 0)))
-         (reset ((bits 0) (int 0) (signed_int 0)))
+         (clear ((bits 0) (int 0) (signed_int 0)))
          (start ((bits 0) (int 0) (signed_int 0)))
          (pc
           ((bits 00000000010000000011000110001100) (int 4206988)

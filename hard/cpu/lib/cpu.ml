@@ -5,7 +5,7 @@ module Uart = Uart
 module I = struct
   type 'a t =
     { clock : 'a
-    ; reset : 'a
+    ; clear : 'a
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
   [@@deriving sexp_of, hardcaml]
@@ -123,10 +123,10 @@ let writeback
     ]
 ;;
 
-let create scope ~bootloader { I.clock; reset; uart } =
+let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let ( -- ) = Scope.naming scope in
-  let spec = Reg_spec.create ~clock ~reset () in
+  let spec = Reg_spec.create ~clock ~clear () in
   let stall = wire 1 -- "stall" in
   let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
   sm.current -- "state" |> ignore;
@@ -138,7 +138,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
           ~width:Parameters.word_width
           (Reg_spec.override
              spec
-             ~reset_to:(of_int ~width:Parameters.word_width Parameters.bootloader_start))
+             ~clear_to:(of_int ~width:Parameters.word_width Parameters.bootloader_start))
     }
   in
   let signed_read = wire 1 in
@@ -153,7 +153,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
       scope
       { (Memory_controller.I.Of_always.value memory_controller) with
         clock
-      ; reset
+      ; clear
       ; uart
       ; signed = signed_read
       }
@@ -196,7 +196,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
     Alu.circuit
       scope
       { Alu.I.clock
-      ; reset
+      ; clear
       ; start = debounce (sm.is Execute)
       ; pc = memory_controller.program_counter.value
       ; instruction
@@ -270,7 +270,14 @@ module Tests = struct
       |> Option.value ~default:Out_channel.stdout
     in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    Cyclesim.reset sim;
+    let clear () =
+      Cyclesim.reset sim;
+      inputs.clear := vdd;
+      Cyclesim.cycle sim;
+      inputs.clear := gnd;
+      ()
+    in
+    clear ();
     let rec run i =
       let read_done = i % 11 = 0 && to_bool !(outputs.uart.read_ready) in
       let write_done = i % 17 = 0 && to_bool !(outputs.uart.write_ready) in
@@ -321,7 +328,7 @@ module Tests = struct
              let prettify_enum enums = prettify_enum ~sim ~signal_name ~enums in
              let is_signal = String.equal signal_name in
              (if String.is_substring ~substring:"clock" signal_name
-                 || String.is_substring ~substring:"reset" signal_name
+                 || String.is_substring ~substring:"clear" signal_name
              then None
              else if is_signal "state"
              then prettify_enum State.all |> State.sexp_of_t |> Some

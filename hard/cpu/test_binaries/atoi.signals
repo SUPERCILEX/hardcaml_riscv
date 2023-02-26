@@ -1,5 +1,5 @@
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 1))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -11,7 +11,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 2))
  ((alu$binary_variant "(Rv32i Invalid)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -23,7 +23,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 3))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -35,7 +35,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 4))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -47,7 +47,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 5))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -59,7 +59,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 6))
  ((alu$binary_variant "(Rv32i Auipc)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -71,7 +71,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x4000)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 7))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x84)
@@ -84,7 +84,7 @@
   (register_file$write_data 0x4000) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 8))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x84)
@@ -97,7 +97,7 @@
   (register_file$write_data 0x4084) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 9))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x84)
@@ -110,7 +110,7 @@
   (register_file$write_data 0x4084) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 10))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x84)
@@ -123,7 +123,7 @@
   (register_file$write_data 0x4084) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 11))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -135,7 +135,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4084)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 12))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -147,7 +147,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 13))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -159,7 +159,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 14))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -171,7 +171,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 15))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -183,7 +183,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 16))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -195,7 +195,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 17))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -207,7 +207,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 18))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -219,7 +219,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 19))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x50)
@@ -232,7 +232,7 @@
   (register_file$write_data 0x1) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 20))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x50)
@@ -245,7 +245,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 21))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x50)
@@ -258,7 +258,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 22))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x50)
@@ -271,7 +271,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 23))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -284,7 +284,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 24))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -297,7 +297,7 @@
   (register_file$write_data 0x2d) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 25))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -310,7 +310,7 @@
   (register_file$write_data 0x2d) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 26))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -323,7 +323,7 @@
   (register_file$write_data 0x2b00393) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 27))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2b)
@@ -335,7 +335,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 28))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2b)
@@ -347,7 +347,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2b)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 29))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2b)
@@ -359,7 +359,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2b)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 30))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2b)
@@ -371,7 +371,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2b)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 31))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0x8)
@@ -383,7 +383,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x2b)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 32))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0x8)
@@ -395,7 +395,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 33))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0x8)
@@ -407,7 +407,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 34))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0x8)
@@ -419,7 +419,7 @@
   (register_file$write_address 0x8) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 35))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -432,7 +432,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 36))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -445,7 +445,7 @@
   (register_file$write_data 0x2d) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 37))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -458,7 +458,7 @@
   (register_file$write_data 0x2d) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 38))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -471,7 +471,7 @@
   (register_file$write_data 0x2d00393) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 39))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2d)
@@ -483,7 +483,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 40))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2d)
@@ -495,7 +495,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2d)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 41))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2d)
@@ -507,7 +507,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2d)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 42))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x2d)
@@ -519,7 +519,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x2d)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 43))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0xc)
@@ -531,7 +531,7 @@
   (register_file$write_address 0xc) (register_file$write_data 0x2d)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 44))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0xc)
@@ -543,7 +543,7 @@
   (register_file$write_address 0xc) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 45))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0xc)
@@ -555,7 +555,7 @@
   (register_file$write_address 0xc) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 46))
  ((alu$binary_variant "(Rv32i Bne)") (alu$done_ 0x1) (alu$immediate 0xc)
@@ -567,7 +567,7 @@
   (register_file$write_address 0xc) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 47))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -580,7 +580,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 48))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -593,7 +593,7 @@
   (register_file$write_data 0x4085) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 49))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -606,7 +606,7 @@
   (register_file$write_data 0x4085) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 50))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -619,7 +619,7 @@
   (register_file$write_data 0x4085) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 51))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -632,7 +632,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0x4085)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 52))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -645,7 +645,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0xffffffff)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 53))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -658,7 +658,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0xffffffff)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 54))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -671,7 +671,7 @@
   (register_file$write_address 0x6) (register_file$write_data 0xffffffff)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 55))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -684,7 +684,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 56))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -697,7 +697,7 @@
   (register_file$write_data 0x31) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 57))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -710,7 +710,7 @@
   (register_file$write_data 0x31) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 58))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -723,7 +723,7 @@
   (register_file$write_data 0x2058263) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 59))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -735,7 +735,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 60))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -747,7 +747,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 61))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -759,7 +759,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 62))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -771,7 +771,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 63))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -783,7 +783,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 64))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -795,7 +795,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 65))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -807,7 +807,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 66))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -819,7 +819,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 67))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -831,7 +831,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 68))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -843,7 +843,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 69))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -855,7 +855,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 70))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -867,7 +867,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 71))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -879,7 +879,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 72))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -891,7 +891,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 73))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -903,7 +903,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 74))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -915,7 +915,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 75))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -927,7 +927,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 76))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -939,7 +939,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 77))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -951,7 +951,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 78))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -963,7 +963,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 79))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -975,7 +975,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 80))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -987,7 +987,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 81))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -999,7 +999,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 82))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1011,7 +1011,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 83))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1023,7 +1023,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 84))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1035,7 +1035,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 85))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1047,7 +1047,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 86))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1059,7 +1059,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 87))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1072,7 +1072,7 @@
   (register_file$write_data 0x1) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 88))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1085,7 +1085,7 @@
   (register_file$write_data 0x4086) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 89))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1098,7 +1098,7 @@
   (register_file$write_data 0x4086) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 90))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1111,7 +1111,7 @@
   (register_file$write_data 0x4086) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 91))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1123,7 +1123,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4086)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 92))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1135,7 +1135,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 93))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1147,7 +1147,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 94))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1159,7 +1159,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 95))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1172,7 +1172,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 96))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1185,7 +1185,7 @@
   (register_file$write_data 0x32) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 97))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1198,7 +1198,7 @@
   (register_file$write_data 0x32) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 98))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1211,7 +1211,7 @@
   (register_file$write_data 0x2058263) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 99))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1223,7 +1223,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 100))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1235,7 +1235,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 101))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1247,7 +1247,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 102))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1259,7 +1259,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 103))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1271,7 +1271,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 104))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1283,7 +1283,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x1)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 105))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1295,7 +1295,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 106))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1307,7 +1307,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 107))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1319,7 +1319,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x1)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 108))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1331,7 +1331,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x8)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 109))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1343,7 +1343,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x8)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 110))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1355,7 +1355,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x8)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 111))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1367,7 +1367,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x8)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 112))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1379,7 +1379,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x9)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 113))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1391,7 +1391,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x9)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 114))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1403,7 +1403,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x9)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 115))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1415,7 +1415,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x9)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 116))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1427,7 +1427,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xa)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 117))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1439,7 +1439,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xa)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 118))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1451,7 +1451,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xa)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 119))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1463,7 +1463,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0xa)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 120))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1475,7 +1475,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x2)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 121))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1487,7 +1487,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x2)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 122))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1499,7 +1499,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x2)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 123))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1511,7 +1511,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x2)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 124))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1523,7 +1523,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xc)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 125))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1535,7 +1535,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xc)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 126))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1547,7 +1547,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xc)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 127))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1560,7 +1560,7 @@
   (register_file$write_data 0xc) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 128))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1573,7 +1573,7 @@
   (register_file$write_data 0x4087) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 129))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1586,7 +1586,7 @@
   (register_file$write_data 0x4087) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 130))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -1599,7 +1599,7 @@
   (register_file$write_data 0x4087) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 131))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1611,7 +1611,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4087)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 132))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1623,7 +1623,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 133))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1635,7 +1635,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 134))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -1647,7 +1647,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 135))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1660,7 +1660,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 136))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1673,7 +1673,7 @@
   (register_file$write_data 0x33) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 137))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1686,7 +1686,7 @@
   (register_file$write_data 0x33) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 138))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1699,7 +1699,7 @@
   (register_file$write_data 0x2058263) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 139))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1711,7 +1711,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 140))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1723,7 +1723,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 141))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1735,7 +1735,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 142))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -1747,7 +1747,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 143))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1759,7 +1759,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 144))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1771,7 +1771,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0xc)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 145))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1783,7 +1783,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0xc)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 146))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1795,7 +1795,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0xc)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 147))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1807,7 +1807,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0xc)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 148))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1819,7 +1819,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x60)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 149))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1831,7 +1831,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x60)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 150))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -1843,7 +1843,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x60)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 151))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1855,7 +1855,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x60)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 152))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1867,7 +1867,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 153))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1879,7 +1879,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 154))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1891,7 +1891,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 155))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1903,7 +1903,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x6c)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 156))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1915,7 +1915,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x78)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 157))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1927,7 +1927,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x78)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 158))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1939,7 +1939,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x78)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 159))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1951,7 +1951,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x78)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 160))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1963,7 +1963,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x3)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 161))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1975,7 +1975,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x3)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 162))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -1987,7 +1987,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x3)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 163))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -1999,7 +1999,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x3)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 164))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2011,7 +2011,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x7b)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 165))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2023,7 +2023,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 166))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2035,7 +2035,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 167))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2048,7 +2048,7 @@
   (register_file$write_data 0x7b) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 168))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2061,7 +2061,7 @@
   (register_file$write_data 0x4088) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 169))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2074,7 +2074,7 @@
   (register_file$write_data 0x4088) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 170))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2087,7 +2087,7 @@
   (register_file$write_data 0x4088) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 171))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2099,7 +2099,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4088)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 172))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2111,7 +2111,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 173))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2123,7 +2123,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 174))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2135,7 +2135,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 175))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2148,7 +2148,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 176))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2161,7 +2161,7 @@
   (register_file$write_data 0x34) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 177))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2174,7 +2174,7 @@
   (register_file$write_data 0x34) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 178))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2187,7 +2187,7 @@
   (register_file$write_data 0x2058263) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 179))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2199,7 +2199,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 180))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2211,7 +2211,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 181))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2223,7 +2223,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 182))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2235,7 +2235,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 183))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2247,7 +2247,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 184))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2259,7 +2259,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x7b)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 185))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2271,7 +2271,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 186))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2283,7 +2283,7 @@
   (register_file$write_address 0x7) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 187))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -2295,7 +2295,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x7b)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 188))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -2307,7 +2307,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x3d8)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 189))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -2319,7 +2319,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x3d8)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 190))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x3)
@@ -2331,7 +2331,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x3d8)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 191))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2344,7 +2344,7 @@
   (register_file$write_data 0x3d8) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 192))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2357,7 +2357,7 @@
   (register_file$write_data 0x453) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 193))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2370,7 +2370,7 @@
   (register_file$write_data 0x453) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 194))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2383,7 +2383,7 @@
   (register_file$write_data 0x453) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 195))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2396,7 +2396,7 @@
   (register_file$write_data 0x453) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 196))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2409,7 +2409,7 @@
   (register_file$write_data 0x4ce) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 197))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2422,7 +2422,7 @@
   (register_file$write_data 0x4ce) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 198))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2435,7 +2435,7 @@
   (register_file$write_data 0x4ce) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 199))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -2447,7 +2447,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x4ce)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 200))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -2459,7 +2459,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x4)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 201))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -2471,7 +2471,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x4)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 202))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1)
@@ -2483,7 +2483,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x4)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 203))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2495,7 +2495,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 204))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2507,7 +2507,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 205))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2519,7 +2519,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 206))
  ((alu$binary_variant "(Rv32i Add)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2531,7 +2531,7 @@
   (register_file$write_address 0x5) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 207))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2544,7 +2544,7 @@
   (register_file$write_data 0x4d2) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 208))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2557,7 +2557,7 @@
   (register_file$write_data 0x4089) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 209))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2570,7 +2570,7 @@
   (register_file$write_data 0x4089) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 210))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2583,7 +2583,7 @@
   (register_file$write_data 0x4089) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 211))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2595,7 +2595,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4089)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 212))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2607,7 +2607,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 213))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2619,7 +2619,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 214))
  ((alu$binary_variant "(Rv32i Jal)") (alu$done_ 0x1)
@@ -2631,7 +2631,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4060)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 215))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2644,7 +2644,7 @@
   (register_file$write_data 0x50583) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 216))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2657,7 +2657,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 217))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2670,7 +2670,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 218))
  ((alu$binary_variant "(Rv32i Lb)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2683,7 +2683,7 @@
   (register_file$write_data 0x2058263) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 219))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2695,7 +2695,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 220))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2707,7 +2707,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 221))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2719,7 +2719,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 222))
  ((alu$binary_variant "(Rv32i Beq)") (alu$done_ 0x1) (alu$immediate 0x24)
@@ -2731,7 +2731,7 @@
   (register_file$write_address 0x4) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 223))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2743,7 +2743,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 224))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2755,7 +2755,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 225))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2767,7 +2767,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 226))
  ((alu$binary_variant "(Rv32i Addi)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2779,7 +2779,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 227))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2791,7 +2791,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x4d2)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 228))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2803,7 +2803,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x9a4)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 229))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2815,7 +2815,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x9a4)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 230))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1)
@@ -2827,7 +2827,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x9a4)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 231))
  ((alu$binary_variant "(Rv32i Slt)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2840,7 +2840,7 @@
   (register_file$write_data 0x9a4) (register_file$write_enable 0x0)
   (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 232))
  ((alu$binary_variant "(Rv32i Slt)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2853,7 +2853,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x1)
   (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 233))
  ((alu$binary_variant "(Rv32i Slt)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2866,7 +2866,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 234))
  ((alu$binary_variant "(Rv32i Slt)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2879,7 +2879,7 @@
   (register_file$write_data 0x0) (register_file$write_enable 0x0)
   (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 235))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2891,7 +2891,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 236))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2903,7 +2903,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 237))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2915,7 +2915,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 238))
  ((alu$binary_variant "(Rv32i Slli)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2927,7 +2927,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 239))
  ((alu$binary_variant "(Rv32i Srai)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2939,7 +2939,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 240))
  ((alu$binary_variant "(Rv32i Srai)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2951,7 +2951,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 241))
  ((alu$binary_variant "(Rv32i Srai)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2963,7 +2963,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 242))
  ((alu$binary_variant "(Rv32i Srai)") (alu$done_ 0x1) (alu$immediate 0x1f)
@@ -2975,7 +2975,7 @@
   (register_file$write_address 0x1d) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 243))
  ((alu$binary_variant "(Rv32i And)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2987,7 +2987,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 244))
  ((alu$binary_variant "(Rv32i And)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -2999,7 +2999,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x0)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 245))
  ((alu$binary_variant "(Rv32i And)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3011,7 +3011,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 246))
  ((alu$binary_variant "(Rv32i And)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3023,7 +3023,7 @@
   (register_file$write_address 0x1c) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 247))
  ((alu$binary_variant "(Rv32i Sub)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3035,7 +3035,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0x0)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 248))
  ((alu$binary_variant "(Rv32i Sub)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3047,7 +3047,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0xfffffb2e)
   (register_file$write_enable 0x1) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 249))
  ((alu$binary_variant "(Rv32i Sub)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3059,7 +3059,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0xfffffb2e)
   (register_file$write_enable 0x0) (state Fetch)))
 (Decode_and_load
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 250))
  ((alu$binary_variant "(Rv32i Sub)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3071,7 +3071,7 @@
   (register_file$write_address 0xa) (register_file$write_data 0xfffffb2e)
   (register_file$write_enable 0x0) (state Decode_and_load)))
 (Execute
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 251))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3083,7 +3083,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0xfffffb2e)
   (register_file$write_enable 0x0) (state Execute)))
 (Writeback
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 252))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3095,7 +3095,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4080)
   (register_file$write_enable 0x0) (state Writeback)))
 (Fetch
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 253))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$done_ 0x1) (alu$immediate 0x0)
@@ -3107,7 +3107,7 @@
   (register_file$write_address 0x0) (register_file$write_data 0x4080)
   (register_file$write_enable 0x0) (state Fetch)))
 (Error
- ((clock 0) (reset 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
+ ((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (cycles_since_boot 254))
  ((alu$binary_variant "(Rv32i Jalr)") (alu$done_ 0x1) (alu$immediate 0x0)
