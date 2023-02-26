@@ -354,13 +354,18 @@ let create
   =
   let open Signal in
   let segments, uart_out =
-    let build_input ~is_in_range ~route =
+    let build_input ~start ~size =
+      let program_counter, data_address =
+        let route address = address -:. start in
+        route program_counter, route data_address
+      in
+      let is_in_range address = address <:. size in
       { I.clock
       ; load_instruction = load_instruction &: is_in_range program_counter
       ; load = load &: is_in_range data_address
       ; store = store &: is_in_range data_address
-      ; program_counter = route program_counter
-      ; data_address = route data_address
+      ; program_counter
+      ; data_address
       ; data_size
       ; signed
       ; write_data
@@ -370,41 +375,20 @@ let create
     let mem_segments =
       [ (let open Parameters in
         let size = imem_size in
-        let input =
-          build_input
-            ~is_in_range:(fun address ->
-              address >=:. code_bottom &: (address <:. code_bottom + imem_size))
-            ~route:(code_bottom |> Fn.flip ( -:. ))
-        in
+        let input = build_input ~start:code_bottom ~size in
         input, Local_ram.circuit scope ~size ~name:"imem" input)
       ; (let open Parameters in
         let size = dmem_size in
-        let input =
-          build_input
-            ~is_in_range:(fun address ->
-              address >=:. stack_top - dmem_size &: (address <:. stack_top))
-            ~route:(stack_top - dmem_size |> Fn.flip ( -:. ))
-        in
+        let input = build_input ~start:(stack_top - dmem_size) ~size in
         input, Local_ram.circuit scope ~size ~name:"dmem" input)
       ; (let open Parameters in
-        let input =
-          build_input
-            ~is_in_range:(fun address ->
-              address
-              >=:. bootloader_start
-              &: (address <:. bootloader_start + List.length bootloader))
-            ~route:(bootloader_start |> Fn.flip ( -:. ))
-        in
+        let input = build_input ~start:bootloader_start ~size:(List.length bootloader) in
         input, Rom.circuit scope ~name:"bootloader" ~data:bootloader input)
       ]
     in
     let uart_segment, uart_out =
       let open Parameters in
-      let input =
-        build_input
-          ~is_in_range:(uart_io_address |> Fn.flip ( ==:. ))
-          ~route:(fun _ -> zero word_width)
-      in
+      let input = build_input ~start:uart_io_address ~size:1 in
       let Uart_io.O.{ uart = uart_out; segment } = Uart_io.circuit scope input in
       (input, segment), uart_out
     in
