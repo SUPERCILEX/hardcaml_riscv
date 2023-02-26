@@ -5,6 +5,10 @@
  (preprocess
   (pps ppx_jane ppx_deriving_hardcaml)))
 
+(alias
+ (name bin)
+ (deps arty.exe))
+
 (rule
  (target command-reference.golden)
  (deps arty.exe)

@@ -10,6 +10,10 @@
  (preprocess
   (pps ppx_jane)))
 
+(alias
+ (name bin)
+ (deps cli.exe))
+
 (rule
  (target command-reference.golden)
  (deps cli.exe)
