@@ -53,14 +53,17 @@
 
 (rule
  (targets
-  timing_summary.rpt
   bus_skew.rpt
-  utilization.rpt
-  suggestions.rpt
+  clock_utilization.rpt
   design_analysis.rpt
+  drc.rpt
+  high_fanout_nets.rpt
+  methodology.rpt
   power.rpt
+  qor_suggestions.rpt
   ram_utilization.rpt
-  high_fanout_nets.rpt)
+  timing_summary.rpt
+  utilization.rpt)
  (deps
   (glob_files *.v)
   (source_tree boards)
