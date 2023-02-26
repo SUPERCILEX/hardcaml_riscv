@@ -153,6 +153,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
       scope
       { (Memory_controller.I.Of_always.value memory_controller) with
         clock
+      ; reset
       ; uart
       ; signed = signed_read
       }
@@ -190,10 +191,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
   in
   memory_controller.data_address.value <== rs1 +: immediate;
   memory_controller.write_data.value <== rs2;
-  let debounce p =
-    let p_delayed = reg (Reg_spec.create ~clock ~reset ()) p in
-    p &: ~:p_delayed
-  in
+  let debounce p = p &: ~:(reg spec p) in
   let alu_raw =
     Alu.circuit
       scope
