@@ -253,7 +253,22 @@ let circuit scope =
 ;;
 
 module Tests = struct
-  module Simulator = Cyclesim.With_interface (I) (O)
+  let create ~program ~verilator =
+    let scope = Scope.create ~flatten_design:true () in
+    if verilator
+    then
+      let module Simulator = Hardcaml_verilator.With_interface (I) (O) in
+      Simulator.create
+        ~verbose:true
+        ~cache_dir:"/tmp/hardcaml_sims"
+        ~clock_names:[ "clock" ]
+        (create scope ~bootloader:program)
+    else
+      let module Simulator = Cyclesim.With_interface (I) (O) in
+      Simulator.create
+        ~config:Cyclesim.Config.trace_all
+        (create scope ~bootloader:program)
+  ;;
 
   let test_bench
     ~step
@@ -312,13 +327,8 @@ module Tests = struct
              ~equal:String.equal))
   ;;
 
-  let sim ~program ?input_data_file ?output_data_file termination =
-    let scope = Scope.create ~flatten_design:true () in
-    let sim =
-      Simulator.create
-        ~config:Cyclesim.Config.trace_all
-        (create scope ~bootloader:program)
-    in
+  let sim ~program ~verilator ?input_data_file ?output_data_file termination =
+    let sim = create ~program ~verilator in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
       let open Bits in
@@ -352,25 +362,15 @@ module Tests = struct
     ()
   ;;
 
-  let execute ~program ?input_data_file ?output_data_file cycles =
-    let scope = Scope.create ~flatten_design:true () in
-    let sim =
-      Simulator.create
-        ~config:Cyclesim.Config.trace_all
-        (create scope ~bootloader:program)
-    in
+  let execute ~program ~verilator ?input_data_file ?output_data_file cycles =
+    let sim = create ~program ~verilator in
     test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
     ()
   ;;
 
-  let waves ~program ~cycles ?input_data_file ?output_data_file f =
+  let waves ~program ~verilator ~cycles ?input_data_file ?output_data_file f =
     let open Hardcaml_waveterm in
-    let scope = Scope.create ~flatten_design:true () in
-    let sim =
-      Simulator.create
-        ~config:Cyclesim.Config.trace_all
-        (create scope ~bootloader:program)
-    in
+    let sim = create ~program ~verilator in
     let waves, sim = Waveform.create sim in
     test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
     let open Hardcaml_waveterm.Display_rule in

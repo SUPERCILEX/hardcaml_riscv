@@ -23,6 +23,7 @@
   core_unix
   dune
   hardcaml
+  hardcaml_verilator
   hardcaml_waveterm
   ocaml
   ppx_blob

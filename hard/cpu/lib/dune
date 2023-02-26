@@ -1,7 +1,7 @@
 (library
  (name cpu)
  (inline_tests)
- (libraries base core hardcaml hardcaml_waveterm)
+ (libraries base core hardcaml hardcaml_waveterm hardcaml_verilator)
  (preprocess
   (pps ppx_jane ppx_expect ppx_deriving_hardcaml ppx_blob))
  (preprocessor_deps ../../../soft/onchip/bootloader_server/boot.bin))

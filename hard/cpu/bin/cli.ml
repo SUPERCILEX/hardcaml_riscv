@@ -14,6 +14,7 @@ module Shared_commands = struct
     ; file_name : string option
     ; input_data_file : string option
     ; output_data_file : string option
+    ; verilator : bool
     }
 
   let args () =
@@ -42,8 +43,8 @@ module Shared_commands = struct
           ~doc:"FILE UART output stream file"
           "-output-data-file"
           (optional Filename_unix.arg_type)
-      in
-      { cycles; program; file_name; input_data_file; output_data_file })
+      and verilator = flag ~doc:"Use verilator" "-verilator" no_arg in
+      { cycles; program; file_name; input_data_file; output_data_file; verilator })
   ;;
 
   let program program file_name =
@@ -66,6 +67,7 @@ let waves =
                    ; file_name
                    ; input_data_file
                    ; output_data_file
+                   ; verilator
                    }
         =
         Shared_commands.args ()
@@ -73,6 +75,7 @@ let waves =
       fun () ->
         Cpu.Tests.waves
           ~program:(Shared_commands.program program file_name)
+          ~verilator
           ~cycles
           ?input_data_file
           ?output_data_file
@@ -94,6 +97,7 @@ let execute =
                    ; file_name
                    ; input_data_file
                    ; output_data_file
+                   ; verilator
                    }
         =
         Shared_commands.args ()
@@ -101,6 +105,7 @@ let execute =
       fun () ->
         Cpu.Tests.execute
           ~program:(Shared_commands.program program file_name)
+          ~verilator
           ?input_data_file
           ?output_data_file
           cycles)
@@ -115,6 +120,7 @@ let simulate =
                    ; file_name
                    ; input_data_file
                    ; output_data_file
+                   ; verilator
                    }
         =
         Shared_commands.args ()
@@ -122,6 +128,7 @@ let simulate =
       fun () ->
         Cpu.Tests.sim
           ~program:(Shared_commands.program program file_name)
+          ~verilator
           ?input_data_file
           ?output_data_file
           (( = ) cycles))
