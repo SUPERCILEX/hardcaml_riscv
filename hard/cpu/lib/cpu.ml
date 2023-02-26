@@ -190,12 +190,16 @@ let create scope ~bootloader { I.clock; reset; uart } =
   in
   memory_controller.data_address.value <== rs1 +: immediate;
   memory_controller.write_data.value <== rs2;
+  let debounce p =
+    let p_delayed = reg (Reg_spec.create ~clock ~reset ()) p in
+    p &: ~:p_delayed
+  in
   let alu_raw =
     Alu.circuit
       scope
       { Alu.I.clock
       ; reset
-      ; active = sm.is Execute
+      ; start = debounce (sm.is Execute)
       ; pc = memory_controller.program_counter.value
       ; instruction
       ; rs1
@@ -203,7 +207,7 @@ let create scope ~bootloader { I.clock; reset; uart } =
       ; immediate
       }
   in
-  stall <== (mem_stall |: (alu_raw.stall &: sm.is Execute));
+  stall <== (mem_stall |: ~:(alu_raw.done_));
   let alu = alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec) in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   Always.(
