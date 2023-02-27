@@ -54,7 +54,6 @@ struct
 
   let create scope { I.clock; clear; start; dividend; divisor } =
     let open Signal in
-    let spec = Reg_spec.create ~clock ~clear:(clear |: start) () in
     let ( -- ) = Scope.naming scope in
     let depth = 4 in
     let done_ =
@@ -64,7 +63,7 @@ struct
         reg_fb
           ~width
           ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
-          (spec
+          (Reg_spec.create ~clock ~clear:(clear |: start) ()
           |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
         -- "steps_remaining"
       in
@@ -88,7 +87,8 @@ struct
                 (subdivide (lsbs diff @: sel_bottom qr (bits - 1) @: vdd)))
           in
           subdivide depth qr)
-        (spec |> Reg_spec.override ~clear_to:(uresize dividend width))
+        (Reg_spec.create ~clock ~clear:start ()
+        |> Reg_spec.override ~clear_to:(uresize dividend width))
       -- "qr"
     in
     let div_by_zero = divisor ==:. 0 in

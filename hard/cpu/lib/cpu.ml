@@ -126,9 +126,13 @@ let writeback
 let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let ( -- ) = Scope.naming scope in
-  let spec = Reg_spec.create ~clock ~clear () in
   let stall = wire 1 -- "stall" in
-  let sm = Always.State_machine.create ~enable:~:stall (module State) spec in
+  let sm =
+    Always.State_machine.create
+      ~enable:~:stall
+      (module State)
+      (Reg_spec.create ~clock ~clear ())
+  in
   sm.current -- "state" |> ignore;
   let memory_controller =
     { (Memory_controller.I.Of_always.wire zero) with
@@ -137,7 +141,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ~enable:~:stall
           ~width:Parameters.word_width
           (Reg_spec.override
-             spec
+             (Reg_spec.create ~clock ~clear ())
              ~clear_to:(of_int ~width:Parameters.word_width Parameters.bootloader_start))
     }
   in
@@ -153,7 +157,6 @@ let create scope ~bootloader { I.clock; clear; uart } =
       scope
       { (Memory_controller.I.Of_always.value memory_controller) with
         clock
-      ; clear
       ; uart
       ; signed = signed_read
       }
@@ -161,7 +164,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
-    decoder_raw |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) spec)
+    decoder_raw
+    |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) (Reg_spec.create ~clock ()))
   in
   signed_read
   <== Instruction.Binary.Of_signal.match_
@@ -191,7 +195,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   memory_controller.data_address.value <== rs1 +: immediate;
   memory_controller.write_data.value <== rs2;
-  let debounce p = p &: ~:(reg spec p) in
+  let debounce p = p &: ~:(reg (Reg_spec.create ~clock ~clear ()) p) in
   let alu_raw =
     Alu.circuit
       scope
@@ -206,7 +210,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       }
   in
   stall <== (mem_stall |: ~:(alu_raw.done_));
-  let alu = alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) spec) in
+  let alu =
+    alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) (Reg_spec.create ~clock ()))
+  in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   Always.(
     compile
@@ -243,7 +249,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ]);
   { O.error = sm.is Error
   ; uart = uart_out
-  ; cycles_since_boot = reg_fb ~width:64 ~f:(Fn.flip ( +:. ) 1) spec
+  ; cycles_since_boot =
+      reg_fb ~width:64 ~f:(Fn.flip ( +:. ) 1) (Reg_spec.create ~clock ~clear ())
   }
 ;;
 
