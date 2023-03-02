@@ -9,6 +9,5 @@ keywords = ["baud", "rate", "change", "terminal", "serial", "port", "tty", "spee
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap2 = { version = "4.0.32", features = ["derive", "wrap_help"] }
-# TODO use release version
-rustix = { version = "0.37.0-alpha.0", features = ["termios"], path = "/home/asaveau/Desktop/rustix" }
+clap2 = { version = "4.1.8", features = ["derive", "wrap_help"] }
+rustix = { version = "0.37.0", features = ["termios"] }

@@ -76,20 +76,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
 
 [[package]]
-name = "clap"
-version = "4.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec0b0588d44d4d63a87dbd75c136c166bbfd9a86a31cb89e09906521c7d3f5e3"
-dependencies = [
- "bitflags",
- "clap_lex",
-]
-
-[[package]]
 name = "clap2"
-version = "4.0.32"
+version = "4.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d77f5d98fe06d2365f080d2c9385fb94855ebabeccf6125862363e468799245"
+checksum = "9a1f9a16009fce431e928797a159381fbb53811248bbdcd34b4f0cd5a539fc3e"
 dependencies = [
  "bitflags",
  "clap_derive",
@@ -103,9 +93,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.0.21"
+version = "4.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0177313f9f02afc995627906bbd8967e2be069f5261954222dac78290c2b9014"
+checksum = "44bec8e5c9d09e439c4335b1af0abaab56dcf3b94999a936e1bb47b9134288f0"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -116,9 +106,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "783fe232adfca04f90f56201b26d79682d4cd2625e0bc7290b95123afe558ade"
+checksum = "350b9cf31731f9957399229e9b2adc51eeabdfbe9d71d9a0552275fd12710d09"
 dependencies = [
  "os_str_bytes",
 ]
@@ -163,9 +153,9 @@ dependencies = [
 
 [[package]]
 name = "expect-test"
-version = "1.4.0"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d4661aca38d826eb7c72fe128e4238220616de4c0cc00db7bfc38e2e1364dd3"
+checksum = "30d9eafeadd538e68fb28016364c9732d78e420b9ff8853fa5e4058861e9f8d3"
 dependencies = [
  "dissimilar",
  "once_cell",
@@ -217,9 +207,9 @@ dependencies = [
 
 [[package]]
 name = "is-terminal"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22e18b0a45d56fe973d6db23972bf5bc46f988a4a2385deac9cc29572f09daef"
+checksum = "21b6b32576413a8e69b90e952e4a026476040d81017b80445deda5f2d3921857"
 dependencies = [
  "hermit-abi",
  "io-lifetimes",
@@ -247,9 +237,9 @@ checksum = "f051f77a7c8e6957c0696eac88f26b0117e54f52d3fc682ab19397a8812846a4"
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1ad52afd8f9448cbbe722ae722849cc41f1d365e285cca386896352bc08e1a9"
+checksum = "cd550e73688e6d578f0ac2119e32b797a327631a42f9433e59d02e139c8df60d"
 
 [[package]]
 name = "offchip"
@@ -305,9 +295,9 @@ dependencies = [
 
 [[package]]
 name = "public-api"
-version = "0.26.0"
+version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edd2f54c2c632d6837b7c2ae793856315da2daa866136682179fe20f2fdd2b03"
+checksum = "ba18bfcbc66b0dcacd258f80aa0c7009ec32643d054d199ccfdb826e3d5d80f1"
 dependencies = [
  "hashbag",
  "rustdoc-types",
@@ -327,9 +317,9 @@ dependencies = [
 
 [[package]]
 name = "rustdoc-json"
-version = "0.7.4"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b5082b45f38d799925b7981a90b3bed9e4cbff7596afd5e373db384bd6c3f35"
+checksum = "a6a067d208f0fef45aaa776f592f2d78a0ae36e2ffe08d0868040e3ca51716a8"
 dependencies = [
  "cargo-manifest",
  "cargo_metadata",
@@ -363,13 +353,15 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.0-alpha.0"
+version = "0.37.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4a83a7388764c45ed5398d976243a05dcb325c35b867b438aafce72c8b59576"
 dependencies = [
  "bitflags",
  "errno 0.3.0",
  "io-lifetimes",
  "libc",
- "linux-raw-sys 0.2.2",
+ "linux-raw-sys 0.3.0",
  "windows-sys",
 ]
 
@@ -438,11 +430,10 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "supercilex-tests"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46b905ec66c7b6dd242fae5f8601ae237bc7a5e777237c2fb55bbf8b178f9536"
+checksum = "4a6ebd066fd565c25a922c8b038021cf0025bade6b2eda27bbfbd6f81f7c4fbf"
 dependencies = [
- "clap",
  "clap2",
  "expect-test",
  "public-api",
@@ -451,9 +442,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.107"
+version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f4064b5b16e03ae50984a5a8ed5d4f8803e6bc1fd170a3cda91a1be4b18e3f5"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -514,7 +505,7 @@ name = "tstp"
 version = "0.1.0"
 dependencies = [
  "clap2",
- "rustix 0.37.0-alpha.0",
+ "rustix 0.37.0",
 ]
 
 [[package]]

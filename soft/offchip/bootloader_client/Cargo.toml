@@ -6,5 +6,5 @@ publish = false
 
 [dependencies]
 bootloader = { path = "../../bootloader" }
-clap2 = { version = "4.0.32", features = ["derive", "wrap_help"] }
+clap2 = { version = "4.1.8", features = ["derive", "wrap_help"] }
 shared = { path = "../../shared" }
