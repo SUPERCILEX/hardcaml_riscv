@@ -7,9 +7,10 @@ Hardware dev tools
   execute                    . Simulate execution
   . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Fibonacci), (Sample Instruction_tests),
-                               (Sample Invalid), (Sample Simple), (Sample
-                               String_search), (Sample Uart_echo), Custom)
+                               (Sample Dependencies), (Sample Fibonacci),
+                               (Sample Instruction_tests), (Sample Invalid),
+                               (Sample Simple), (Sample String_search), (Sample
+                               Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
@@ -20,9 +21,10 @@ Hardware dev tools
   simulate                   . Simulate execution with cycle state dump
   . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Fibonacci), (Sample Instruction_tests),
-                               (Sample Invalid), (Sample Simple), (Sample
-                               String_search), (Sample Uart_echo), Custom)
+                               (Sample Dependencies), (Sample Fibonacci),
+                               (Sample Instruction_tests), (Sample Invalid),
+                               (Sample Simple), (Sample String_search), (Sample
+                               Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
@@ -30,9 +32,10 @@ Hardware dev tools
   waves                      . Open waveform viewer
   . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Fibonacci), (Sample Instruction_tests),
-                               (Sample Invalid), (Sample Simple), (Sample
-                               String_search), (Sample Uart_echo), Custom)
+                               (Sample Dependencies), (Sample Fibonacci),
+                               (Sample Instruction_tests), (Sample Invalid),
+                               (Sample Simple), (Sample String_search), (Sample
+                               Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file

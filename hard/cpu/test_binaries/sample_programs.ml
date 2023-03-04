@@ -8,6 +8,7 @@ type t =
   | Atoi
   | Uart_echo
   | Instruction_tests
+  | Dependencies
 [@@deriving sexp_of, compare, enumerate]
 
 let program_bytes = function
@@ -18,4 +19,5 @@ let program_bytes = function
   | Atoi -> [%blob "hard/cpu/test_binaries/atoi.bin"]
   | Uart_echo -> [%blob "hard/cpu/test_binaries/uart_echo.bin"]
   | Instruction_tests -> [%blob "hard/cpu/test_binaries/instruction_tests.bin"]
+  | Dependencies -> [%blob "hard/cpu/test_binaries/dependencies.bin"]
 ;;

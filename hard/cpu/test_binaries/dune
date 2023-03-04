@@ -232,3 +232,37 @@
   (with-outputs-to
    %{target}
    (run %{exe} sim -cycles 240 -program "(sample instruction_tests)"))))
+
+(rule
+ (target dependencies.bin)
+ (deps
+  (:src dependencies.s)
+  sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32im
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    dependencies)
+   (run riscv64-linux-gnu-objcopy -O binary dependencies %{target}))))
+
+(rule
+ (target dependencies.signals)
+ (deps
+  (:exe ../bin/cli.exe))
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{exe} sim -cycles 28 -program "(sample dependencies)"))))
