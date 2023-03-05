@@ -126,11 +126,10 @@ let writeback
 let create scope ~bootloader { I.clock; clear; uart } =
   let open Signal in
   let ( -- ) = Scope.naming scope in
-  let stall = Always.Variable.wire ~default:gnd in
-  stall.value -- "stall" |> ignore;
+  let stall = wire 1 -- "stall" in
   let sm =
     Always.State_machine.create
-      ~enable:~:(stall.value)
+      ~enable:~:stall
       (module State)
       (Reg_spec.create ~clock ~clear ())
   in
@@ -139,7 +138,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     { (Memory_controller.I.Of_always.wire zero) with
       program_counter =
         Always.Variable.reg
-          ~enable:~:(stall.value)
+          ~enable:~:stall
           ~width:Parameters.word_width
           (Reg_spec.override
              (Reg_spec.create ~clock ~clear ())
@@ -151,9 +150,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; read_data = memory_read_data
       ; error = invalid_address
       ; uart = uart_out
-      ; load_instruction_done
-      ; load_done = mem_load_done
-      ; store_done = mem_store_done
+      ; stall_load_instruction
+      ; stall_load = stall_mem_load
+      ; stall_store = stall_mem_store
       }
     =
     Memory_controller.circuit
@@ -212,20 +211,20 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; immediate
       }
   in
+  stall
+  <== (~:(alu_raw.done_) |: (stall_load_instruction |: stall_mem_load |: stall_mem_store));
   let alu =
     alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) (Reg_spec.create ~clock ()))
   in
   Alu.O.iter2 alu_feedback alu ~f:( <== );
   Always.(
     compile
-      [ when_ ~:(alu_raw.done_) [ stall <-- vdd ]
-      ; sm.switch
+      [ sm.switch
           [ ( Fetch
             , fetch
                 ~sm
                 { Fetch_stage.load_instruction = memory_controller.load_instruction } )
-          ; ( Decode_and_load
-            , [ when_ ~:load_instruction_done [ stall <-- vdd ]; sm.set_next Execute ] )
+          ; Decode_and_load, [ sm.set_next Execute ]
           ; ( Execute
             , load_mem
                 { Load_mem_stage.instruction
@@ -234,26 +233,19 @@ let create scope ~bootloader { I.clock; clear; uart } =
                 }
               @ execute ~sm
               @ [ when_
-                    (memory_controller.load.value &: ~:mem_load_done)
-                    [ stall <-- vdd ]
-                ; when_
                     (Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
                     [ sm.set_next Error ]
                 ] )
           ; ( Writeback
-            , [ when_
-                  (memory_controller.store.value &: ~:mem_store_done)
-                  [ stall <-- vdd ]
-              ]
-              @ writeback
-                  ~sm
-                  { Writeback_stage.instruction
-                  ; jump = alu.jump
-                  ; jump_target = alu.jump_target
-                  ; store = memory_controller.store
-                  ; program_counter = memory_controller.program_counter
-                  ; data_size = memory_controller.data_size
-                  } )
+            , writeback
+                ~sm
+                { Writeback_stage.instruction
+                ; jump = alu.jump
+                ; jump_target = alu.jump_target
+                ; store = memory_controller.store
+                ; program_counter = memory_controller.program_counter
+                ; data_size = memory_controller.data_size
+                } )
           ; Error, []
           ]
       ; when_ invalid_address [ sm.set_next Error ]

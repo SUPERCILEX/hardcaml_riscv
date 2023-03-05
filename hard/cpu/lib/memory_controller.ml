@@ -35,9 +35,9 @@ module O = struct
     ; read_data : 'a [@bits Parameters.word_width]
     ; error : 'a
     ; uart : 'a Uart.O.t [@rtlmangle true]
-    ; load_instruction_done : 'a
-    ; load_done : 'a
-    ; store_done : 'a
+    ; stall_load_instruction : 'a
+    ; stall_load : 'a
+    ; stall_store : 'a
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -184,9 +184,9 @@ module Segment = struct
   type 'a t =
     { read_data : 'a [@bits Parameters.word_width]
     ; error : 'a
-    ; load_instruction_done : 'a
-    ; load_done : 'a
-    ; store_done : 'a
+    ; stall_load_instruction : 'a
+    ; stall_load : 'a
+    ; stall_store : 'a
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -214,7 +214,6 @@ module Local_ram = struct
         let size = size
       end)
     in
-    let spec = Reg_spec.create ~clock () in
     { Segment.read_data =
         Ram.ram
           ~name
@@ -230,9 +229,9 @@ module Local_ram = struct
           ; write_data
           }
     ; error = gnd
-    ; load_instruction_done = load_instruction &: ~:load |> reg spec
-    ; load_done = load |> reg spec
-    ; store_done = store |> reg spec
+    ; stall_load_instruction = load_instruction &: load
+    ; stall_load = gnd
+    ; stall_store = gnd
     }
   ;;
 
@@ -279,9 +278,9 @@ module Rom = struct
                mux2 load data_size (of_enum Word) |> reg ~enable spec)
            ~signed:(signed |> reg ~enable spec))
     ; error = store
-    ; load_instruction_done = load_instruction &: ~:load |> reg spec
-    ; load_done = load |> reg spec
-    ; store_done = gnd
+    ; stall_load_instruction = load_instruction &: load
+    ; stall_load = gnd
+    ; stall_store = gnd
     }
   ;;
 
@@ -333,9 +332,9 @@ module Uart_io = struct
             ; ~:(Size.Binary.Of_signal.is data_size Byte) &: (load |: store)
             ]
             |> List.reduce_exn ~f:( |: )
-        ; load_instruction_done = gnd
-        ; load_done = load &: read_done
-        ; store_done = store &: write_done
+        ; stall_load_instruction = gnd
+        ; stall_load = load &: ~:read_done
+        ; stall_store = store &: ~:write_done
         }
     }
   ;;
@@ -430,15 +429,15 @@ let create
         ]
       |> List.reduce_exn ~f:( |: )
   ; uart = uart_out
-  ; load_instruction_done =
-      List.map segments ~f:(fun (_, { Segment.load_instruction_done; _ }) ->
-        load_instruction_done)
+  ; stall_load_instruction =
+      List.map segments ~f:(fun (_, { Segment.stall_load_instruction; _ }) ->
+        stall_load_instruction)
       |> List.reduce_exn ~f:( |: )
-  ; load_done =
-      List.map segments ~f:(fun (_, { Segment.load_done; _ }) -> load_done)
+  ; stall_load =
+      List.map segments ~f:(fun (_, { Segment.stall_load; _ }) -> stall_load)
       |> List.reduce_exn ~f:( |: )
-  ; store_done =
-      List.map segments ~f:(fun (_, { Segment.store_done; _ }) -> store_done)
+  ; stall_store =
+      List.map segments ~f:(fun (_, { Segment.stall_store; _ }) -> stall_store)
       |> List.reduce_exn ~f:( |: )
   }
 ;;
@@ -511,7 +510,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -519,7 +518,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -527,7 +526,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -535,7 +534,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
@@ -543,7 +542,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
@@ -551,7 +550,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
@@ -559,7 +558,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "Sizes" =
@@ -613,7 +612,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -621,7 +620,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x0)
@@ -629,7 +628,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe1) (data_size 0x0)
@@ -637,7 +636,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xbe) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe2) (data_size 0x0)
@@ -645,7 +644,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xad) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe3) (data_size 0x0)
@@ -653,7 +652,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xffffffde) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe4) (data_size 0x0)
@@ -661,7 +660,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x1)
@@ -669,7 +668,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xffffbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe2) (data_size 0x1)
@@ -677,7 +676,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xffffdead) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe4) (data_size 0x1)
@@ -685,7 +684,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -693,7 +692,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fffffe1) (data_size 0x0)
@@ -701,7 +700,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0x69) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fffffe0) (data_size 0x2)
@@ -709,7 +708,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xdead69ef) (error 0x0)
         (uart ((write_data 0x69) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "Invalid addresses" =
@@ -737,7 +736,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0xfffff) (data_size 0x2)
@@ -745,7 +744,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x140000) (data_size 0x2)
@@ -753,7 +752,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x80000000) (data_size 0x2)
@@ -761,7 +760,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7ffeffff) (data_size 0x2)
@@ -769,7 +768,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -777,7 +776,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "Unaligned addresses" =
@@ -802,7 +801,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x0)
@@ -810,7 +809,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x0)
@@ -818,7 +817,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x0)
@@ -826,7 +825,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x1)
@@ -834,7 +833,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x1)
@@ -842,7 +841,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x1)
@@ -850,7 +849,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x1)
@@ -858,7 +857,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100000) (data_size 0x2)
@@ -866,7 +865,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100001) (data_size 0x2)
@@ -874,7 +873,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100002) (data_size 0x2)
@@ -882,7 +881,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x100003) (data_size 0x2)
@@ -890,7 +889,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "Overlapping ops" =
@@ -933,7 +932,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -941,7 +940,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -949,7 +948,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -957,7 +956,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -965,7 +964,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -973,7 +972,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -981,7 +980,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100200) (data_address 0x100000) (data_size 0x2)
@@ -989,7 +988,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
@@ -998,7 +997,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1006,7 +1005,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1014,7 +1013,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1022,7 +1021,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1030,7 +1029,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1038,7 +1037,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1046,7 +1045,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x7fff0000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1054,7 +1053,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
@@ -1063,7 +1062,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x3020100) (read_data 0x3020100) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1071,7 +1070,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x3020100) (read_data 0x3020100) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x1) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1079,7 +1078,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x3020100) (read_data 0x3020100) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1087,7 +1086,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x3020100) (read_data 0x3020100) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1095,7 +1094,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x7060504) (read_data 0x7060504) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1103,7 +1102,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x7060504) (read_data 0x7060504) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1111,7 +1110,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x7060504) (read_data 0x7060504) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x4004) (data_address 0x4000) (data_size 0x2) (signed 0x0)
@@ -1119,7 +1118,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x7060504) (read_data 0x7060504) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x1)
@@ -1128,7 +1127,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1136,7 +1135,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1144,7 +1143,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1152,7 +1151,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1160,7 +1159,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1168,7 +1167,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x1) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1176,7 +1175,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x7fff0000) (data_size 0x2)
@@ -1184,7 +1183,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0xdeadbeef) (read_data 0xdeadbeef) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "Simple boot rom" =
@@ -1213,7 +1212,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x1) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4002) (data_size 0x0)
@@ -1221,7 +1220,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x2) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4003) (data_size 0x0)
@@ -1229,7 +1228,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x3) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4004) (data_size 0x0)
@@ -1237,7 +1236,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x4) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
@@ -1246,7 +1245,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x504) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4006) (data_size 0x1)
@@ -1254,7 +1253,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x706) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x4008) (data_size 0x1)
@@ -1262,7 +1261,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x908) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x400a) (data_size 0x1)
@@ -1270,7 +1269,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0xb0a) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "UART errors" =
@@ -1295,7 +1294,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x1) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x2003) (data_address 0x2003) (data_size 0x1) (signed 0x0)
@@ -1303,7 +1302,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x1) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x2003) (data_address 0x2003) (data_size 0x0) (signed 0x0)
@@ -1311,7 +1310,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x1) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x1) (load 0x0) (store 0x0)
         (program_counter 0x2003) (data_address 0x2003) (data_size 0x0) (signed 0x0)
@@ -1319,7 +1318,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 
   let%expect_test "UART" =
@@ -1352,7 +1351,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x1) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1360,7 +1359,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x1) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x1) (store 0x0)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1368,7 +1367,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x1))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x1)))
-        (load_instruction_done 0x0) (load_done 0x1) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1376,7 +1375,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       --------------------------------------------
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
@@ -1385,7 +1384,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x1) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1393,7 +1392,7 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x1) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x1)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x1)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1401,7 +1400,7 @@ module Tests = struct
         (uart ((write_done 0x1) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x1)
         (uart ((write_data 0xef) (write_ready 0x1) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x1)))
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0)))
 
       (((clock 0x0) (load_instruction 0x0) (load 0x0) (store 0x0)
         (program_counter 0x100000) (data_address 0x2003) (data_size 0x2)
@@ -1409,6 +1408,6 @@ module Tests = struct
         (uart ((write_done 0x0) (read_data 0x0) (read_done 0x0))))
        ((instruction 0x0) (read_data 0x0) (error 0x0)
         (uart ((write_data 0xef) (write_ready 0x0) (read_ready 0x0)))
-        (load_instruction_done 0x0) (load_done 0x0) (store_done 0x0))) |}]
+        (stall_load_instruction 0x0) (stall_load 0x0) (stall_store 0x0))) |}]
   ;;
 end
