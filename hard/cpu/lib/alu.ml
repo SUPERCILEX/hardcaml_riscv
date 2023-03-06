@@ -21,7 +21,7 @@ module O = struct
     ; store : 'a (* Whether or not to store the result back into the register file. *)
     ; jump : 'a
     ; jump_target : 'a [@bits Parameters.word_width]
-    ; done_ : 'a
+    ; stall : 'a
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -147,9 +147,7 @@ let set_store instruction store =
 
 let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate } =
   let open Signal in
-  let ({ O.rd; store; jump; jump_target; done_ } as out) =
-    { (O.Of_always.wire zero) with done_ = Always.Variable.wire ~default:vdd }
-  in
+  let ({ O.rd; store; jump; jump_target; stall } as out) = O.Of_always.wire zero in
   let module Divider =
     Make_divider (struct
       let word_size = Parameters.word_size
@@ -231,7 +229,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
            ]
            |> List.map ~f:(fun (i, statements) ->
                 ( Instruction.All.Rv32m i
-                , statements @ [ start_divider <-- start; done_ <-- divider_done ] )))
+                , statements @ [ start_divider <-- start; stall <-- ~:divider_done ] )))
         ]
         |> List.concat
         |> Instruction.Binary.Of_always.match_ ~default:[] instruction
@@ -263,7 +261,7 @@ module Tests = struct
         ; jump_target = bits_and_int outputs.jump_target
         ; store = for_bool outputs.store
         ; jump = for_bool outputs.jump
-        ; done_ = for_bool outputs.done_
+        ; stall = for_bool outputs.stall
         }
       in
       Stdio.print_s
@@ -287,7 +285,7 @@ module Tests = struct
       inputs.start := vdd;
       Cyclesim.cycle sim;
       inputs.start := gnd;
-      while to_bool !(outputs.done_) |> not do
+      while to_bool !(outputs.stall) do
         Cyclesim.cycle sim
       done;
       print_state ();
@@ -434,7 +432,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Auipc))
        (inputs
@@ -457,7 +455,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Jal))
        (inputs
@@ -480,7 +478,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Jalr))
        (inputs
@@ -502,7 +500,7 @@ module Tests = struct
          (store true) (jump true)
          (jump_target
           ((bits 00000000000000000000000010011100) (int 156) (signed_int 156)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Beq))
        (inputs
@@ -523,7 +521,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Bne))
        (inputs
@@ -544,7 +542,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Blt))
        (inputs
@@ -565,7 +563,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Bge))
        (inputs
@@ -586,7 +584,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Bltu))
        (inputs
@@ -607,7 +605,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Bgeu))
        (inputs
@@ -628,7 +626,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Lb))
        (inputs
@@ -649,7 +647,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Lh))
        (inputs
@@ -670,7 +668,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Lw))
        (inputs
@@ -691,7 +689,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Lbu))
        (inputs
@@ -712,7 +710,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Lhu))
        (inputs
@@ -733,7 +731,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sb))
        (inputs
@@ -754,7 +752,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sh))
        (inputs
@@ -775,7 +773,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sw))
        (inputs
@@ -796,7 +794,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Addi))
        (inputs
@@ -817,7 +815,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Slti))
        (inputs
@@ -838,7 +836,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sltiu))
        (inputs
@@ -859,7 +857,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Xori))
        (inputs
@@ -880,7 +878,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Ori))
        (inputs
@@ -901,7 +899,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Andi))
        (inputs
@@ -922,7 +920,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Slli))
        (inputs
@@ -943,7 +941,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Srli))
        (inputs
@@ -964,7 +962,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Srai))
        (inputs
@@ -985,7 +983,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Add))
        (inputs
@@ -1006,7 +1004,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sub))
        (inputs
@@ -1027,7 +1025,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sll))
        (inputs
@@ -1049,7 +1047,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Slt))
        (inputs
@@ -1070,7 +1068,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sltu))
        (inputs
@@ -1091,7 +1089,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Xor))
        (inputs
@@ -1112,7 +1110,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Srl))
        (inputs
@@ -1133,7 +1131,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Sra))
        (inputs
@@ -1154,7 +1152,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i Or))
        (inputs
@@ -1175,7 +1173,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32i And))
        (inputs
@@ -1196,7 +1194,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -1221,7 +1219,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -1244,7 +1242,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -1267,7 +1265,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -1290,7 +1288,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -1315,7 +1313,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -1340,7 +1338,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -1363,7 +1361,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -1386,7 +1384,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -1408,7 +1406,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -1429,7 +1427,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -1450,7 +1448,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -1471,7 +1469,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -1492,7 +1490,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -1513,7 +1511,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -1534,7 +1532,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -1555,7 +1553,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -1582,7 +1580,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -1609,7 +1607,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -1636,7 +1634,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -1663,7 +1661,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -1690,7 +1688,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -1715,7 +1713,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -1740,7 +1738,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -1767,7 +1765,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -1792,7 +1790,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -1817,7 +1815,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -1840,7 +1838,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -1863,7 +1861,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -1886,7 +1884,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -1909,7 +1907,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -1932,7 +1930,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -1955,7 +1953,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -1980,7 +1978,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -2005,7 +2003,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -2030,7 +2028,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -2053,7 +2051,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2078,7 +2076,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -2103,7 +2101,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2128,7 +2126,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -2151,7 +2149,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -2176,7 +2174,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -2201,7 +2199,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -2226,7 +2224,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -2249,7 +2247,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2272,7 +2270,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -2297,7 +2295,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2322,7 +2320,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -2345,7 +2343,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -2372,7 +2370,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -2397,7 +2395,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -2424,7 +2422,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -2451,7 +2449,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2478,7 +2476,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -2503,7 +2501,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2530,7 +2528,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -2557,7 +2555,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mul))
        (inputs
@@ -2583,7 +2581,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulh))
        (inputs
@@ -2608,7 +2606,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhsu))
        (inputs
@@ -2635,7 +2633,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Mulhu))
        (inputs
@@ -2662,7 +2660,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2687,7 +2685,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -2712,7 +2710,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2739,7 +2737,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -2764,7 +2762,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2791,7 +2789,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2816,7 +2814,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Div))
        (inputs
@@ -2839,7 +2837,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Rem))
        (inputs
@@ -2860,7 +2858,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Divu))
        (inputs
@@ -2883,7 +2881,7 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true))))
+         (stall false))))
 
       ((instruction (Rv32m Remu))
        (inputs
@@ -2904,6 +2902,6 @@ module Tests = struct
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (done_ true)))) |}]
+         (stall false)))) |}]
   ;;
 end

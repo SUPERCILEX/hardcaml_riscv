@@ -213,8 +213,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; immediate
       }
   in
-  stall
-  <== (~:(alu_raw.done_) |: (stall_load_instruction |: stall_mem_load |: stall_mem_store));
+  stall <== (alu_raw.stall |: stall_load_instruction |: stall_mem_load |: stall_mem_store);
   let alu =
     alu_raw |> Alu.O.map ~f:(reg ~enable:(sm.is Execute) (Reg_spec.create ~clock ()))
   in
