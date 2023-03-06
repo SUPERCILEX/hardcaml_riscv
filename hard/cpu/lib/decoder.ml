@@ -182,7 +182,7 @@ let create _scope { I.instruction = raw_instruction } =
   O.Of_always.value out
 ;;
 
-let circuit scope =
+let hierarchical scope =
   let module H = Hierarchy.In_scope (I) (O) in
   let module D = Debugging.In_scope (I) (O) in
   H.hierarchical ~scope ~name:"decoder" (D.create ~create_fn:create)

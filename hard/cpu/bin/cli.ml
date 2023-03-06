@@ -151,7 +151,7 @@ let locate =
           let scope = Scope.create () in
           let circuit =
             let module C = Circuit.With_interface (Cpu.I) (Cpu.O) in
-            C.create_exn ~name:"top" (Cpu.circuit scope)
+            C.create_exn ~name:"top" (Cpu.hierarchical scope)
           in
           circuit :: (Scope.circuit_database scope |> Circuit_database.get_circuits)
           |> List.map ~f:(fun c -> Circuit.name c, Circuit.signal_map c)

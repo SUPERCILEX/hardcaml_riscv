@@ -235,7 +235,7 @@ module Local_ram = struct
     }
   ;;
 
-  let circuit scope ~name ~size =
+  let hierarchical scope ~name ~size =
     let module H = Hierarchy.In_scope (I) (Segment) in
     let module D = Debugging.In_scope (I) (Segment) in
     H.hierarchical ~scope ~name (D.create ~create_fn:(create ~name ~size))
@@ -284,7 +284,7 @@ module Rom = struct
     }
   ;;
 
-  let circuit scope ~name ~data =
+  let hierarchical scope ~name ~data =
     let module H = Hierarchy.In_scope (I) (Segment) in
     let module D = Debugging.In_scope (I) (Segment) in
     H.hierarchical ~scope ~name (D.create ~create_fn:(create ~data))
@@ -339,7 +339,7 @@ module Uart_io = struct
     }
   ;;
 
-  let circuit scope =
+  let hierarchical scope =
     let module H = Hierarchy.In_scope (I) (O) in
     let module D = Debugging.In_scope (I) (O) in
     H.hierarchical ~scope ~name:"uart_io" (D.create ~create_fn:create)
@@ -385,20 +385,20 @@ let create
       [ (let open Parameters in
         let size = imem_size in
         let input = build_input ~start:code_bottom ~size in
-        input, Local_ram.circuit scope ~size ~name:"imem" input)
+        input, Local_ram.hierarchical scope ~size ~name:"imem" input)
       ; (let open Parameters in
         let size = dmem_size in
         let input = build_input ~start:(stack_top - dmem_size) ~size in
-        input, Local_ram.circuit scope ~size ~name:"dmem" input)
+        input, Local_ram.hierarchical scope ~size ~name:"dmem" input)
       ; (let open Parameters in
         let input = build_input ~start:bootloader_start ~size:(List.length bootloader) in
-        input, Rom.circuit scope ~name:"bootloader" ~data:bootloader input)
+        input, Rom.hierarchical scope ~name:"bootloader" ~data:bootloader input)
       ]
     in
     let uart_segment, uart_out =
       let open Parameters in
       let input = build_input ~start:uart_io_address ~size:1 in
-      let Uart_io.O.{ uart = uart_out; segment } = Uart_io.circuit scope input in
+      let Uart_io.O.{ uart = uart_out; segment } = Uart_io.hierarchical scope input in
       (input, segment), uart_out
     in
     mem_segments @ [ uart_segment ], uart_out
@@ -442,7 +442,7 @@ let create
   }
 ;;
 
-let circuit scope ~bootloader =
+let hierarchical scope ~bootloader =
   let module H = Hierarchy.In_scope (I) (O) in
   let module D = Debugging.In_scope (I) (O) in
   H.hierarchical

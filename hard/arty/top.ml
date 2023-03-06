@@ -35,12 +35,12 @@ let create scope { I.clock; switches = _; buttons = _; resetn; uart_receive } =
   let clear = ~:resetn in
   let uart_feedback = Cpu.Uart.O.Of_signal.wires () in
   let { Uart_wrapper.O.transmit; uart } =
-    Uart_wrapper.circuit
+    Uart_wrapper.hierarchical
       scope
       { Uart_wrapper.I.clock; resetn; receive = uart_receive; uart = uart_feedback }
   in
   let { Cpu.O.error; uart; cycles_since_boot = _ } =
-    Cpu.circuit scope { Cpu.I.clock; clear; uart }
+    Cpu.hierarchical scope { Cpu.I.clock; clear; uart }
   in
   Cpu.Uart.O.iter2 uart_feedback uart ~f:( <== );
   { O.leds = error @: gnd @: gnd @: gnd; uart_transmit = transmit }

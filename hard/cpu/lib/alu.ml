@@ -98,7 +98,7 @@ struct
     }
   ;;
 
-  let circuit scope =
+  let hierarchical scope =
     let module H = Hierarchy.In_scope (I) (O) in
     let module D = Debugging.In_scope (I) (O) in
     H.hierarchical ~scope ~name:"divider" (D.create ~create_fn:create)
@@ -159,7 +159,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
   let dividend = Always.Variable.wire ~default:rs1 in
   let divisor = Always.Variable.wire ~default:rs2 in
   let divided =
-    Divider.circuit
+    Divider.hierarchical
       scope
       { Divider.I.clock
       ; clear
@@ -239,7 +239,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
   O.Of_always.value out
 ;;
 
-let circuit scope =
+let hierarchical scope =
   let module H = Hierarchy.In_scope (I) (O) in
   let module D = Debugging.In_scope (I) (O) in
   H.hierarchical ~scope ~name:"alu" (D.create ~create_fn:create)

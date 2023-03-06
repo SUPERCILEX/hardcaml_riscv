@@ -155,7 +155,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; stall_store = stall_mem_store
       }
     =
-    Memory_controller.circuit
+    Memory_controller.hierarchical
       scope
       { (Memory_controller.I.Of_always.value memory_controller) with
         clock
@@ -164,7 +164,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       }
       ~bootloader:(String.to_list bootloader |> List.map ~f:Signal.of_char)
   in
-  let decoder_raw = Decoder.circuit scope { Decoder.I.instruction = raw_instruction } in
+  let decoder_raw =
+    Decoder.hierarchical scope { Decoder.I.instruction = raw_instruction }
+  in
   let ({ Decoder.O.instruction; immediate; _ } as decoder) =
     decoder_raw
     |> Decoder.O.map ~f:(reg ~enable:(sm.is Decode_and_load) (Reg_spec.create ~clock ()))
@@ -179,7 +181,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let { Register_file.O.rs1; rs2 } =
     let { Alu.O.store = reg_store; rd = alu_result; _ } = alu_feedback in
     let { Decoder.O.rs1; rs2; _ } = decoder_raw in
-    Register_file.circuit
+    Register_file.hierarchical
       scope
       { Register_file.I.clock
       ; write_address = decoder.rd
@@ -199,7 +201,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   memory_controller.write_data.value <== rs2;
   let debounce p = p &: ~:(p |> reg (Reg_spec.create ~clock ~clear ())) in
   let alu_raw =
-    Alu.circuit
+    Alu.hierarchical
       scope
       { Alu.I.clock
       ; clear
@@ -257,7 +259,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   }
 ;;
 
-let circuit scope =
+let hierarchical scope =
   let module H = Hierarchy.In_scope (I) (O) in
   H.hierarchical ~scope ~name:"cpu" (create ~bootloader:Parameters.bootloader_bytes)
 ;;
