@@ -26,7 +26,7 @@ module I = struct
     ; write_data : 'a [@bits Parameters.word_width]
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
+  [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
@@ -39,7 +39,7 @@ module O = struct
     ; stall_load : 'a
     ; stall_store : 'a
     }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
+  [@@deriving sexp_of, hardcaml]
 end
 
 let single_exn l =
@@ -239,8 +239,7 @@ module Local_ram = struct
 
   let hierarchical scope ~name ~size =
     let module H = Hierarchy.In_scope (I) (Segment) in
-    let module D = Debugging.In_scope (I) (Segment) in
-    H.hierarchical ~scope ~name (D.create ~create_fn:(create ~name ~size))
+    H.hierarchical ~scope ~name (create ~name ~size)
   ;;
 end
 
@@ -288,8 +287,7 @@ module Rom = struct
 
   let hierarchical scope ~name ~data =
     let module H = Hierarchy.In_scope (I) (Segment) in
-    let module D = Debugging.In_scope (I) (Segment) in
-    H.hierarchical ~scope ~name (D.create ~create_fn:(create ~data))
+    H.hierarchical ~scope ~name (create ~data)
   ;;
 end
 
@@ -343,8 +341,7 @@ module Uart_io = struct
 
   let hierarchical scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    let module D = Debugging.In_scope (I) (O) in
-    H.hierarchical ~scope ~name:"uart_io" (D.create ~create_fn:create)
+    H.hierarchical ~scope ~name:"uart_io" create
   ;;
 end
 
@@ -446,11 +443,7 @@ let create
 
 let hierarchical scope ~bootloader =
   let module H = Hierarchy.In_scope (I) (O) in
-  let module D = Debugging.In_scope (I) (O) in
-  H.hierarchical
-    ~scope
-    ~name:"memory_controller"
-    (D.create ~create_fn:(create ~bootloader))
+  H.hierarchical ~scope ~name:"memory_controller" (create ~bootloader)
 ;;
 
 module Tests = struct

@@ -266,7 +266,9 @@ let hierarchical scope =
 
 module Tests = struct
   let create ~program ~verilator =
-    let scope = Scope.create ~flatten_design:true () in
+    let scope =
+      Scope.create ~flatten_design:true ~auto_label_hierarchical_ports:true ()
+    in
     if verilator
     then
       let module Simulator = Hardcaml_verilator.With_interface (I) (O) in
@@ -354,11 +356,12 @@ module Tests = struct
              then None
              else if is_signal "state"
              then prettify_enum State.all |> State.sexp_of_t |> Some
-             else if is_signal "alu$binary_variant"
-             then Instruction.(prettify_enum All.all |> All.sexp_of_t) |> Some
-             else if (String.is_prefix ~prefix:"alu" signal_name
-                     && String.is_prefix ~prefix:"alu$divider" signal_name |> not)
-                     || String.is_prefix ~prefix:"register_file" signal_name
+             else if (String.is_substring ~substring:"memory_controller$i$" signal_name
+                     && String.is_substring
+                          ~substring:"memory_controller$i$uart"
+                          signal_name
+                        |> not)
+                     || String.is_substring ~substring:"register_file$i$" signal_name
              then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
              else None)
              |> Option.map ~f:(fun s -> signal_name, Sexp.to_string s))
@@ -389,38 +392,28 @@ module Tests = struct
     let input_rules =
       I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex)) |> to_list)
     in
-    let output_rules = O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex))) in
     let output_rules =
-      (output_rules |> O.to_list)
+      O.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex)) |> to_list)
       @ [ port_name_is
             "state"
             ~wave_format:
               (Index
                  (List.map State.all ~f:(State.sexp_of_t |> Fn.compose Sexp.to_string)))
+        ; port_name_matches
+            ~wave_format:
+              (Index
+                 Instruction.(
+                   List.map All.all ~f:(All.sexp_of_t |> Fn.compose Sexp.to_string)))
+            (let open Re in
+            seq [ str "instruction_"; rep alnum; str "_variant" ] |> compile)
+        ; (port_name_matches
+             ~wave_format:
+               (Index
+                  Memory_controller.Size.(
+                    List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string))))
+            (let open Re in
+            seq [ str "data_size_"; rep alnum; str "_variant" ] |> compile)
         ]
-      @ ([ "decoder$binary_variant"; "alu$binary_variant" ]
-        |> List.map
-             ~f:
-               (port_name_is
-                  ~wave_format:
-                    (Index
-                       Instruction.(
-                         List.map All.all ~f:(All.sexp_of_t |> Fn.compose Sexp.to_string))))
-        )
-      @ ([ "memory_controller$binary_variant"
-         ; "memory_controller$bootloader$binary_variant"
-         ; "memory_controller$dmem$binary_variant"
-         ; "memory_controller$imem$binary_variant"
-         ; "memory_controller$uart_io$binary_variant"
-         ]
-        |> List.map
-             ~f:
-               (port_name_is
-                  ~wave_format:
-                    (Index
-                       Memory_controller.Size.(
-                         List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string))))
-        )
     in
     f ~display_rules:(input_rules @ output_rules @ [ default ]) waves;
     ()

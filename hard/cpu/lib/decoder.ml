@@ -2,8 +2,7 @@ open! Core
 open Hardcaml
 
 module I = struct
-  type 'a t = { instruction : 'a [@bits 32] }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
+  type 'a t = { instruction : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
@@ -14,7 +13,7 @@ module O = struct
     ; rs2 : 'a [@bits 5]
     ; immediate : 'a [@bits 32]
     }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
+  [@@deriving sexp_of, hardcaml]
 end
 
 let create _scope { I.instruction = raw_instruction } =
@@ -184,8 +183,7 @@ let create _scope { I.instruction = raw_instruction } =
 
 let hierarchical scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  let module D = Debugging.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"decoder" (D.create ~create_fn:create)
+  H.hierarchical ~scope ~name:"decoder" create
 ;;
 
 module Tests = struct

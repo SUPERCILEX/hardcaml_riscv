@@ -12,7 +12,7 @@ module I = struct
     ; rs2 : 'a [@bits Parameters.word_width]
     ; immediate : 'a [@bits 32]
     }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
+  [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
@@ -23,7 +23,7 @@ module O = struct
     ; jump_target : 'a [@bits Parameters.word_width]
     ; done_ : 'a
     }
-  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
+  [@@deriving sexp_of, hardcaml]
 end
 
 module Make_divider (Params : sig
@@ -40,7 +40,7 @@ struct
       ; dividend : 'a [@bits bits]
       ; divisor : 'a [@bits bits]
       }
-    [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
+    [@@deriving sexp_of, hardcaml]
   end
 
   module O = struct
@@ -49,7 +49,7 @@ struct
       ; remainder : 'a [@bits bits]
       ; done_ : 'a
       }
-    [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
+    [@@deriving sexp_of, hardcaml]
   end
 
   let create scope { I.clock; clear; start; dividend; divisor } =
@@ -100,8 +100,7 @@ struct
 
   let hierarchical scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    let module D = Debugging.In_scope (I) (O) in
-    H.hierarchical ~scope ~name:"divider" (D.create ~create_fn:create)
+    H.hierarchical ~scope ~name:"divider" create
   ;;
 end
 
@@ -241,8 +240,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
 
 let hierarchical scope =
   let module H = Hierarchy.In_scope (I) (O) in
-  let module D = Debugging.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"alu" (D.create ~create_fn:create)
+  H.hierarchical ~scope ~name:"alu" create
 ;;
 
 module Tests = struct
