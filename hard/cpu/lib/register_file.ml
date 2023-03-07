@@ -37,7 +37,7 @@ let create
   let ( -- ) = Scope.naming scope in
   match
     Ram.create
-      ~name:"register_file"
+      ~name:(Scope.name scope "register_file")
       ~collision_mode:Read_before_write
       ~size:32
       ~write_ports:

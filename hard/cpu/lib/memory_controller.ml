@@ -21,7 +21,7 @@ module I = struct
     ; store : 'a
     ; program_counter : 'a [@bits Parameters.word_width]
     ; data_address : 'a [@bits Parameters.word_width]
-    ; data_size : 'a Size.Binary.t
+    ; data_size : 'a Size.Binary.t [@rtlmangle true]
     ; signed : 'a [@rtlname "signed_"]
     ; write_data : 'a [@bits Parameters.word_width]
     ; uart : 'a Uart.I.t [@rtlmangle true]
@@ -103,7 +103,7 @@ struct
   module Address = struct
     type 'a t =
       { address : 'a [@bits address_bits]
-      ; size : 'a Size.Binary.t
+      ; size : 'a Size.Binary.t [@rtlmangle true]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -122,6 +122,7 @@ struct
   end
 
   let ram
+    scope
     ~name
     { I.clock
     ; read_address = { Address.address = read_address; size = read_size }
@@ -139,7 +140,7 @@ struct
     match
       Array.init bytes ~f:(fun bank ->
         Ram.create
-          ~name:(Printf.sprintf "%s%d" name bank)
+          ~name:(Printf.sprintf "%s%d" name bank |> Scope.name scope)
           ~collision_mode:Read_before_write
           ~size:(Params.size / bytes)
           ~write_ports:
@@ -193,7 +194,7 @@ end
 
 module Local_ram = struct
   let create
-    _scope
+    scope
     ~name
     ~size
     { I.clock
@@ -216,6 +217,7 @@ module Local_ram = struct
     in
     { Segment.read_data =
         Ram.ram
+          scope
           ~name
           { Ram.I.clock
           ; read_address =

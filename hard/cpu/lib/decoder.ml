@@ -2,13 +2,12 @@ open! Core
 open Hardcaml
 
 module I = struct
-  type 'a t = { instruction : 'a [@bits 32] [@rtlname "instruction_in"] }
-  [@@deriving sexp_of, hardcaml]
+  type 'a t = { instruction : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
   type 'a t =
-    { instruction : 'a Instruction.Binary.t [@rtlname "instruction_out"]
+    { instruction : 'a Instruction.Binary.t [@rtlmangle true]
     ; rd : 'a [@bits 5]
     ; rs1 : 'a [@bits 5]
     ; rs2 : 'a [@bits 5]

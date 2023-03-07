@@ -7,7 +7,7 @@ module I = struct
     ; clear : 'a
     ; start : 'a
     ; pc : 'a [@bits Parameters.word_width]
-    ; instruction : 'a Instruction.Binary.t
+    ; instruction : 'a Instruction.Binary.t [@rtlmangle true]
     ; rs1 : 'a [@bits Parameters.word_width]
     ; rs2 : 'a [@bits Parameters.word_width]
     ; immediate : 'a [@bits 32]
