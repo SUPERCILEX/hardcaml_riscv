@@ -2,7 +2,8 @@ open! Core
 open Hardcaml
 
 module I = struct
-  type 'a t = { instruction : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
+  type 'a t = { instruction : 'a [@bits 32] }
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
 end
 
 module O = struct
@@ -13,7 +14,7 @@ module O = struct
     ; rs2 : 'a [@bits 5]
     ; immediate : 'a [@bits 32]
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
 end
 
 let create _scope { I.instruction = raw_instruction } =

@@ -26,7 +26,7 @@ module I = struct
     ; write_data : 'a [@bits Parameters.word_width]
     ; uart : 'a Uart.I.t [@rtlmangle true]
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
 end
 
 module O = struct
@@ -39,7 +39,7 @@ module O = struct
     ; stall_load : 'a
     ; stall_store : 'a
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
 end
 
 let single_exn l =

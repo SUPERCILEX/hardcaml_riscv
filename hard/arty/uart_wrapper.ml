@@ -8,7 +8,7 @@ module I = struct
     ; receive : 'a
     ; uart : 'a Cpu.Uart.O.t
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
 end
 
 module O = struct
@@ -16,7 +16,7 @@ module O = struct
     { transmit : 'a
     ; uart : 'a Cpu.Uart.I.t
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
 end
 
 let create

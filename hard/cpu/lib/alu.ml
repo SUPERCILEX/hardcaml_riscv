@@ -12,7 +12,7 @@ module I = struct
     ; rs2 : 'a [@bits Parameters.word_width]
     ; immediate : 'a [@bits 32]
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
 end
 
 module O = struct
@@ -23,7 +23,7 @@ module O = struct
     ; jump_target : 'a [@bits Parameters.word_width]
     ; stall : 'a
     }
-  [@@deriving sexp_of, hardcaml]
+  [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
 end
 
 module Make_divider (Params : sig
@@ -40,7 +40,7 @@ struct
       ; dividend : 'a [@bits bits]
       ; divisor : 'a [@bits bits]
       }
-    [@@deriving sexp_of, hardcaml]
+    [@@deriving sexp_of, hardcaml ~rtlprefix:"in$"]
   end
 
   module O = struct
@@ -49,7 +49,7 @@ struct
       ; remainder : 'a [@bits bits]
       ; done_ : 'a
       }
-    [@@deriving sexp_of, hardcaml]
+    [@@deriving sexp_of, hardcaml ~rtlprefix:"out$"]
   end
 
   let create scope { I.clock; clear; start; dividend; divisor } =
