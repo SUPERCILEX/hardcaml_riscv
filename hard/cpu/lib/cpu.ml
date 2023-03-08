@@ -367,12 +367,22 @@ module Tests = struct
              |> Option.map ~f:(fun s -> signal_name, Sexp.to_string s))
         |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
       in
-      Stdio.print_s
-        ([%sexp_of: State.t * int I.t * int O.t * (string * string) list]
-           ( prettify_enum ~sim ~enums:State.all ~signal_name:"state"
-           , I.map inputs ~f:(fun p -> to_int !p)
-           , O.map outputs ~f:(fun p -> to_int !p)
-           , all_signals ));
+      if Cyclesim.internal_ports sim
+         |> List.filter_map ~f:(fun (signal_name, signal) ->
+              if [ "register_file$i$store"; "memory_controller$i$store" ]
+                 |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
+                 |> List.reduce_exn ~f:( || )
+              then Some signal
+              else None)
+         |> List.map ~f:(Fn.compose to_bool ( ! ))
+         |> List.reduce_exn ~f:( || )
+      then
+        Stdio.print_s
+          ([%sexp_of: State.t * int I.t * int O.t * (string * string) list]
+             ( prettify_enum ~sim ~enums:State.all ~signal_name:"state"
+             , I.map inputs ~f:(fun p -> to_int !p)
+             , O.map outputs ~f:(fun p -> to_int !p)
+             , all_signals ));
       termination i);
     ()
   ;;
