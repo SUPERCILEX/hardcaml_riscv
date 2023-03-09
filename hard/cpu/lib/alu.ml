@@ -18,7 +18,6 @@ end
 module O = struct
   type 'a t =
     { rd : 'a [@bits Parameters.word_width]
-    ; store : 'a (* Whether or not to store the result back into the register file. *)
     ; jump : 'a
     ; jump_target : 'a [@bits Parameters.word_width]
     ; done_ : 'a
@@ -91,7 +90,7 @@ struct
     in
     { O.quotient = mux2 div_by_zero (ones bits) (sel_bottom qr bits)
     ; remainder = mux2 div_by_zero dividend (sel_top qr bits)
-    ; done_ = start &: div_by_zero |: (steps_remaining <=:. 1 &: ~:start)
+    ; done_ = start &: div_by_zero |: (steps_remaining ==:. 1 &: ~:start)
     }
   ;;
 
@@ -101,50 +100,10 @@ struct
   ;;
 end
 
-let set_store instruction store =
-  let open Signal in
-  [ [ Instruction.RV32I.Lui
-    ; Auipc
-    ; Jal
-    ; Jalr
-    ; Lb
-    ; Lh
-    ; Lw
-    ; Lbu
-    ; Lhu
-    ; Addi
-    ; Slti
-    ; Sltiu
-    ; Xori
-    ; Ori
-    ; Andi
-    ; Slli
-    ; Srli
-    ; Srai
-    ; Add
-    ; Sub
-    ; Sll
-    ; Slt
-    ; Sltu
-    ; Xor
-    ; Srl
-    ; Sra
-    ; Or
-    ; And
-    ]
-    |> List.map ~f:(fun op -> Instruction.All.Rv32i op)
-  ; [ Instruction.RV32M.Mul; Mulh; Mulhsu; Mulhu; Div; Divu; Rem; Remu ]
-    |> List.map ~f:(fun op -> Instruction.All.Rv32m op)
-  ]
-  |> List.concat
-  |> List.map ~f:(fun op -> op, Always.[ store <-- vdd ])
-  |> Instruction.Binary.Of_always.match_ ~default:[] instruction
-;;
-
 let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate } =
   let open Signal in
-  let ({ O.rd; store; jump; jump_target; done_ } as out) =
-    { (O.Of_always.wire zero) with done_ = Always.Variable.wire ~default:vdd }
+  let ({ O.rd; jump; jump_target; done_ } as out) =
+    { (O.Of_always.wire zero) with done_ = Always.Variable.wire ~default:start }
   in
   let module Divider =
     Make_divider (struct
@@ -166,8 +125,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
   in
   Always.(
     compile
-      [ set_store instruction store
-      ; jump_target <-- pc +: immediate
+      [ jump_target <-- pc +: immediate
       ; [ [ Instruction.RV32I.Lui, [ rd <-- immediate ]
           ; Auipc, [ rd <-- pc +: immediate ]
           ; Jal, [ rd <-- pc +:. 4; jump <-- vdd ]
@@ -256,7 +214,6 @@ module Tests = struct
         let for_bool o = to_bool o |> Bool.sexp_of_t in
         { O.rd = bits_and_int outputs.rd
         ; jump_target = bits_and_int outputs.jump_target
-        ; store = for_bool outputs.store
         ; jump = for_bool outputs.jump
         ; done_ = for_bool outputs.done_
         }
@@ -433,7 +390,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -456,7 +413,7 @@ module Tests = struct
         ((rd
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -479,7 +436,7 @@ module Tests = struct
         ((rd
           ((bits 00000000010000000011000110010000) (int 4206992)
            (signed_int 4206992)))
-         (store true) (jump true)
+         (jump true)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -502,7 +459,7 @@ module Tests = struct
         ((rd
           ((bits 00000000010000000011000110010000) (int 4206992)
            (signed_int 4206992)))
-         (store true) (jump true)
+         (jump true)
          (jump_target
           ((bits 00000000000000000000000010011100) (int 156) (signed_int 156)))
          (done_ true))))
@@ -522,7 +479,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -543,7 +500,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump true)
+         (jump true)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -564,7 +521,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -585,7 +542,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump true)
+         (jump true)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -606,7 +563,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -627,7 +584,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump true)
+         (jump true)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -648,7 +605,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -669,7 +626,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -690,7 +647,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -711,7 +668,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -732,7 +689,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -753,7 +710,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -774,7 +731,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -795,7 +752,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store false) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -816,7 +773,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000010011101) (int 157) (signed_int 157)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -837,7 +794,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000001) (int 1) (signed_int 1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -858,7 +815,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000001) (int 1) (signed_int 1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -879,7 +836,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000011101) (int 29) (signed_int 29)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -900,7 +857,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001011101) (int 93) (signed_int 93)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -921,7 +878,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001000000) (int 64) (signed_int 64)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -942,7 +899,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -963,7 +920,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -984,7 +941,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1005,7 +962,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111) (signed_int 111)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1026,7 +983,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000011011) (int 27) (signed_int 27)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1048,7 +1005,7 @@ module Tests = struct
        (outputs
         ((rd
           ((bits 00000000000000010001010000000000) (int 70656) (signed_int 70656)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1069,7 +1026,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1090,7 +1047,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1111,7 +1068,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111) (signed_int 111)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1132,7 +1089,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1153,7 +1110,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1174,7 +1131,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001101111) (int 111) (signed_int 111)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1195,7 +1152,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1220,7 +1177,7 @@ module Tests = struct
         ((rd
           ((bits 01001010111111111001010101100001) (int 1258263905)
            (signed_int 1258263905)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1243,7 +1200,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000001010) (int 10) (signed_int 10)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1266,7 +1223,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000001010) (int 10) (signed_int 10)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1289,7 +1246,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000001010) (int 10) (signed_int 10)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1314,7 +1271,7 @@ module Tests = struct
         ((rd
           ((bits 00000001011011001101001011110001) (int 23909105)
            (signed_int 23909105)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1339,7 +1296,7 @@ module Tests = struct
         ((rd
           ((bits 00000001011011001101001011110001) (int 23909105)
            (signed_int 23909105)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1362,7 +1319,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101000) (int 40) (signed_int 40)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1385,7 +1342,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101000) (int 40) (signed_int 40)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1407,7 +1364,7 @@ module Tests = struct
        (outputs
         ((rd
           ((bits 00000000000000000000101101010010) (int 2898) (signed_int 2898)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1428,7 +1385,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1449,7 +1406,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1470,7 +1427,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1491,7 +1448,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1512,7 +1469,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1533,7 +1490,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1554,7 +1511,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1581,7 +1538,7 @@ module Tests = struct
         ((rd
           ((bits 10110101000000000110101010011111) (int 3036703391)
            (signed_int -1258263905)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1608,7 +1565,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111110101) (int 4294967285)
            (signed_int -11)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1635,7 +1592,7 @@ module Tests = struct
         ((rd
           ((bits 00111101010001110110111010011000) (int 1028091544)
            (signed_int 1028091544)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1662,7 +1619,7 @@ module Tests = struct
         ((rd
           ((bits 00111101010001110110111010011000) (int 1028091544)
            (signed_int 1028091544)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1689,7 +1646,7 @@ module Tests = struct
         ((rd
           ((bits 11111110100100110010110100001111) (int 4271058191)
            (signed_int -23909105)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1714,7 +1671,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1739,7 +1696,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101000) (int 40) (signed_int 40)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1766,7 +1723,7 @@ module Tests = struct
         ((rd
           ((bits 00111101010001110110111010100011) (int 1028091555)
            (signed_int 1028091555)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1791,7 +1748,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111010010101110) (int 4294964398)
            (signed_int -2898)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1816,7 +1773,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111111111) (int 4294967295)
            (signed_int -1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1839,7 +1796,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101001) (int 41) (signed_int 41)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1862,7 +1819,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101001) (int 41) (signed_int 41)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1885,7 +1842,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1908,7 +1865,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1931,7 +1888,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1954,7 +1911,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -1979,7 +1936,7 @@ module Tests = struct
         ((rd
           ((bits 10110101000000000110101010011111) (int 3036703391)
            (signed_int -1258263905)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2004,7 +1961,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111110101) (int 4294967285)
            (signed_int -11)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2029,7 +1986,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111110101) (int 4294967285)
            (signed_int -11)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2052,7 +2009,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000100000) (int 32) (signed_int 32)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2077,7 +2034,7 @@ module Tests = struct
         ((rd
           ((bits 11111110100100110010110100001111) (int 4271058191)
            (signed_int -23909105)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2102,7 +2059,7 @@ module Tests = struct
         ((rd
           ((bits 00000100100001110100010011011110) (int 75973854)
            (signed_int 75973854)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2127,7 +2084,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111011000) (int 4294967256)
            (signed_int -40)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2150,7 +2107,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000010011) (int 19) (signed_int 19)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2175,7 +2132,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111010010101110) (int 4294964398)
            (signed_int -2898)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2200,7 +2157,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111111111) (int 4294967295)
            (signed_int -1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2225,7 +2182,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111111111) (int 4294967295)
            (signed_int -1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2248,7 +2205,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000001000100) (int 68) (signed_int 68)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2271,7 +2228,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2296,7 +2253,7 @@ module Tests = struct
         ((rd
           ((bits 00000011101101011100110000001110) (int 62245902)
            (signed_int 62245902)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2321,7 +2278,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111010110) (int 4294967254)
            (signed_int -42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2344,7 +2301,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000010000) (int 16) (signed_int 16)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2371,7 +2328,7 @@ module Tests = struct
         ((rd
           ((bits 01001010111111111001010101100001) (int 1258263905)
            (signed_int 1258263905)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2396,7 +2353,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000001010) (int 10) (signed_int 10)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2423,7 +2380,7 @@ module Tests = struct
         ((rd
           ((bits 11000010101110001001000101100111) (int 3266875751)
            (signed_int -1028091545)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2450,7 +2407,7 @@ module Tests = struct
         ((rd
           ((bits 11000010101110001001000100111100) (int 3266875708)
            (signed_int -1028091588)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2477,7 +2434,7 @@ module Tests = struct
         ((rd
           ((bits 00000001011011001101001011110001) (int 23909105)
            (signed_int 23909105)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2502,7 +2459,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2529,7 +2486,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111011000) (int 4294967256)
            (signed_int -40)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2556,7 +2513,7 @@ module Tests = struct
         ((rd
           ((bits 11000010101110001001000101011101) (int 3266875741)
            (signed_int -1028091555)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2582,7 +2539,7 @@ module Tests = struct
        (outputs
         ((rd
           ((bits 00000000000000000000101101010010) (int 2898) (signed_int 2898)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2607,7 +2564,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2634,7 +2591,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111010110) (int 4294967254)
            (signed_int -42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2661,7 +2618,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111110010001) (int 4294967185)
            (signed_int -111)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2686,7 +2643,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2711,7 +2668,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000001) (int 1) (signed_int 1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2738,7 +2695,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111010110) (int 4294967254)
            (signed_int -42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2763,7 +2720,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000011011) (int 27) (signed_int 27)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2790,7 +2747,7 @@ module Tests = struct
         ((rd
           ((bits 10000000000000000000000000000000) (int 2147483648)
            (signed_int -2147483648)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2815,7 +2772,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000000000) (int 0) (signed_int 0)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2838,7 +2795,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111111111) (int 4294967295)
            (signed_int -1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2859,7 +2816,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2882,7 +2839,7 @@ module Tests = struct
         ((rd
           ((bits 11111111111111111111111111111111) (int 4294967295)
            (signed_int -1)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
@@ -2903,7 +2860,7 @@ module Tests = struct
           ((bits 00000000000000000000000001011000) (int 88) (signed_int 88)))))
        (outputs
         ((rd ((bits 00000000000000000000000000101010) (int 42) (signed_int 42)))
-         (store true) (jump false)
+         (jump false)
          (jump_target
           ((bits 00000000010000000011000111100100) (int 4207076)
            (signed_int 4207076)))
