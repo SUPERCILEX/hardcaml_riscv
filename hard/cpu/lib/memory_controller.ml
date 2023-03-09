@@ -387,7 +387,7 @@ let create
         input, Local_ram.hierarchical scope ~size ~name:"imem" input)
       ; (let open Parameters in
         let size = dmem_size in
-        let input = build_input ~start:(stack_top - dmem_size) ~size in
+        let input = build_input ~start:(stack_top - size) ~size in
         input, Local_ram.hierarchical scope ~size ~name:"dmem" input)
       ; (let open Parameters in
         let input = build_input ~start:bootloader_start ~size:(List.length bootloader) in
