@@ -56,24 +56,22 @@ struct
     let open Signal in
     let ( -- ) = Scope.naming scope in
     let depth = 4 in
-    let done_ =
-      let steps_remaining =
-        let steps = bits / depth in
-        let width = address_bits_for steps + 1 in
-        reg_fb
-          ~width
-          ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
-          (Reg_spec.create ~clock ~clear:(clear |: start) ()
-          |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
-        -- "steps_remaining"
-      in
-      steps_remaining ==:. 0
+    let div_by_zero = divisor ==:. 0 in
+    let steps_remaining =
+      let steps = (bits / depth) + 1 in
+      let width = address_bits_for (steps + 1) in
+      reg_fb
+        ~width
+        ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
+        (Reg_spec.create ~clock ~clear:(clear |: (start &: ~:div_by_zero)) ()
+        |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
+      -- "steps_remaining"
     in
     let qr =
       let width = 2 * bits in
       reg_fb
         ~width
-        ~enable:(start |: ~:done_)
+        ~enable:(start |: (steps_remaining >:. 1))
         ~f:(fun qr ->
           let rec subdivide steps qr =
             if steps = 0
@@ -91,10 +89,9 @@ struct
         |> Reg_spec.override ~clear_to:(uresize dividend width))
       -- "qr"
     in
-    let div_by_zero = divisor ==:. 0 in
     { O.quotient = mux2 div_by_zero (ones bits) (sel_bottom qr bits)
     ; remainder = mux2 div_by_zero dividend (sel_top qr bits)
-    ; done_ = div_by_zero |: (done_ &: ~:start)
+    ; done_ = start &: div_by_zero |: (steps_remaining <=:. 1 &: ~:start)
     }
   ;;
 
@@ -297,6 +294,14 @@ module Tests = struct
     let run32m instruction ?rs1 ?rs2 ?immediate =
       runi (Rv32m instruction) ?rs1 ?rs2 ?immediate
     in
+    let clear () =
+      Cyclesim.reset sim;
+      inputs.clear := vdd;
+      Cyclesim.cycle sim;
+      inputs.clear := gnd;
+      ()
+    in
+    clear ();
     inputs.pc := bit_num 4206988;
     run32i Lui ();
     run32i Auipc ();
