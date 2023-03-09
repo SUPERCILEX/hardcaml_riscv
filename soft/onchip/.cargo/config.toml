@@ -3,9 +3,11 @@ target = "riscv32i-unknown-none-elf"
 
 [target.riscv32i-unknown-none-elf]
 rustflags = [
-    "-C", "link-arg=-T../program.lds",
-    "-C", "relocation-model=pic",
-    "-C", "target-feature=+m",
+    "-Clink-arg=-T../program.lds",
+    "-Crelocation-model=pic",
+    "-Ctarget-feature=+m",
+    # TODO https://github.com/rust-lang/rust/issues/108853
+    "-Zshare-generics=off",
 ]
 
 [unstable]
