@@ -265,4 +265,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 28 -program "(sample dependencies)"))))
+   (run %{exe} sim -cycles 100 -program "(sample dependencies)"))))
