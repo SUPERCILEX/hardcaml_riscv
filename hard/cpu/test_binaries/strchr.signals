@@ -21,7 +21,7 @@
   (memory_controller$i$program_counter 0x4004)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x18)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x4038) (state Writeback)))
 (Writeback
@@ -34,7 +34,7 @@
   (memory_controller$i$program_counter 0x4008)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0x0) (register_file$i$read_address2 0x17)
+  (register_file$i$read_address1 0x0) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xb)
   (register_file$i$write_data 0x57) (state Writeback)))
 (Writeback
@@ -47,7 +47,7 @@
   (memory_controller$i$program_counter 0x4010)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1f)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x4037) (state Writeback)))
 (Writeback
@@ -60,7 +60,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x4038) (state Writeback)))
 (Writeback
@@ -86,7 +86,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x4039) (state Writeback)))
 (Writeback
@@ -112,7 +112,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x403a) (state Writeback)))
 (Writeback
@@ -138,7 +138,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x403b) (state Writeback)))
 (Writeback
@@ -164,7 +164,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x403c) (state Writeback)))
 (Writeback
@@ -190,7 +190,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x403d) (state Writeback)))
 (Writeback
@@ -216,7 +216,7 @@
   (memory_controller$i$program_counter 0x4014)
   (memory_controller$i$signed_ 0x0) (memory_controller$i$store 0x0)
   (memory_controller$i$write_data 0x0) (register_file$i$load 0x0)
-  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x1)
+  (register_file$i$read_address1 0xa) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0x403e) (state Writeback)))
 (Writeback
