@@ -288,21 +288,35 @@ let create scope ~bootloader { I.clock; clear; uart } =
       load_registers_out
     in
     let { Execute.Data_in.rs1_address; rs2_address; rs1; rs2; _ } = data in
-    let bypass ~target_address ~default =
-      List.rev bypass_registers
-      |> List.fold
-           ~init:(vdd, default)
-           ~f:(fun
-                (ready_accum, rd_accum)
-                { Bypass_buffer.Entry.id = _
-                ; raw = { valid; ready; data = { rd_address; rd } }
-                }
-              ->
-           let bypass = valid &: (rd_address ==: target_address) in
-           mux2 bypass ready ready_accum, mux2 bypass rd rd_accum)
+    let module Bypass = struct
+      type 'a t =
+        { ready : 'a
+        ; rd : 'a [@bits Parameters.word_width]
+        }
+      [@@deriving sexp_of, hardcaml]
+    end
     in
-    let rs1_ready, rs1 = bypass ~target_address:rs1_address ~default:rs1 in
-    let rs2_ready, rs2 = bypass ~target_address:rs2_address ~default:rs2 in
+    let bypass ~target_address ~default =
+      List.map
+        bypass_registers
+        ~f:(fun
+             { Bypass_buffer.Entry.id = _
+             ; raw = { valid; ready; data = { rd_address; rd } }
+             }
+           ->
+        { With_valid.valid = valid &: (rd_address ==: target_address)
+        ; value = Bypass.Of_signal.pack { ready; rd }
+        })
+      |> priority_select_with_default
+           ~default:(Bypass.Of_signal.pack { ready = vdd; rd = default })
+      |> Bypass.Of_signal.unpack
+    in
+    let { Bypass.ready = rs1_ready; rd = rs1 } =
+      bypass ~target_address:rs1_address ~default:rs1
+    in
+    let { Bypass.ready = rs2_ready; rd = rs2 } =
+      bypass ~target_address:rs2_address ~default:rs2
+    in
     let regs_ready =
       rs1_ready -- "execute_stage$rs1_ready" &: rs2_ready -- "execute_stage$rs2_ready"
     in
