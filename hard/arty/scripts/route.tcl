@@ -1,2 +1,7 @@
 route_design -ultrathreads
+phys_opt_design -directive Explore
+phys_opt_design -directive ExploreWithHoldFix
+phys_opt_design -directive AlternateFlowWithRetiming
+phys_opt_design -directive AggressiveFanoutOpt
+phys_opt_design -directive AggressiveExplore
 phys_opt_design
