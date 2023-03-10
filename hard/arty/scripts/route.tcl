@@ -1,2 +1,2 @@
-route_design
+route_design -ultrathreads
 phys_opt_design
