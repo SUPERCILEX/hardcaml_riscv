@@ -435,7 +435,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           (let { Execute.Data_out.is_load_instruction; bypass_id; _ } = execute_out in
            { id = bypass_id
            ; raw =
-               { valid = writeback_done &: is_load_instruction &: (rd_address <>:. 0)
+               { valid = store_registers &: is_load_instruction &: (rd_address <>:. 0)
                ; ready = vdd
                ; data = { rd_address; rd }
                }
