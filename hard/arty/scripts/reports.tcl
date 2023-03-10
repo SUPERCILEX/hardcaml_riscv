@@ -1,7 +1,4 @@
-source scripts/setup.tcl
-source scripts/synth.tcl
-source scripts/place.tcl
-source scripts/route.tcl
+source scripts/build.tcl
 
 report_bus_skew -file bus_skew.rpt
 report_clock_utilization -file clock_utilization.rpt
