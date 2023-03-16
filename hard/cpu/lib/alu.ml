@@ -131,7 +131,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
           ; ( Jalr
             , [ rd <-- pc +:. 4
               ; jump <-- vdd
-              ; jump_target <-- concat_msb [ msbs (rs1 +: immediate); gnd ]
+              ; jump_target <-- msbs (rs1 +: immediate) @: gnd
               ] )
           ; Beq, [ jump <-- (rs1 ==: rs2) ]
           ; Bne, [ jump <-- (rs1 <>: rs2) ]
