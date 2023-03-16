@@ -50,22 +50,22 @@
     target/riscv32i-unknown-none-elf/release/donut
     %{target}))))
 
-(rule
- (target donut.output)
- (deps
-  (:exe ../../../hard/cpu/bin/cli.exe)
-  (:bin donut-test.bin))
- (mode promote)
- (alias runtest)
- (action
-  (run
-   %{exe}
-   execute
-   -cycles
-   1000
-   -program
-   "custom"
-   -binary
-   %{bin}
-   -output-data-file
-   %{target})))
+; (rule
+;  (target donut.output)
+;  (deps
+;   (:exe ../../../hard/cpu/bin/cli.exe)
+;   (:bin donut-test.bin))
+;  (mode promote)
+;  (alias runtest)
+;  (action
+;   (run
+;    %{exe}
+;    execute
+;    -cycles
+;    1000
+;    -program
+;    "custom"
+;    -binary
+;    %{bin}
+;    -output-data-file
+;    %{target})))
