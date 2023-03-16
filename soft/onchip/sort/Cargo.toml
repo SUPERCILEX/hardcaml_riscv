@@ -1,0 +1,17 @@
+[workspace]
+
+[package]
+name = "sort"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+slib = { path = "../../slib" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
