@@ -325,7 +325,7 @@ module Execute = struct
         ; program_counter
         ; instruction
         ; immediate
-        ; forward
+        ; forward = { rd_address; error = _ } as forward
         }
     }
     =
@@ -346,7 +346,7 @@ module Execute = struct
     { O.done_
     ; data =
         { rd
-        ; is_writeback_instruction = is_store_regs instruction
+        ; is_writeback_instruction = is_store_regs instruction &: (rd_address <>:. 0)
         ; is_load_instruction = is_load_mem instruction
         ; signed_load = is_signed_load instruction
         ; data_address = rs1 +: immediate
@@ -451,7 +451,7 @@ module Load_memory_and_store = struct
                running.value
                [ when_
                    (is_load_instruction &: ~:loading_mem)
-                   [ store_registers <-- vdd; done_ <-- vdd ]
+                   [ store_registers <-- is_writeback_instruction; done_ <-- vdd ]
                ; when_ (is_store_instruction &: ~:stall_mem_store) [ done_ <-- vdd ]
                ; when_ jump [ done_ <-- vdd ]
                ; running <-- ~:(done_.value)

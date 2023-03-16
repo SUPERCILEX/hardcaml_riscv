@@ -439,8 +439,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
              =
              execute_data
            in
-           bypass_buffer_write
-           <== (execute_done &: is_writeback_instruction &: (rd_address <>:. 0));
+           bypass_buffer_write <== (execute_done &: is_writeback_instruction);
            { valid = bypass_buffer_write
            ; ready = ~:is_load_instruction
            ; data = { rd_address; rd }
@@ -449,7 +448,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           (let { Execute.Data_out.is_load_instruction; bypass_id; _ } = execute_out in
            { id = bypass_id
            ; raw =
-               { valid = store_registers &: is_load_instruction &: (rd_address <>:. 0)
+               { valid = store_registers &: is_load_instruction
                ; ready = vdd
                ; data = { rd_address; rd }
                }

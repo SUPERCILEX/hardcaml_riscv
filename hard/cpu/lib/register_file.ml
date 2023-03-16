@@ -33,19 +33,13 @@ let create
   ; write_data
   }
   =
-  let open Signal in
-  let ( -- ) = Scope.naming scope in
   match
     Ram.create
       ~name:(Scope.name scope "register_file")
       ~collision_mode:Read_before_write
       ~size:32
       ~write_ports:
-        [| { Ram.Write_port.write_clock = clock
-           ; write_address
-           ; write_enable = (write_enable &: (write_address <>:. 0)) -- "write_enable"
-           ; write_data
-           }
+        [| { Ram.Write_port.write_clock = clock; write_address; write_enable; write_data }
         |]
       ~read_ports:
         [| { Ram.Read_port.read_clock = clock; read_address = read_address1; read_enable }
