@@ -57,7 +57,7 @@ struct
     let depth = 4 in
     let div_by_zero = divisor ==:. 0 in
     let steps_remaining =
-      let steps = (bits / depth) + 1 in
+      let steps = bits / depth in
       let width = address_bits_for (steps + 1) in
       reg_fb
         ~width
@@ -83,9 +83,8 @@ struct
                 (subdivide (sll qr 1))
                 (subdivide (lsbs diff @: sel_bottom qr (bits - 1) @: vdd)))
           in
-          subdivide depth qr)
-        (Reg_spec.create ~clock ~clear:start ()
-        |> Reg_spec.override ~clear_to:(uresize dividend width))
+          subdivide depth (mux2 start (uresize dividend width) qr))
+        (Reg_spec.create ~clock ())
       -- "qr"
     in
     { O.quotient = mux2 div_by_zero (ones bits) (sel_bottom qr bits)
