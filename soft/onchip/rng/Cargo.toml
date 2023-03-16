@@ -1,0 +1,18 @@
+[workspace]
+
+[package]
+name = "rng"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+rand_xoshiro = "0.6.0"
+slib = { path = "../../slib" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
