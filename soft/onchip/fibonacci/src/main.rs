@@ -29,7 +29,7 @@ fn fibonacci(n: u32) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use core::arch::global_asm;
+    use core::{arch::global_asm, hint::black_box};
 
     use crate::main;
 
@@ -46,6 +46,10 @@ mod tests {
     );
 
     fn runtime() {
-        main(&["11"]);
+        test(&["11"]);
+    }
+
+    fn test(args: &[&str]) {
+        main(black_box(args));
     }
 }

@@ -30,7 +30,7 @@ fn pi(n: u32) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use core::arch::global_asm;
+    use core::{arch::global_asm, hint::black_box};
 
     use crate::main;
 
@@ -47,7 +47,11 @@ mod tests {
     );
 
     fn runtime() {
-        main(&["10"]);
-        main(&["100"]);
+        test(&["10"]);
+        test(&["100"]);
+    }
+
+    fn test(args: &[&str]) {
+        main(black_box(args));
     }
 }
