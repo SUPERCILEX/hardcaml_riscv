@@ -46,3 +46,8 @@
   (register_file$i$read_address1 0x0) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0xb)))
+
+
+============================================================
+
+((execute_mispredictions 0) (empty_alu_cycles 3))

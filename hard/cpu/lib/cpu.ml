@@ -551,8 +551,60 @@ module Tests = struct
              ~equal:String.equal))
   ;;
 
+  let analysis sim =
+    let open Bits in
+    let internals = Cyclesim.internal_ports sim in
+    let error =
+      List.find_exn internals ~f:(fun (name, _) -> String.equal name "lock_pipeline")
+      |> snd
+    in
+    let execute_misprediction =
+      let redirect =
+        List.find_exn internals ~f:(fun (name, _) ->
+          String.equal name "fetch_stage$i$jump")
+        |> snd
+      in
+      fun () -> to_bool !redirect
+    in
+    let working_alu_cycle =
+      let valid =
+        List.find_exn internals ~f:(fun (name, _) ->
+          String.equal name "load_regs_buffer$o$head_valid")
+        |> snd
+      in
+      let ready =
+        List.find_exn internals ~f:(fun (name, _) ->
+          String.equal name "load_regs_buffer$o$head_ready")
+        |> snd
+      in
+      fun () -> to_bool !valid && to_bool !ready
+    in
+    let execute_mispredictions = ref 0 in
+    let empty_alu_cycles = ref 0 in
+    ( (fun () ->
+        if to_bool !error |> not
+        then (
+          if execute_misprediction ()
+          then execute_mispredictions := !execute_mispredictions + 1;
+          if working_alu_cycle () |> not then empty_alu_cycles := !empty_alu_cycles + 1);
+        ())
+    , fun out ->
+        let out =
+          Option.map out ~f:(Out_channel.create ~append:true)
+          |> Option.value ~default:Out_channel.stdout
+        in
+        Out_channel.output_string
+          out
+          "\n\n============================================================\n\n";
+        Sexp.to_string_hum
+          [%message "" (execute_mispredictions : int ref) (empty_alu_cycles : int ref)]
+        |> Out_channel.output_string out;
+        () )
+  ;;
+
   let sim ~program ~verilator ?input_data_file ?output_data_file termination =
     let sim = create ~program ~verilator in
+    let update, report = analysis sim in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
       let open Bits in
@@ -588,13 +640,23 @@ module Tests = struct
              ( I.map inputs ~f:(fun p -> to_int !p)
              , O.map outputs ~f:(fun p -> to_int !p)
              , all_signals ));
+      update ();
       termination i);
+    report output_data_file;
     ()
   ;;
 
   let execute ~program ~verilator ?input_data_file ?output_data_file cycles =
     let sim = create ~program ~verilator in
-    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
+    let update, report = analysis sim in
+    test_bench
+      sim
+      ~step:(fun i ->
+        update ();
+        i = cycles)
+      ?input_data_file
+      ?output_data_file;
+    report output_data_file;
     ()
   ;;
 
