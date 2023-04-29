@@ -220,6 +220,7 @@ module Execute = struct
       ; data_size : 'a Memory_controller.Size.Binary.t [@rtlmangle true]
       ; jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
+      ; is_branch : 'a
       ; bypass_id : 'a [@bits 2] [@rtlsuffix "_out"]
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       }
@@ -295,6 +296,13 @@ module Execute = struct
     |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
   ;;
 
+  let is_branch instruction =
+    let open Signal in
+    [ Instruction.RV32I.Beq; Bne; Blt; Bge; Bltu; Bgeu ]
+    |> List.map ~f:(fun op -> Instruction.All.Rv32i op, vdd)
+    |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
+  ;;
+
   let compute_data_size instruction =
     Instruction.Binary.Of_signal.match_
       ~default:Memory_controller.Size.(Binary.Of_signal.of_enum Byte |> Binary.to_raw)
@@ -355,6 +363,7 @@ module Execute = struct
         ; data_size = compute_data_size instruction
         ; jump
         ; jump_target
+        ; is_branch = is_branch instruction
         ; bypass_id
         ; forward
         }

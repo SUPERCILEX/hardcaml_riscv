@@ -15,7 +15,8 @@ module Counters = struct
   type 'a t =
     { cycles_since_boot : 'a [@bits 64]
     ; empty_alu_cycles : 'a [@bits 64]
-    ; execute_mispredictions : 'a [@bits 64]
+    ; execute_branch_mispredictions : 'a [@bits 64]
+    ; execute_jump_mispredictions : 'a [@bits 64]
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -384,6 +385,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         ; data_size = data_size_
         ; jump
         ; jump_target = jump_target_
+        ; is_branch = _
         ; bypass_id = _
         ; forward = { rd_address = rd_address_; error }
         }
@@ -476,17 +478,20 @@ let create scope ~bootloader { I.clock; clear; uart } =
   ; counters =
       (let counter condition =
          reg_fb
+           ~enable:~:lock_pipeline
            ~width:64
            ~f:(fun count -> mux2 condition (count +:. 1) count)
            (Reg_spec.create ~clock ~clear ())
        in
+       let { Execute.Data_out.is_branch; _ } = execute_out in
        { cycles_since_boot = counter vdd
        ; empty_alu_cycles =
            (let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data = _ } } =
               load_registers_out
             in
             counter ~:(valid &: ready))
-       ; execute_mispredictions = counter jump
+       ; execute_branch_mispredictions = counter (is_branch &: jump)
+       ; execute_jump_mispredictions = counter (~:is_branch &: jump)
        })
   }
 ;;
