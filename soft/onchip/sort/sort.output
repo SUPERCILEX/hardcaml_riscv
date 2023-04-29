@@ -3,4 +3,7 @@
 
 ============================================================
 
-((execute_mispredictions 1064) (empty_alu_cycles 3195))
+((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+ (counters
+  ((cycles_since_boot 40000) (empty_alu_cycles 28167)
+   (execute_mispredictions 1064))))

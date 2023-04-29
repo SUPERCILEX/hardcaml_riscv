@@ -102,4 +102,7 @@
 
 ============================================================
 
-((execute_mispredictions 23887) (empty_alu_cycles 71664))
+((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+ (counters
+  ((cycles_since_boot 400000) (empty_alu_cycles 126205)
+   (execute_mispredictions 23888))))

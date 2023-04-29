@@ -8,4 +8,7 @@
 
 ============================================================
 
-((execute_mispredictions 3835) (empty_alu_cycles 11508))
+((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+ (counters
+  ((cycles_since_boot 80000) (empty_alu_cycles 38780)
+   (execute_mispredictions 3835))))

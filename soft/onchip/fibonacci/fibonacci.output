@@ -3,4 +3,7 @@ Fibonacci of 11: 89
 
 ============================================================
 
-((execute_mispredictions 799) (empty_alu_cycles 2400))
+((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+ (counters
+  ((cycles_since_boot 10000) (empty_alu_cycles 3253)
+   (execute_mispredictions 800))))

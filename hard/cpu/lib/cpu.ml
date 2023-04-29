@@ -11,11 +11,20 @@ module I = struct
   [@@deriving sexp_of, hardcaml]
 end
 
+module Counters = struct
+  type 'a t =
+    { cycles_since_boot : 'a [@bits 64]
+    ; empty_alu_cycles : 'a [@bits 64]
+    ; execute_mispredictions : 'a [@bits 64]
+    }
+  [@@deriving sexp_of, hardcaml]
+end
+
 module O = struct
   type 'a t =
     { error : 'a
     ; uart : 'a Uart.O.t [@rtlmangle true]
-    ; cycles_since_boot : 'a [@bits 64]
+    ; counters : 'a Counters.t
     }
   [@@deriving sexp_of, hardcaml]
 end
@@ -464,8 +473,21 @@ let create scope ~bootloader { I.clock; clear; uart } =
     ~f:Bypass_buffer.Entry.Of_signal.assign;
   { O.error
   ; uart
-  ; cycles_since_boot =
-      reg_fb ~width:64 ~f:(Fn.flip ( +:. ) 1) (Reg_spec.create ~clock ~clear ())
+  ; counters =
+      (let counter condition =
+         reg_fb
+           ~width:64
+           ~f:(fun count -> mux2 condition (count +:. 1) count)
+           (Reg_spec.create ~clock ~clear ())
+       in
+       { cycles_since_boot = counter vdd
+       ; empty_alu_cycles =
+           (let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data = _ } } =
+              load_registers_out
+            in
+            counter ~:(valid &: ready))
+       ; execute_mispredictions = counter jump
+       })
   }
 ;;
 
@@ -551,60 +573,8 @@ module Tests = struct
              ~equal:String.equal))
   ;;
 
-  let analysis sim =
-    let open Bits in
-    let internals = Cyclesim.internal_ports sim in
-    let error =
-      List.find_exn internals ~f:(fun (name, _) -> String.equal name "lock_pipeline")
-      |> snd
-    in
-    let execute_misprediction =
-      let redirect =
-        List.find_exn internals ~f:(fun (name, _) ->
-          String.equal name "fetch_stage$i$jump")
-        |> snd
-      in
-      fun () -> to_bool !redirect
-    in
-    let working_alu_cycle =
-      let valid =
-        List.find_exn internals ~f:(fun (name, _) ->
-          String.equal name "load_regs_buffer$o$head_valid")
-        |> snd
-      in
-      let ready =
-        List.find_exn internals ~f:(fun (name, _) ->
-          String.equal name "load_regs_buffer$o$head_ready")
-        |> snd
-      in
-      fun () -> to_bool !valid && to_bool !ready
-    in
-    let execute_mispredictions = ref 0 in
-    let empty_alu_cycles = ref 0 in
-    ( (fun () ->
-        if to_bool !error |> not
-        then (
-          if execute_misprediction ()
-          then execute_mispredictions := !execute_mispredictions + 1;
-          if working_alu_cycle () |> not then empty_alu_cycles := !empty_alu_cycles + 1);
-        ())
-    , fun out ->
-        let out =
-          Option.map out ~f:(Out_channel.create ~append:true)
-          |> Option.value ~default:Out_channel.stdout
-        in
-        Out_channel.output_string
-          out
-          "\n\n============================================================\n\n";
-        Sexp.to_string_hum
-          [%message "" (execute_mispredictions : int ref) (empty_alu_cycles : int ref)]
-        |> Out_channel.output_string out;
-        () )
-  ;;
-
   let sim ~program ~verilator ?input_data_file ?output_data_file termination =
     let sim = create ~program ~verilator in
-    let update, report = analysis sim in
     let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
     test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
       let open Bits in
@@ -640,23 +610,27 @@ module Tests = struct
              ( I.map inputs ~f:(fun p -> to_int !p)
              , O.map outputs ~f:(fun p -> to_int !p)
              , all_signals ));
-      update ();
       termination i);
-    report output_data_file;
     ()
   ;;
 
   let execute ~program ~verilator ?input_data_file ?output_data_file cycles =
     let sim = create ~program ~verilator in
-    let update, report = analysis sim in
-    test_bench
-      sim
-      ~step:(fun i ->
-        update ();
-        i = cycles)
-      ?input_data_file
-      ?output_data_file;
-    report output_data_file;
+    test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
+    let () =
+      let out =
+        Option.map output_data_file ~f:(Out_channel.create ~append:true)
+        |> Option.value ~default:Out_channel.stdout
+      in
+      Out_channel.output_string
+        out
+        "\n\n============================================================\n\n";
+      Sexp.to_string_hum
+        [%message
+          "" ~_:(Cyclesim.outputs sim |> O.map ~f:(fun p -> Bits.to_int !p) : int O.t)]
+      |> Out_channel.output_string out;
+      ()
+    in
     ()
   ;;
 

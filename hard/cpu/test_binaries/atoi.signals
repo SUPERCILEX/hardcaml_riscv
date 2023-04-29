@@ -1,6 +1,7 @@
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 5))
+  (counters
+   ((cycles_since_boot 5) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -12,7 +13,8 @@
   (register_file$i$write_data 0x4000)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 6))
+  (counters
+   ((cycles_since_boot 6) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x4084)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -24,7 +26,8 @@
   (register_file$i$write_data 0x4084)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 7))
+  (counters
+   ((cycles_since_boot 7) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -36,7 +39,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 8))
+  (counters
+   ((cycles_since_boot 8) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x1)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -48,7 +52,8 @@
   (register_file$i$write_data 0x1)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 11))
+  (counters
+   ((cycles_since_boot 11) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x4084)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -60,7 +65,8 @@
   (register_file$i$write_data 0x2d)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 12))
+  (counters
+   ((cycles_since_boot 12) (empty_alu_cycles 3) (execute_mispredictions 0))))
  ((memory_controller$i$data_address 0x2b)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -72,7 +78,8 @@
   (register_file$i$write_data 0x2b)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 20))
+  (counters
+   ((cycles_since_boot 20) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x4084)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -84,7 +91,8 @@
   (register_file$i$write_data 0x2d)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 21))
+  (counters
+   ((cycles_since_boot 21) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x2d)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -96,7 +104,8 @@
   (register_file$i$write_data 0x2d)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 23))
+  (counters
+   ((cycles_since_boot 23) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x4085)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -108,7 +117,8 @@
   (register_file$i$write_data 0x4085)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 24))
+  (counters
+   ((cycles_since_boot 24) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0xffffffff)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -120,7 +130,8 @@
   (register_file$i$write_data 0xffffffff)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 26))
+  (counters
+   ((cycles_since_boot 26) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x4085)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -132,7 +143,8 @@
   (register_file$i$write_data 0x31)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 28))
+  (counters
+   ((cycles_since_boot 28) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -144,7 +156,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 29))
+  (counters
+   ((cycles_since_boot 29) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x3)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -156,7 +169,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 30))
+  (counters
+   ((cycles_since_boot 30) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -168,7 +182,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 31))
+  (counters
+   ((cycles_since_boot 31) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -180,7 +195,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 32))
+  (counters
+   ((cycles_since_boot 32) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x1)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -192,7 +208,8 @@
   (register_file$i$write_data 0x1)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 33))
+  (counters
+   ((cycles_since_boot 33) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -204,7 +221,8 @@
   (register_file$i$write_data 0x1)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 34))
+  (counters
+   ((cycles_since_boot 34) (empty_alu_cycles 6) (execute_mispredictions 1))))
  ((memory_controller$i$data_address 0x4086)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -216,7 +234,8 @@
   (register_file$i$write_data 0x4086)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 42))
+  (counters
+   ((cycles_since_boot 42) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x4086)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -228,7 +247,8 @@
   (register_file$i$write_data 0x32)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 44))
+  (counters
+   ((cycles_since_boot 44) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x1)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -240,7 +260,8 @@
   (register_file$i$write_data 0x1)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 45))
+  (counters
+   ((cycles_since_boot 45) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x4)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -252,7 +273,8 @@
   (register_file$i$write_data 0x8)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 46))
+  (counters
+   ((cycles_since_boot 46) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x8)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -264,7 +286,8 @@
   (register_file$i$write_data 0x9)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 47))
+  (counters
+   ((cycles_since_boot 47) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x9)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -276,7 +299,8 @@
   (register_file$i$write_data 0xa)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 48))
+  (counters
+   ((cycles_since_boot 48) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x2)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -288,7 +312,8 @@
   (register_file$i$write_data 0x2)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 49))
+  (counters
+   ((cycles_since_boot 49) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0xa)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -300,7 +325,8 @@
   (register_file$i$write_data 0xc)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 50))
+  (counters
+   ((cycles_since_boot 50) (empty_alu_cycles 9) (execute_mispredictions 2))))
  ((memory_controller$i$data_address 0x4087)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -312,7 +338,8 @@
   (register_file$i$write_data 0x4087)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 58))
+  (counters
+   ((cycles_since_boot 58) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x4087)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -324,7 +351,8 @@
   (register_file$i$write_data 0x33)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 60))
+  (counters
+   ((cycles_since_boot 60) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0xc)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -336,7 +364,8 @@
   (register_file$i$write_data 0xc)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 61))
+  (counters
+   ((cycles_since_boot 61) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0xf)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -348,7 +377,8 @@
   (register_file$i$write_data 0x60)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 62))
+  (counters
+   ((cycles_since_boot 62) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x60)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -360,7 +390,8 @@
   (register_file$i$write_data 0x6c)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 63))
+  (counters
+   ((cycles_since_boot 63) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x6c)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -372,7 +403,8 @@
   (register_file$i$write_data 0x78)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 64))
+  (counters
+   ((cycles_since_boot 64) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x3)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -384,7 +416,8 @@
   (register_file$i$write_data 0x3)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 65))
+  (counters
+   ((cycles_since_boot 65) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x78)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -396,7 +429,8 @@
   (register_file$i$write_data 0x7b)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 66))
+  (counters
+   ((cycles_since_boot 66) (empty_alu_cycles 12) (execute_mispredictions 3))))
  ((memory_controller$i$data_address 0x4088)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -408,7 +442,8 @@
   (register_file$i$write_data 0x4088)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 74))
+  (counters
+   ((cycles_since_boot 74) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x4088)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -420,7 +455,8 @@
   (register_file$i$write_data 0x34)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 76))
+  (counters
+   ((cycles_since_boot 76) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x7b)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -432,7 +468,8 @@
   (register_file$i$write_data 0x7b)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 77))
+  (counters
+   ((cycles_since_boot 77) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x7e)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -444,7 +481,8 @@
   (register_file$i$write_data 0x3d8)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 78))
+  (counters
+   ((cycles_since_boot 78) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x3d8)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -456,7 +494,8 @@
   (register_file$i$write_data 0x453)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 79))
+  (counters
+   ((cycles_since_boot 79) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x453)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -468,7 +507,8 @@
   (register_file$i$write_data 0x4ce)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 80))
+  (counters
+   ((cycles_since_boot 80) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x4)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -480,7 +520,8 @@
   (register_file$i$write_data 0x4)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 81))
+  (counters
+   ((cycles_since_boot 81) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x4ce)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -492,7 +533,8 @@
   (register_file$i$write_data 0x4d2)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 82))
+  (counters
+   ((cycles_since_boot 82) (empty_alu_cycles 15) (execute_mispredictions 4))))
  ((memory_controller$i$data_address 0x4089)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -504,7 +546,8 @@
   (register_file$i$write_data 0x4089)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 90))
+  (counters
+   ((cycles_since_boot 90) (empty_alu_cycles 18) (execute_mispredictions 5))))
  ((memory_controller$i$data_address 0x4089)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -516,7 +559,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 97))
+  (counters
+   ((cycles_since_boot 97) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x4d2)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -528,7 +572,8 @@
   (register_file$i$write_data 0x4d2)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 98))
+  (counters
+   ((cycles_since_boot 98) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x4d3)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -540,7 +585,8 @@
   (register_file$i$write_data 0x9a4)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 99))
+  (counters
+   ((cycles_since_boot 99) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -552,7 +598,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 100))
+  (counters
+   ((cycles_since_boot 100) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x1f)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -564,7 +611,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 101))
+  (counters
+   ((cycles_since_boot 101) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x1f)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -576,7 +624,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 102))
+  (counters
+   ((cycles_since_boot 102) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x9a4)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -588,7 +637,8 @@
   (register_file$i$write_data 0x0)))
 (((clock 0) (clear 0) (uart ((write_done 0) (read_data 0) (read_done 0))))
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
-  (cycles_since_boot 103))
+  (counters
+   ((cycles_since_boot 103) (empty_alu_cycles 21) (execute_mispredictions 6))))
  ((memory_controller$i$data_address 0x0)
   (memory_controller$i$data_size_binary_variant 0x0)
   (memory_controller$i$load 0x0) (memory_controller$i$load_instruction 0x1)
@@ -598,8 +648,3 @@
   (register_file$i$read_address1 0x0) (register_file$i$read_address2 0x0)
   (register_file$i$store 0x1) (register_file$i$write_address 0xa)
   (register_file$i$write_data 0xfffffb2e)))
-
-
-============================================================
-
-((execute_mispredictions 7) (empty_alu_cycles 24))
