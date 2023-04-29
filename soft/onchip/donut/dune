@@ -62,7 +62,10 @@
 ;    %{exe}
 ;    execute
 ;    -cycles
-;    1000
+;    1000000000
+;    -verilator
+;    -verilator-cache-dir
+;    /tmp/hardcaml_sims
 ;    -program
 ;    "custom"
 ;    -binary
