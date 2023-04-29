@@ -270,10 +270,10 @@ module Rom = struct
            ~bank_selector:(sel_bottom address (address_bits_for bytes) |> reg ~enable spec)
            ~data:
              (List.chunks_of ~length:bytes data
-             |> List.transpose_exn
-             |> List.map ~f:(fun byte_bank ->
-                  mux (srl address (address_bits_for bytes)) byte_bank |> reg ~enable spec)
-             )
+              |> List.transpose_exn
+              |> List.map ~f:(fun byte_bank ->
+                   mux (srl address (address_bits_for bytes)) byte_bank
+                   |> reg ~enable spec))
            ~size:
              Size.Binary.Of_signal.(
                mux2 load data_size (of_enum Word) |> reg ~enable spec)
@@ -382,16 +382,16 @@ let create
     in
     let mem_segments =
       [ (let open Parameters in
-        let size = imem_size in
-        let input = build_input ~start:code_bottom ~size in
-        input, Local_ram.hierarchical scope ~size ~name:"imem" input)
+         let size = imem_size in
+         let input = build_input ~start:code_bottom ~size in
+         input, Local_ram.hierarchical scope ~size ~name:"imem" input)
       ; (let open Parameters in
-        let size = dmem_size in
-        let input = build_input ~start:(stack_top - size) ~size in
-        input, Local_ram.hierarchical scope ~size ~name:"dmem" input)
+         let size = dmem_size in
+         let input = build_input ~start:(stack_top - size) ~size in
+         input, Local_ram.hierarchical scope ~size ~name:"dmem" input)
       ; (let open Parameters in
-        let input = build_input ~start:bootloader_start ~size:(List.length bootloader) in
-        input, Rom.hierarchical scope ~name:"bootloader" ~data:bootloader input)
+         let input = build_input ~start:bootloader_start ~size:(List.length bootloader) in
+         input, Rom.hierarchical scope ~name:"bootloader" ~data:bootloader input)
       ]
     in
     let uart_segment, uart_out =
@@ -420,10 +420,10 @@ let create
           &: load_instruction
         ]
       @ [ ~:(List.map segments ~f:(fun ({ I.load_instruction; _ }, _) -> load_instruction)
-            |> List.reduce_exn ~f:( |: ))
+             |> List.reduce_exn ~f:( |: ))
           &: load_instruction
         ; ~:(List.map segments ~f:(fun ({ I.load; store; _ }, _) -> load |: store)
-            |> List.reduce_exn ~f:( |: ))
+             |> List.reduce_exn ~f:( |: ))
           &: (load |: store)
         ]
       |> List.reduce_exn ~f:( |: )

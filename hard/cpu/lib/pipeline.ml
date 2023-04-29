@@ -163,7 +163,7 @@ module Load_registers = struct
          ; error =
              error
              |: (start
-                &: Instruction.Binary.Of_signal.is forward.instruction (Rv32i Invalid))
+                 &: Instruction.Binary.Of_signal.is forward.instruction (Rv32i Invalid))
          })
     }
   ;;
@@ -303,11 +303,11 @@ module Execute = struct
        ; [ Lh; Lhu; Sh ], Half_word
        ; [ Lw; Sw ], Word
        ]
-      |> List.map ~f:(fun (instructions, s) -> List.map instructions ~f:(fun i -> i, s))
-      |> List.concat
-      |> List.map ~f:(fun (i, s) ->
-           ( Instruction.All.Rv32i i
-           , Memory_controller.Size.Binary.(Of_signal.of_enum s |> to_raw) )))
+       |> List.map ~f:(fun (instructions, s) -> List.map instructions ~f:(fun i -> i, s))
+       |> List.concat
+       |> List.map ~f:(fun (i, s) ->
+            ( Instruction.All.Rv32i i
+            , Memory_controller.Size.Binary.(Of_signal.of_enum s |> to_raw) )))
     |> Memory_controller.Size.Binary.Of_signal.of_raw
   ;;
 
@@ -420,16 +420,18 @@ module Load_memory_and_store = struct
     running.value -- "running" |> ignore;
     let loading_mem =
       (load_mem.value
-      |: (load_mem.value
-         &: stall_mem_load
-         |> reg ~enable:(start |: ~:stall_mem_load) (Reg_spec.create ~clock ~clear ())))
+       |: (load_mem.value
+           &: stall_mem_load
+           |> reg ~enable:(start |: ~:stall_mem_load) (Reg_spec.create ~clock ~clear ()))
+      )
       -- "loading_mem"
     in
     let storing_mem =
       (store_mem.value
-      |: (store_mem.value
-         &: stall_mem_store
-         |> reg ~enable:(start |: ~:stall_mem_store) (Reg_spec.create ~clock ~clear ())))
+       |: (store_mem.value
+           &: stall_mem_store
+           |> reg ~enable:(start |: ~:stall_mem_store) (Reg_spec.create ~clock ~clear ())
+          ))
       -- "storing_mem"
     in
     Always.(
@@ -582,7 +584,7 @@ struct
         Entry.Of_signal.mux2
           write
           (List.nth entries (i - 1)
-          |> Option.value ~default:{ Entry.id = next_id; raw = write_entry })
+           |> Option.value ~default:{ Entry.id = next_id; raw = write_entry })
           prev)
       |> update_overrides
       |> List.iter2_exn entries_next ~f:Entry.Of_signal.assign;

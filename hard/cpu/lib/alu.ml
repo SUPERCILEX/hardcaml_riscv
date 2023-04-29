@@ -63,7 +63,7 @@ struct
         ~width
         ~f:(fun steps -> mux2 (steps ==:. 0) (zero width) (steps -:. 1))
         (Reg_spec.create ~clock ~clear:(clear |: (start &: ~:div_by_zero)) ()
-        |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
+         |> Reg_spec.override ~clear_to:(mux2 clear (zero width) (of_int ~width steps)))
       -- "steps_remaining"
     in
     let qr =

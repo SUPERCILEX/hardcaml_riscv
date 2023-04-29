@@ -57,10 +57,10 @@ let create _scope { I.instruction = raw_instruction } =
               ; immediate
                 <-- sresize
                       (raw_instruction.:(31)
-                      @: raw_instruction.:[19, 12]
-                      @: raw_instruction.:(20)
-                      @: raw_instruction.:[30, 21]
-                      @: gnd)
+                       @: raw_instruction.:[19, 12]
+                       @: raw_instruction.:(20)
+                       @: raw_instruction.:[30, 21]
+                       @: gnd)
                       32
               ] )
           ; ( of_bit_string "1100111"
@@ -80,10 +80,10 @@ let create _scope { I.instruction = raw_instruction } =
               ; immediate
                 <-- sresize
                       (raw_instruction.:(31)
-                      @: raw_instruction.:(7)
-                      @: raw_instruction.:[30, 25]
-                      @: raw_instruction.:[11, 8]
-                      @: gnd)
+                       @: raw_instruction.:(7)
+                       @: raw_instruction.:[30, 25]
+                       @: raw_instruction.:[11, 8]
+                       @: gnd)
                       32
               ; switch
                   funct3
@@ -133,25 +133,25 @@ let create _scope { I.instruction = raw_instruction } =
                    ; of_bit_string "110", [ set_instruction_32i Ori ]
                    ; of_bit_string "111", [ set_instruction_32i Andi ]
                    ]
-                  @
-                  let shamt = raw_instruction.:[24, 20] in
-                  [ ( of_bit_string "001"
-                    , [ rs2 <-- rs2_
-                      ; immediate <-- uresize shamt 32
-                      ; switch
-                          funct7
-                          [ of_bit_string "0000000", [ set_instruction_32i Slli ] ]
-                      ] )
-                  ; ( of_bit_string "101"
-                    , [ rs2 <-- rs2_
-                      ; immediate <-- uresize shamt 32
-                      ; switch
-                          funct7
-                          [ of_bit_string "0000000", [ set_instruction_32i Srli ]
-                          ; of_bit_string "0100000", [ set_instruction_32i Srai ]
-                          ]
-                      ] )
-                  ])
+                   @
+                   let shamt = raw_instruction.:[24, 20] in
+                   [ ( of_bit_string "001"
+                     , [ rs2 <-- rs2_
+                       ; immediate <-- uresize shamt 32
+                       ; switch
+                           funct7
+                           [ of_bit_string "0000000", [ set_instruction_32i Slli ] ]
+                       ] )
+                   ; ( of_bit_string "101"
+                     , [ rs2 <-- rs2_
+                       ; immediate <-- uresize shamt 32
+                       ; switch
+                           funct7
+                           [ of_bit_string "0000000", [ set_instruction_32i Srli ]
+                           ; of_bit_string "0100000", [ set_instruction_32i Srai ]
+                           ]
+                       ] )
+                   ])
               ] )
           ; ( of_bit_string "0110011"
             , [ rd <-- rd_
@@ -280,10 +280,10 @@ module Tests = struct
         { (O.map outputs ~f:Int.to_string) with
           immediate =
             (outputs.immediate
-            |>
-            if Option.is_some (String.substr_index instruction ~pattern:"0x")
-            then Printf.sprintf "0x%x"
-            else Int.to_string)
+             |>
+             if Option.is_some (String.substr_index instruction ~pattern:"0x")
+             then Printf.sprintf "0x%x"
+             else Int.to_string)
         }
       in
       Stdio.print_s

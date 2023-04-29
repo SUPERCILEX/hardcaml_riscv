@@ -135,9 +135,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; ready = vdd
           ; data =
               { (fetch_write_data
-                |> Decode_instruction.Data_in.Of_signal.reg
-                     ~enable:fetch_done
-                     (Reg_spec.create ~clock ()))
+                 |> Decode_instruction.Data_in.Of_signal.reg
+                      ~enable:fetch_done
+                      (Reg_spec.create ~clock ()))
                 with
                 raw_instruction
               }
@@ -275,9 +275,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; ready = vdd
           ; data =
               { (load_registers_write_data
-                |> Execute.Data_in.Of_signal.reg
-                     ~enable:load_registers_done
-                     (Reg_spec.create ~clock ()))
+                 |> Execute.Data_in.Of_signal.reg
+                      ~enable:load_registers_done
+                      (Reg_spec.create ~clock ()))
                 with
                 rs1
               ; rs2
@@ -328,7 +328,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           (let debounce start =
              start
              &: (~:(start |> reg (Reg_spec.create ~clock ~clear ()))
-                |: (load_registers_consume |> reg (Reg_spec.create ~clock ~clear ())))
+                 |: (load_registers_consume |> reg (Reg_spec.create ~clock ~clear ())))
            in
            debounce (valid &: ready &: regs_ready &: ~:execute_full &: ~:lock_pipeline))
           |: (valid &: data.forward.error)
@@ -391,7 +391,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let debounce start =
       start
       &: (~:(start |> reg (Reg_spec.create ~clock ~clear ()))
-         |: (writeback_done |> reg (Reg_spec.create ~clock ~clear ())))
+          |: (writeback_done |> reg (Reg_spec.create ~clock ~clear ())))
     in
     Load_memory_and_store.hierarchical
       scope
@@ -561,15 +561,15 @@ module Tests = struct
         |> List.filter_map ~f:(fun (signal_name, signal) ->
              (if String.is_substring ~substring:"clock" signal_name
                  || String.is_substring ~substring:"clear" signal_name
-             then None
-             else if (String.is_substring ~substring:"memory_controller$i$" signal_name
-                     && String.is_substring
-                          ~substring:"memory_controller$i$uart"
-                          signal_name
-                        |> not)
-                     || String.is_substring ~substring:"register_file$i$" signal_name
-             then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
-             else None)
+              then None
+              else if (String.is_substring ~substring:"memory_controller$i$" signal_name
+                       && String.is_substring
+                            ~substring:"memory_controller$i$uart"
+                            signal_name
+                          |> not)
+                      || String.is_substring ~substring:"register_file$i$" signal_name
+              then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
+              else None)
              |> Option.map ~f:(fun s -> signal_name, Sexp.to_string s))
         |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
       in
@@ -615,14 +615,14 @@ module Tests = struct
                  Instruction.(
                    List.map All.all ~f:(All.sexp_of_t |> Fn.compose Sexp.to_string)))
             (let open Re in
-            seq [ str "instruction_"; rep alnum; str "_variant" ] |> compile)
+             seq [ str "instruction_"; rep alnum; str "_variant" ] |> compile)
         ; (port_name_matches
              ~wave_format:
                (Index
                   Memory_controller.Size.(
                     List.map Enum.all ~f:(Enum.sexp_of_t |> Fn.compose Sexp.to_string))))
             (let open Re in
-            seq [ str "data_size_"; rep alnum; str "_variant" ] |> compile)
+             seq [ str "data_size_"; rep alnum; str "_variant" ] |> compile)
         ]
     in
     f ~display_rules:(input_rules @ output_rules @ [ default ]) waves;
