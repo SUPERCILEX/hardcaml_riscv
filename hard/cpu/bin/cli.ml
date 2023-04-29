@@ -14,7 +14,7 @@ module Shared_commands = struct
     ; file_name : string option
     ; input_data_file : string option
     ; output_data_file : string option
-    ; verilator : bool
+    ; verilator : Hardcaml_verilator.Simulation_backend.t
     }
 
   let args () =
@@ -43,7 +43,7 @@ module Shared_commands = struct
           ~doc:"FILE UART output stream file"
           "-output-data-file"
           (optional Filename_unix.arg_type)
-      and verilator = flag ~doc:"Use verilator" "-verilator" no_arg in
+      and verilator = Hardcaml_verilator.Simulation_backend.flag in
       { cycles; program; file_name; input_data_file; output_data_file; verilator })
   ;;
 

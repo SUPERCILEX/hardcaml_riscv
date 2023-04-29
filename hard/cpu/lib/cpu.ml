@@ -479,18 +479,18 @@ module Tests = struct
     let scope =
       Scope.create ~flatten_design:true ~auto_label_hierarchical_ports:true ()
     in
-    if verilator
-    then
-      let module Simulator = Hardcaml_verilator.With_interface (I) (O) in
-      Simulator.create
-        ~verbose:true
-        ~cache_dir:"/tmp/hardcaml_sims"
-        ~clock_names:[ "clock" ]
-        (create scope ~bootloader:program)
-    else
+    match verilator with
+    | Hardcaml_verilator.Simulation_backend.Hardcaml ->
       let module Simulator = Cyclesim.With_interface (I) (O) in
       Simulator.create
         ~config:Cyclesim.Config.trace_all
+        (create scope ~bootloader:program)
+    | Verilator { cache_dir } ->
+      let module Simulator = Hardcaml_verilator.With_interface (I) (O) in
+      Simulator.create
+        ~verbose:true
+        ?cache_dir
+        ~clock_names:[ "clock" ]
         (create scope ~bootloader:program)
   ;;
 

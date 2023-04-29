@@ -14,7 +14,10 @@ Hardware dev tools
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
-  . [-verilator]             . Use verilator
+  . [-verilator-cache-dir <directory>]
+                             . Cache directory for verilator. This can only be
+                               set when with the -verilator flag.)
+  . [-verilator]             . <flag> Use the verilator backend
   locate-net                 . Trace the origin of a net to hardcaml
   . -circuit-name CIRCUIT-NAME
                              . Name of the circuit/module
@@ -28,7 +31,10 @@ Hardware dev tools
   . [-binary FILE]           . Binary program file
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
-  . [-verilator]             . Use verilator
+  . [-verilator-cache-dir <directory>]
+                             . Cache directory for verilator. This can only be
+                               set when with the -verilator flag.)
+  . [-verilator]             . <flag> Use the verilator backend
   waves                      . Open waveform viewer
   . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
@@ -40,7 +46,10 @@ Hardware dev tools
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
   . [-start-cycle N]         . Start cycle
-  . [-verilator]             . Use verilator
+  . [-verilator-cache-dir <directory>]
+                             . Cache directory for verilator. This can only be
+                               set when with the -verilator flag.)
+  . [-verilator]             . <flag> Use the verilator backend
   version                    . print version information
   . [-build-info]            . print build info for this build
   . [-version]               . print the version of this build

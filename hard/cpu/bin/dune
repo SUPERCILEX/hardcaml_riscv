@@ -6,7 +6,8 @@
   sample_programs
   core_unix.command_unix
   hardcaml
-  hardcaml_waveterm.interactive)
+  hardcaml_waveterm.interactive
+  hardcaml_verilator)
  (preprocess
   (pps ppx_jane)))
 
