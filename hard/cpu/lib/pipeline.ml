@@ -59,6 +59,13 @@ module Fetch_instruction = struct
   ;;
 end
 
+let is_branch instruction =
+  let open Signal in
+  [ Instruction.RV32I.Beq; Bne; Blt; Bge; Bltu; Bgeu ]
+  |> List.map ~f:(fun op -> Instruction.All.Rv32i op, vdd)
+  |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
+;;
+
 module Decode_instruction = struct
   module Forward = struct
     type 'a t =
@@ -88,14 +95,28 @@ module Decode_instruction = struct
     type 'a t =
       { done_ : 'a
       ; decoded : 'a Decoder.O.t
+      ; predicted_next_pc : 'a [@bits Parameters.word_width]
+      ; jump : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       }
     [@@deriving sexp_of, hardcaml]
   end
 
-  let create scope { I.start; data = { raw_instruction; forward } } =
+  let create
+    scope
+    { I.start; data = { raw_instruction; forward = { program_counter; _ } as forward } }
+    =
+    let open Signal in
+    let ({ Decoder.O.instruction; immediate; _ } as decoded) =
+      Decoder.hierarchical scope { Decoder.I.instruction = raw_instruction }
+    in
+    let branch = is_branch instruction &: (immediate <+. 0) in
+    let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
+    let jump = branch |: jal in
     { O.done_ = start
-    ; decoded = Decoder.hierarchical scope { Decoder.I.instruction = raw_instruction }
+    ; decoded
+    ; predicted_next_pc = mux2 jump (program_counter +: immediate) (program_counter +:. 4)
+    ; jump
     ; forward
     }
   ;;
@@ -110,6 +131,7 @@ module Load_registers = struct
   module Forward = struct
     type 'a t =
       { program_counter : 'a [@bits Parameters.word_width]
+      ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; instruction : 'a Instruction.Binary.t [@rtlmangle true]
       ; rd_address : 'a [@bits 5]
       ; immediate : 'a [@bits 32]
@@ -153,10 +175,18 @@ module Load_registers = struct
     ; rs1_address
     ; rs2_address
     ; forward =
-        (let { Forward.program_counter; instruction; rd_address; immediate; error } =
+        (let { Forward.program_counter
+             ; predicted_next_pc
+             ; instruction
+             ; rd_address
+             ; immediate
+             ; error
+             }
+           =
            forward
          in
          { program_counter
+         ; predicted_next_pc
          ; instruction
          ; rd_address
          ; immediate
@@ -190,6 +220,7 @@ module Execute = struct
       ; rs1 : 'a [@bits Parameters.word_width]
       ; rs2 : 'a [@bits Parameters.word_width]
       ; program_counter : 'a [@bits Parameters.word_width]
+      ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; instruction : 'a Instruction.Binary.t [@rtlmangle true]
       ; immediate : 'a [@bits 32]
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
@@ -296,13 +327,6 @@ module Execute = struct
     |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
   ;;
 
-  let is_branch instruction =
-    let open Signal in
-    [ Instruction.RV32I.Beq; Bne; Blt; Bge; Bltu; Bgeu ]
-    |> List.map ~f:(fun op -> Instruction.All.Rv32i op, vdd)
-    |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
-  ;;
-
   let compute_data_size instruction =
     Instruction.Binary.Of_signal.match_
       ~default:Memory_controller.Size.(Binary.Of_signal.of_enum Byte |> Binary.to_raw)
@@ -331,6 +355,7 @@ module Execute = struct
         ; rs1
         ; rs2
         ; program_counter
+        ; predicted_next_pc
         ; instruction
         ; immediate
         ; forward = { rd_address; error = _ } as forward
@@ -361,8 +386,8 @@ module Execute = struct
         ; is_store_instruction = is_store_mem instruction
         ; store_data = rs2
         ; data_size = compute_data_size instruction
-        ; jump
-        ; jump_target
+        ; jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
+        ; jump_target = mux2 jump jump_target (program_counter +:. 4)
         ; is_branch = is_branch instruction
         ; bypass_id
         ; forward

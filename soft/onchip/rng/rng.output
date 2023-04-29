@@ -104,5 +104,5 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 345458) (empty_alu_cycles 71664)
-   (execute_branch_mispredictions 9057) (execute_jump_mispredictions 14830))))
+  ((cycles_since_boot 330491) (empty_alu_cycles 58823)
+   (execute_branch_mispredictions 5880) (execute_jump_mispredictions 12522))))

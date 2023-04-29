@@ -102,6 +102,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   load_instruction <== load_instruction_;
   program_counter <== program_counter_;
+  let flush_pre_writeback = wire 1 -- "flush_pre_writeback" in
+  let flush_pre_decode = wire 1 -- "flush_pre_decode" in
   let module Fetch_buffer =
     Stage_buffer
       (struct
@@ -127,7 +129,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       scope
       ~name:"fetch_buffer"
       { Fetch_buffer.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback |: flush_pre_decode
       ; write_tail = { valid = fetch_done; ready = gnd; data = fetch_write_data }
       ; update = fetch_head_update
       ; pop = fetch_consume
@@ -135,7 +137,13 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   fetch_full <== fetch_full_;
   let decode_full = wire 1 in
-  let { Decode_instruction.O.done_ = decode_done; decoded; forward = decoder_forward } =
+  let { Decode_instruction.O.done_ = decode_done
+      ; decoded
+      ; predicted_next_pc = decode_predicted_next_pc
+      ; jump = decode_jump
+      ; forward = decoder_forward
+      }
+    =
     Fetch_buffer.Entry.Of_signal.assign
       fetch_head_update
       { Fetch_buffer.Entry.id =
@@ -175,13 +183,20 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~cut_through:false
       ~capacity:1
       { Decode_buffer.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback
       ; wr_data =
           (let { Decoder.O.instruction; rd; rs1; rs2; immediate } = decoded in
            let { Decode_instruction.Forward.program_counter; error } = decoder_forward in
            { Load_registers.Data_in.rs1_address = rs1
            ; rs2_address = rs2
-           ; forward = { program_counter; instruction; rd_address = rd; immediate; error }
+           ; forward =
+               { program_counter
+               ; predicted_next_pc = decode_predicted_next_pc
+               ; instruction
+               ; rd_address = rd
+               ; immediate
+               ; error
+               }
            })
       ; wr_enable = decode_done
       ; rd_enable = decode_consume
@@ -218,6 +233,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let load_registers_head_update = Load_registers_buffer.Entry.Of_signal.wires () in
   let load_registers_write_data =
     let { Load_registers.Forward.program_counter
+        ; predicted_next_pc
         ; instruction
         ; rd_address
         ; immediate
@@ -231,6 +247,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     ; rs1 = zero Parameters.word_width
     ; rs2 = zero Parameters.word_width
     ; program_counter
+    ; predicted_next_pc
     ; instruction
     ; immediate
     ; forward = { rd_address; error }
@@ -247,7 +264,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       scope
       ~name:"load_regs_buffer"
       { Load_registers_buffer.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback
       ; write_tail =
           { valid = load_registers_done; ready = gnd; data = load_registers_write_data }
       ; update = load_registers_head_update
@@ -333,7 +350,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Execute.hierarchical
       scope
       { Execute.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback
       ; start =
           (let debounce start =
              start
@@ -361,7 +378,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~cut_through:false
       ~capacity:1
       { Execute_buffer.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback
       ; wr_data = execute_data
       ; wr_enable = execute_done
       ; rd_enable = writeback_done
@@ -397,7 +414,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
     data_address <== data_address_;
     write_data <== store_data;
     Memory_controller.Size.Binary.Of_signal.assign data_size data_size_;
-    jump_target <== jump_target_;
+    jump_target
+    <== mux2 (execute_out.jump &: writeback_done) jump_target_ decode_predicted_next_pc;
     rd_address <== rd_address_;
     let debounce start =
       start
@@ -419,7 +437,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; mem_error
       }
   in
-  jump <== (execute_out.jump &: writeback_done);
+  flush_pre_writeback <== (execute_out.jump &: writeback_done);
+  flush_pre_decode <== (decode_jump &: decode_done);
+  jump <== (flush_pre_writeback |: flush_pre_decode);
   writeback_done <== writeback_done_;
   store_registers <== store_registers_;
   load_mem <== load_mem_;
@@ -439,7 +459,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       scope
       ~name:"execute_bypass_buffer"
       { Bypass_buffer.I.clock
-      ; clear = clear |: jump
+      ; clear = clear |: flush_pre_writeback
       ; write_tail =
           (let { Execute.Data_out.rd
                ; is_writeback_instruction
@@ -490,8 +510,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
               load_registers_out
             in
             counter ~:(valid &: ready))
-       ; execute_branch_mispredictions = counter (is_branch &: jump)
-       ; execute_jump_mispredictions = counter (~:is_branch &: jump)
+       ; execute_branch_mispredictions = counter (is_branch &: flush_pre_writeback)
+       ; execute_jump_mispredictions = counter (~:is_branch &: flush_pre_writeback)
        })
   }
 ;;
