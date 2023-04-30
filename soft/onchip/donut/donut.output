@@ -24,7 +24,8 @@
 
 ============================================================
 
-((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 1000000000) (empty_alu_cycles 240516342)
-   (execute_mispredictions 80172113))))
+  ((cycles_since_boot 500000000) (empty_alu_cycles 116318843)
+   (execute_branch_mispredictions 16284691)
+   (execute_jump_mispredictions 20184341))))
