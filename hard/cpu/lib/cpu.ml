@@ -376,8 +376,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; data = { data with rs1; rs2 }
       }
   in
+  let execute_done = execute_done &: ~:flush_pre_writeback in
   load_registers_consume <== execute_done;
-  let execute_outputs_valid = execute_done &: ~:flush_pre_writeback in
   let is_execute_branch_for_counters =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
@@ -388,7 +388,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; is_branch
           } )
       =
-      ( reg (Reg_spec.create ~clock ~clear ()) execute_outputs_valid
+      ( reg (Reg_spec.create ~clock ~clear ()) execute_done
       , Execute.Resolved_control_flow.Of_signal.reg
           ~enable:execute_done
           (Reg_spec.create ~clock ())
@@ -397,7 +397,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     flush_pre_writeback <== (jump_ &: valid);
     flush_pre_decode <== (decode_jump &: decode_done);
     jump <== (flush_pre_writeback |: flush_pre_decode);
-    jump_target <== mux2 (jump_ &: valid) jump_target_ decode_predicted_next_pc;
+    jump_target <== mux2 flush_pre_writeback jump_target_ decode_predicted_next_pc;
     control_flow_resolved_pc <== program_counter;
     control_flow_resolved_jump_target <== resolved_jump_target;
     control_flow_resolved_to_taken <== (valid &: taken);
@@ -419,7 +419,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { Execute_buffer.I.clock
       ; clear
       ; wr_data = execute_data
-      ; wr_enable = execute_outputs_valid
+      ; wr_enable = execute_done
       ; rd_enable = writeback_done
       }
   in
@@ -489,7 +489,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       scope
       ~name:"execute_bypass_buffer"
       { Bypass_buffer.I.clock
-      ; clear = clear |: flush_pre_writeback
+      ; clear
       ; write_tail =
           (let { Execute.Data_out.rd
                ; is_writeback_instruction
