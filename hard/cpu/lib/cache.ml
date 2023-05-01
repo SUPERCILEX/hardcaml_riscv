@@ -80,7 +80,12 @@ struct
     with
     | [| data |] ->
       let { Line.valid; data; tag } = Line.Of_signal.unpack data in
-      { O.data; hit = valid &: (tag ==: Params.address_to_tag read_address) }
+      let tag_match =
+        tag
+        ==: (Params.address_to_tag read_address
+             |> reg ~enable:read_enable (Reg_spec.create ~clock ()))
+      in
+      { O.data; hit = valid &: tag_match }
     | _ -> assert false
   ;;
 
