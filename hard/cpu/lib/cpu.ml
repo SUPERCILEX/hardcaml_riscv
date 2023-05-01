@@ -101,6 +101,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; load = load_instruction_
       ; program_counter = program_counter_
       ; predicted_next_pc = fetch_predicted_next_pc
+      ; has_prediction = has_fetch_prediction
       ; error = fetch_error
       }
     =
@@ -122,6 +123,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let fetch_write_data =
     { Decode_instruction.Data_in.raw_instruction = zero Parameters.word_width
     ; fetch_predicted_next_pc
+    ; has_fetch_prediction
     ; forward = { program_counter; error = fetch_error }
     }
   in

@@ -5,6 +5,6 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 12882) (empty_alu_cycles 2639)
-   (decode_branch_mispredictions 227) (decode_jump_mispredictions 290)
-   (execute_branch_mispredictions 312) (execute_jump_mispredictions 481))))
+  ((cycles_since_boot 12882) (empty_alu_cycles 2671)
+   (decode_branch_mispredictions 203) (decode_jump_mispredictions 290)
+   (execute_branch_mispredictions 323) (execute_jump_mispredictions 481))))

@@ -22,6 +22,7 @@ module Fetch_instruction = struct
       ; load : 'a
       ; program_counter : 'a [@bits Parameters.word_width]
       ; predicted_next_pc : 'a [@bits Parameters.word_width]
+      ; has_prediction : 'a
       ; error : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -74,6 +75,7 @@ module Fetch_instruction = struct
     ; load
     ; program_counter
     ; predicted_next_pc = next_pc
+    ; has_prediction
     ; error = mem_error &: load
     }
   ;;
@@ -104,6 +106,7 @@ module Decode_instruction = struct
     type 'a t =
       { raw_instruction : 'a [@bits Parameters.word_width]
       ; fetch_predicted_next_pc : 'a [@bits Parameters.word_width]
+      ; has_fetch_prediction : 'a
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -135,6 +138,7 @@ module Decode_instruction = struct
     ; data =
         { raw_instruction
         ; fetch_predicted_next_pc
+        ; has_fetch_prediction
         ; forward = { program_counter; _ } as forward
         }
     }
@@ -147,12 +151,15 @@ module Decode_instruction = struct
     let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
     let jump = is_branch &: (immediate <+. 0) |: jal in
     let predicted_next_pc =
-      mux2 jump (program_counter +: immediate) fetch_predicted_next_pc
+      mux2
+        has_fetch_prediction
+        fetch_predicted_next_pc
+        (mux2 jump (program_counter +: immediate) (program_counter +:. 4))
     in
     { O.done_ = start
     ; decoded
     ; predicted_next_pc
-    ; jump = predicted_next_pc <>: fetch_predicted_next_pc
+    ; jump = predicted_next_pc <>: fetch_predicted_next_pc &: ~:has_fetch_prediction
     ; is_branch
     ; forward
     }
