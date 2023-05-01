@@ -10,6 +10,7 @@ module Fetch_instruction = struct
       ; stall_load_instruction : 'a
       ; jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
+      ; control_flow_resolved_to_taken : 'a
       ; mem_error : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -20,35 +21,59 @@ module Fetch_instruction = struct
       { done_ : 'a
       ; load : 'a
       ; program_counter : 'a [@bits Parameters.word_width]
+      ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; error : 'a
       }
     [@@deriving sexp_of, hardcaml]
   end
 
   let create
-    _scope
+    scope
     { I.clock
     ; clear
     ; pipeline_full
     ; stall_load_instruction
     ; jump
     ; jump_target
+    ; control_flow_resolved_to_taken
     ; mem_error
     }
     =
     let open Signal in
     let load = ~:pipeline_full &: ~:jump in
+    let program_counter = wire Parameters.word_width in
+    let { Branch_prediction.Branch_target_buffer.O.data = { taken_pc = predicted_next_pc }
+        ; hit = has_prediction
+        }
+      =
+      Branch_prediction.Branch_target_buffer.hierarchical
+        scope
+        { Branch_prediction.Branch_target_buffer.I.clock
+        ; load
+        ; read_address = program_counter
+        ; store = control_flow_resolved_to_taken
+        ; write_address = jump_target
+        ; write_data =
+            { Branch_prediction.Branch_target_buffer.Entry.taken_pc = jump_target }
+        }
+    in
+    let next_pc =
+      mux2
+        jump
+        jump_target
+        (mux2 has_prediction predicted_next_pc (program_counter +:. 4))
+    in
+    program_counter
+    <== reg
+          ~enable:(~:pipeline_full &: ~:stall_load_instruction |: jump)
+          (Reg_spec.override
+             (Reg_spec.create ~clock ~clear ())
+             ~clear_to:(of_int ~width:(width program_counter) Parameters.bootloader_start))
+          next_pc;
     { O.done_ = load &: ~:stall_load_instruction
     ; load
-    ; program_counter =
-        (let width = Parameters.word_width in
-         reg_fb
-           ~enable:(~:pipeline_full &: ~:stall_load_instruction |: jump)
-           ~width
-           ~f:(fun pc -> mux2 jump jump_target (pc +:. 4))
-           (Reg_spec.override
-              (Reg_spec.create ~clock ~clear ())
-              ~clear_to:(of_int ~width Parameters.bootloader_start)))
+    ; program_counter
+    ; predicted_next_pc = next_pc
     ; error = mem_error &: load
     }
   ;;
@@ -78,6 +103,7 @@ module Decode_instruction = struct
   module Data_in = struct
     type 'a t =
       { raw_instruction : 'a [@bits Parameters.word_width]
+      ; fetch_predicted_next_pc : 'a [@bits Parameters.word_width]
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -105,7 +131,13 @@ module Decode_instruction = struct
 
   let create
     scope
-    { I.start; data = { raw_instruction; forward = { program_counter; _ } as forward } }
+    { I.start
+    ; data =
+        { raw_instruction
+        ; fetch_predicted_next_pc
+        ; forward = { program_counter; _ } as forward
+        }
+    }
     =
     let open Signal in
     let ({ Decoder.O.instruction; immediate; _ } as decoded) =
@@ -114,10 +146,13 @@ module Decode_instruction = struct
     let is_branch = is_branch instruction in
     let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
     let jump = is_branch &: (immediate <+. 0) |: jal in
+    let predicted_next_pc =
+      mux2 jump (program_counter +: immediate) fetch_predicted_next_pc
+    in
     { O.done_ = start
     ; decoded
-    ; predicted_next_pc = mux2 jump (program_counter +: immediate) (program_counter +:. 4)
-    ; jump
+    ; predicted_next_pc
+    ; jump = predicted_next_pc <>: fetch_predicted_next_pc
     ; is_branch
     ; forward
     }
@@ -261,6 +296,7 @@ module Execute = struct
     type 'a t =
       { jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
+      ; control_flow_resolved_to_taken : 'a
       ; is_branch : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -401,6 +437,7 @@ module Execute = struct
     ; resolved_control_flow =
         { jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
         ; jump_target = mux2 jump jump_target (program_counter +:. 4)
+        ; control_flow_resolved_to_taken = jump
         ; is_branch = is_branch instruction
         }
     }

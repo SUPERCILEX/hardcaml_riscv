@@ -85,6 +85,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; stall_load_instruction = _
        ; jump
        ; jump_target
+       ; control_flow_resolved_to_taken
        ; mem_error = _
        } as fetch_instruction_in)
     =
@@ -99,6 +100,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let { Fetch_instruction.O.done_ = fetch_done
       ; load = load_instruction_
       ; program_counter = program_counter_
+      ; predicted_next_pc = fetch_predicted_next_pc
       ; error = fetch_error
       }
     =
@@ -119,6 +121,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let fetch_head_update = Fetch_buffer.Entry.Of_signal.wires () in
   let fetch_write_data =
     { Decode_instruction.Data_in.raw_instruction = zero Parameters.word_width
+    ; fetch_predicted_next_pc
     ; forward = { program_counter; error = fetch_error }
     }
   in
@@ -374,6 +377,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
           ; jump_target = jump_target_
+          ; control_flow_resolved_to_taken = taken
           ; is_branch
           } )
       =
@@ -387,6 +391,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     flush_pre_decode <== (decode_jump &: decode_done);
     jump <== (flush_pre_writeback |: flush_pre_decode);
     jump_target <== mux2 (jump_ &: valid) jump_target_ decode_predicted_next_pc;
+    control_flow_resolved_to_taken <== (valid &: taken);
     is_branch
   in
   let module Execute_buffer = Fast_fifo.Make (Execute.Data_out) in
