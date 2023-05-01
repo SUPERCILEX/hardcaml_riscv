@@ -73,7 +73,7 @@ let waves =
         Shared_commands.args ()
       and start_cycle = flag ~doc:"N Start cycle" "-start-cycle" (optional int) in
       fun () ->
-        Cpu.Tests.waves
+        Harness.waves
           ~program:(Shared_commands.program program file_name)
           ~verilator
           ~cycles
@@ -103,7 +103,7 @@ let execute =
         Shared_commands.args ()
       in
       fun () ->
-        Cpu.Tests.execute
+        Harness.execute
           ~program:(Shared_commands.program program file_name)
           ~verilator
           ?input_data_file
@@ -126,7 +126,7 @@ let simulate =
         Shared_commands.args ()
       in
       fun () ->
-        Cpu.Tests.sim
+        Harness.sim
           ~program:(Shared_commands.program program file_name)
           ~verilator
           ?input_data_file
