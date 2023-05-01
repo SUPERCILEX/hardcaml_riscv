@@ -10,6 +10,8 @@ module Fetch_instruction = struct
       ; stall_load_instruction : 'a
       ; jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
+      ; control_flow_resolved_pc : 'a [@bits Parameters.word_width]
+      ; control_flow_resolved_jump_target : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_to_taken : 'a
       ; mem_error : 'a
       }
@@ -36,6 +38,8 @@ module Fetch_instruction = struct
     ; stall_load_instruction
     ; jump
     ; jump_target
+    ; control_flow_resolved_pc
+    ; control_flow_resolved_jump_target
     ; control_flow_resolved_to_taken
     ; mem_error
     }
@@ -53,9 +57,11 @@ module Fetch_instruction = struct
         ; load
         ; read_address = program_counter
         ; store = control_flow_resolved_to_taken
-        ; write_address = jump_target
+        ; write_address = control_flow_resolved_pc
         ; write_data =
-            { Branch_prediction.Branch_target_buffer.Entry.taken_pc = jump_target }
+            { Branch_prediction.Branch_target_buffer.Entry.taken_pc =
+                control_flow_resolved_jump_target
+            }
         }
     in
     let next_pc =
@@ -303,7 +309,9 @@ module Execute = struct
     type 'a t =
       { jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
-      ; control_flow_resolved_to_taken : 'a
+      ; program_counter : 'a [@bits Parameters.word_width] [@rtlsuffix "_out"]
+      ; taken : 'a
+      ; resolved_jump_target : 'a [@bits Parameters.word_width]
       ; is_branch : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -314,6 +322,7 @@ module Execute = struct
       { done_ : 'a
       ; data : 'a Data_out.t
       ; resolved_control_flow : 'a Resolved_control_flow.t
+           [@rtlprefix "resolved_control_flow$"]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -444,7 +453,9 @@ module Execute = struct
     ; resolved_control_flow =
         { jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
         ; jump_target = mux2 jump jump_target (program_counter +:. 4)
-        ; control_flow_resolved_to_taken = jump
+        ; program_counter
+        ; taken = jump
+        ; resolved_jump_target = jump_target
         ; is_branch = is_branch instruction
         }
     }

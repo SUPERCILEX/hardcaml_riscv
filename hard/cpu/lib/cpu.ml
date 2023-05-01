@@ -17,6 +17,7 @@ module Counters = struct
   type 'a t =
     { cycles_since_boot : 'a [@bits 64]
     ; empty_alu_cycles : 'a [@bits 64]
+    ; fetch_branch_target_buffer_hits : 'a [@bits 64]
     ; decode_branch_mispredictions : 'a [@bits 64]
     ; decode_jump_mispredictions : 'a [@bits 64]
     ; execute_branch_mispredictions : 'a [@bits 64]
@@ -85,6 +86,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; stall_load_instruction = _
        ; jump
        ; jump_target
+       ; control_flow_resolved_pc
+       ; control_flow_resolved_jump_target
        ; control_flow_resolved_to_taken
        ; mem_error = _
        } as fetch_instruction_in)
@@ -379,7 +382,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
           ; jump_target = jump_target_
-          ; control_flow_resolved_to_taken = taken
+          ; program_counter
+          ; taken
+          ; resolved_jump_target
           ; is_branch
           } )
       =
@@ -393,6 +398,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
     flush_pre_decode <== (decode_jump &: decode_done);
     jump <== (flush_pre_writeback |: flush_pre_decode);
     jump_target <== mux2 (jump_ &: valid) jump_target_ decode_predicted_next_pc;
+    control_flow_resolved_pc <== program_counter;
+    control_flow_resolved_jump_target <== resolved_jump_target;
     control_flow_resolved_to_taken <== (valid &: taken);
     is_branch
   in
@@ -532,6 +539,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
               load_registers_out
             in
             counter ~:(valid &: ready))
+       ; fetch_branch_target_buffer_hits = counter (fetch_done &: has_fetch_prediction)
        ; decode_branch_mispredictions =
            counter (is_decode_branch_for_counters &: flush_pre_decode)
        ; decode_jump_mispredictions =
