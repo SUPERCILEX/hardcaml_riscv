@@ -11,4 +11,5 @@
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
   ((cycles_since_boot 46924) (empty_alu_cycles 9461)
+   (decode_branch_mispredictions 624) (decode_jump_mispredictions 788)
    (execute_branch_mispredictions 888) (execute_jump_mispredictions 1989))))

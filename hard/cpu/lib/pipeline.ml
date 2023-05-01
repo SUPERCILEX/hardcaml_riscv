@@ -97,6 +97,7 @@ module Decode_instruction = struct
       ; decoded : 'a Decoder.O.t
       ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; jump : 'a
+      ; is_branch : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -110,13 +111,14 @@ module Decode_instruction = struct
     let ({ Decoder.O.instruction; immediate; _ } as decoded) =
       Decoder.hierarchical scope { Decoder.I.instruction = raw_instruction }
     in
-    let branch = is_branch instruction &: (immediate <+. 0) in
+    let is_branch = is_branch instruction in
     let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
-    let jump = branch |: jal in
+    let jump = is_branch &: (immediate <+. 0) |: jal in
     { O.done_ = start
     ; decoded
     ; predicted_next_pc = mux2 jump (program_counter +: immediate) (program_counter +:. 4)
     ; jump
+    ; is_branch
     ; forward
     }
   ;;

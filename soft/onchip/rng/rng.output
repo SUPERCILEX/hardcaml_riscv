@@ -105,4 +105,5 @@
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
   ((cycles_since_boot 311425) (empty_alu_cycles 58554)
+   (decode_branch_mispredictions 5318) (decode_jump_mispredictions 4107)
    (execute_branch_mispredictions 5880) (execute_jump_mispredictions 12522))))

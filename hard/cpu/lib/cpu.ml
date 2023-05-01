@@ -17,6 +17,8 @@ module Counters = struct
   type 'a t =
     { cycles_since_boot : 'a [@bits 64]
     ; empty_alu_cycles : 'a [@bits 64]
+    ; decode_branch_mispredictions : 'a [@bits 64]
+    ; decode_jump_mispredictions : 'a [@bits 64]
     ; execute_branch_mispredictions : 'a [@bits 64]
     ; execute_jump_mispredictions : 'a [@bits 64]
     }
@@ -143,6 +145,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; decoded
       ; predicted_next_pc = decode_predicted_next_pc
       ; jump = decode_jump
+      ; is_branch = is_decode_branch_for_counters
       ; forward = decoder_forward
       }
     =
@@ -367,7 +370,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   load_registers_consume <== execute_done;
   let execute_outputs_valid = execute_done &: ~:flush_pre_writeback in
-  let is_branch_for_counters =
+  let is_execute_branch_for_counters =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
           ; jump_target = jump_target_
@@ -522,10 +525,14 @@ let create scope ~bootloader { I.clock; clear; uart } =
               load_registers_out
             in
             counter ~:(valid &: ready))
+       ; decode_branch_mispredictions =
+           counter (is_decode_branch_for_counters &: flush_pre_decode)
+       ; decode_jump_mispredictions =
+           counter (~:is_decode_branch_for_counters &: flush_pre_decode)
        ; execute_branch_mispredictions =
-           counter (is_branch_for_counters &: flush_pre_writeback)
+           counter (is_execute_branch_for_counters &: flush_pre_writeback)
        ; execute_jump_mispredictions =
-           counter (~:is_branch_for_counters &: flush_pre_writeback)
+           counter (~:is_execute_branch_for_counters &: flush_pre_writeback)
        })
   }
 ;;

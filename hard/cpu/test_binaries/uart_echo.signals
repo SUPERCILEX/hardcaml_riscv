@@ -2,6 +2,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 5) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 0) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2000)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -16,6 +17,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 1)))
   (counters
    ((cycles_since_boot 6) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 1) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -30,6 +32,7 @@
  ((error 0) (uart ((write_data 72) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 12) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 1) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -44,6 +47,7 @@
  ((error 0) (uart ((write_data 72) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 13) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 1) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -58,6 +62,7 @@
  ((error 0) (uart ((write_data 72) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 14) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -72,6 +77,7 @@
  ((error 0) (uart ((write_data 72) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 15) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -86,6 +92,7 @@
  ((error 0) (uart ((write_data 72) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 16) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -100,6 +107,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 17) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -114,6 +122,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 23) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -128,6 +137,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 24) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 2) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -142,6 +152,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 25) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -156,6 +167,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 26) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -170,6 +182,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 27) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -184,6 +197,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 28) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -198,6 +212,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 29) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -212,6 +227,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 30) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -226,6 +242,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 31) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -240,6 +257,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 32) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -254,6 +272,7 @@
  ((error 0) (uart ((write_data 101) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 33) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -268,6 +287,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 34) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -282,6 +302,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 45) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -296,6 +317,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 46) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 3) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -310,6 +332,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 47) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -324,6 +347,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 48) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -338,6 +362,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 49) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -352,6 +377,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 50) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -366,6 +392,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 51) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -380,6 +407,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 56) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -394,6 +422,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 57) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 4) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -408,6 +437,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 58) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -422,6 +452,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 59) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -436,6 +467,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 60) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -450,6 +482,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 61) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -464,6 +497,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 62) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -478,6 +512,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 63) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -492,6 +527,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 64) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -506,6 +542,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 65) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -520,6 +557,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 66) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -534,6 +572,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 67) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -548,6 +587,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 68) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -562,6 +602,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 78) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -576,6 +617,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 79) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 5) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -590,6 +632,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 80) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -604,6 +647,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 81) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -618,6 +662,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 82) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -632,6 +677,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 83) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -646,6 +692,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 84) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -660,6 +707,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 85) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -674,6 +722,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 89) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -688,6 +737,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 90) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 6) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -702,6 +752,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 91) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -716,6 +767,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 92) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -730,6 +782,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 93) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -744,6 +797,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 94) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -758,6 +812,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 95) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -772,6 +827,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 96) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -786,6 +842,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 97) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -800,6 +857,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 98) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -814,6 +872,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 99) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -828,6 +887,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 100) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -842,6 +902,7 @@
  ((error 0) (uart ((write_data 32) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 101) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -856,6 +917,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 102) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -870,6 +932,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 111) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -884,6 +947,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 112) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 7) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -898,6 +962,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 113) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -912,6 +977,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 114) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -926,6 +992,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 115) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -940,6 +1007,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 116) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -954,6 +1022,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 117) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -968,6 +1037,7 @@
  ((error 0) (uart ((write_data 87) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 118) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -982,6 +1052,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 119) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -996,6 +1067,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 122) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1010,6 +1082,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 123) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 8) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1024,6 +1097,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 124) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1038,6 +1112,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 125) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1052,6 +1127,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 126) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1066,6 +1142,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 127) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1080,6 +1157,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 128) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1094,6 +1172,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 129) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1108,6 +1187,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 130) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1122,6 +1202,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 131) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1136,6 +1217,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 132) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1150,6 +1232,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 133) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1164,6 +1247,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 134) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1178,6 +1262,7 @@
  ((error 0) (uart ((write_data 111) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 135) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1192,6 +1277,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 136) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1206,6 +1292,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 144) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1220,6 +1307,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 145) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 9) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1234,6 +1322,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 146) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1248,6 +1337,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 147) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1262,6 +1352,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 148) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1276,6 +1367,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 149) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1290,6 +1382,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 150) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1304,6 +1397,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 151) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1318,6 +1412,7 @@
  ((error 0) (uart ((write_data 114) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 152) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1332,6 +1427,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 153) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1346,6 +1442,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 166) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1360,6 +1457,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 167) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 10) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1374,6 +1472,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 168) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 11) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1388,6 +1487,7 @@
  ((error 0) (uart ((write_data 108) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 169) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 11) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1402,6 +1502,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 170) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 11) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1416,6 +1517,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 177) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 11) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1430,6 +1532,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 178) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 11) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1444,6 +1547,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 179) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1458,6 +1562,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 180) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1472,6 +1577,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 181) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1486,6 +1592,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 182) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1500,6 +1607,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 183) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1514,6 +1622,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 184) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1528,6 +1637,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 185) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1542,6 +1652,7 @@
  ((error 0) (uart ((write_data 100) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 186) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1556,6 +1667,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 187) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1570,6 +1682,7 @@
  ((error 0) (uart ((write_data 33) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 199) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1584,6 +1697,7 @@
  ((error 0) (uart ((write_data 33) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 200) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 12) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1598,6 +1712,7 @@
  ((error 0) (uart ((write_data 33) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 201) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1612,6 +1727,7 @@
  ((error 0) (uart ((write_data 33) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 202) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1626,6 +1742,7 @@
  ((error 0) (uart ((write_data 33) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 203) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1640,6 +1757,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 204) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1654,6 +1772,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 210) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1668,6 +1787,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 211) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 13) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1682,6 +1802,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 212) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1696,6 +1817,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 213) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1710,6 +1832,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 214) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1724,6 +1847,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 215) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1738,6 +1862,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 216) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1752,6 +1877,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 217) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1766,6 +1892,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 218) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1780,6 +1907,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 219) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1794,6 +1922,7 @@
  ((error 0) (uart ((write_data 10) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 220) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1808,6 +1937,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 221) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1822,6 +1952,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 232) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1836,6 +1967,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 233) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 14) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 0) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1850,6 +1982,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 234) (empty_alu_cycles 3)
+    (decode_branch_mispredictions 15) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 1) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1864,6 +1997,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 235) (empty_alu_cycles 4)
+    (decode_branch_mispredictions 15) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 1) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1878,6 +2012,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 236) (empty_alu_cycles 5)
+    (decode_branch_mispredictions 15) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 1) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1892,6 +2027,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 1) (read_ready 0)))
   (counters
    ((cycles_since_boot 237) (empty_alu_cycles 6)
+    (decode_branch_mispredictions 15) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 1) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
@@ -1906,6 +2042,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 238) (empty_alu_cycles 6)
+    (decode_branch_mispredictions 15) (decode_jump_mispredictions 0)
     (execute_branch_mispredictions 1) (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x2003)
   (memory_controller$i$data_size_binary_variant 0x0)
