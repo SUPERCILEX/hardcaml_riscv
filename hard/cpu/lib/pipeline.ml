@@ -249,11 +249,17 @@ module Execute = struct
       ; is_store_instruction : 'a
       ; store_data : 'a [@bits Parameters.word_width]
       ; data_size : 'a Memory_controller.Size.Binary.t [@rtlmangle true]
-      ; jump : 'a
+      ; forward : 'a Forward.t [@rtlprefix "fo$"]
+      ; bypass_id : 'a [@bits 2] [@rtlsuffix "_out"]
+      }
+    [@@deriving sexp_of, hardcaml]
+  end
+
+  module Resolved_control_flow = struct
+    type 'a t =
+      { jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
       ; is_branch : 'a
-      ; bypass_id : 'a [@bits 2] [@rtlsuffix "_out"]
-      ; forward : 'a Forward.t [@rtlprefix "fo$"]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -262,6 +268,7 @@ module Execute = struct
     type 'a t =
       { done_ : 'a
       ; data : 'a Data_out.t
+      ; resolved_control_flow : 'a Resolved_control_flow.t
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -386,11 +393,13 @@ module Execute = struct
         ; is_store_instruction = is_store_mem instruction
         ; store_data = rs2
         ; data_size = compute_data_size instruction
-        ; jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
+        ; forward
+        ; bypass_id
+        }
+    ; resolved_control_flow =
+        { jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
         ; jump_target = mux2 jump jump_target (program_counter +:. 4)
         ; is_branch = is_branch instruction
-        ; bypass_id
-        ; forward
         }
     }
   ;;
@@ -412,7 +421,6 @@ module Load_memory_and_store = struct
       ; stall_mem_load : 'a
       ; is_store_instruction : 'a
       ; stall_mem_store : 'a
-      ; jump : 'a
       ; pipeline_error : 'a
       ; mem_error : 'a
       }
@@ -440,7 +448,6 @@ module Load_memory_and_store = struct
     ; stall_mem_load
     ; is_store_instruction
     ; stall_mem_store
-    ; jump
     ; pipeline_error
     ; mem_error
     }
@@ -473,10 +480,8 @@ module Load_memory_and_store = struct
         [ if_
             start
             [ if_ is_load_instruction [ load_mem <-- vdd ]
-              @@ elif
-                   is_writeback_instruction
-                   [ store_registers <-- vdd; done_ <-- ~:jump ]
-              @@ elif is_store_instruction [] [ done_ <-- ~:jump ]
+              @@ elif is_writeback_instruction [ store_registers <-- vdd; done_ <-- vdd ]
+              @@ elif is_store_instruction [] [ done_ <-- vdd ]
             ; when_
                 is_store_instruction
                 [ store_mem <-- vdd; done_ <-- ~:stall_mem_store ]
@@ -489,7 +494,6 @@ module Load_memory_and_store = struct
                    (is_load_instruction &: ~:loading_mem)
                    [ store_registers <-- is_writeback_instruction; done_ <-- vdd ]
                ; when_ (is_store_instruction &: ~:stall_mem_store) [ done_ <-- vdd ]
-               ; when_ jump [ done_ <-- vdd ]
                ; running <-- ~:(done_.value)
                ]
                []

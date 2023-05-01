@@ -294,7 +294,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let execute_full = wire 1 in
   let alu_bypass_id = wire 2 in
-  let { Execute.O.done_ = execute_done; data = execute_data } =
+  let { Execute.O.done_ = execute_done; data = execute_data; resolved_control_flow } =
     Load_registers_buffer.Entry.Of_signal.assign
       load_registers_head_update
       { Load_registers_buffer.Entry.id =
@@ -366,6 +366,26 @@ let create scope ~bootloader { I.clock; clear; uart } =
       }
   in
   load_registers_consume <== execute_done;
+  let execute_outputs_valid = execute_done &: ~:flush_pre_writeback in
+  let is_branch_for_counters =
+    let ( valid
+        , { Execute.Resolved_control_flow.jump = jump_
+          ; jump_target = jump_target_
+          ; is_branch
+          } )
+      =
+      ( reg (Reg_spec.create ~clock ~clear ()) execute_outputs_valid
+      , Execute.Resolved_control_flow.Of_signal.reg
+          ~enable:execute_done
+          (Reg_spec.create ~clock ())
+          resolved_control_flow )
+    in
+    flush_pre_writeback <== (jump_ &: valid);
+    flush_pre_decode <== (decode_jump &: decode_done);
+    jump <== (flush_pre_writeback |: flush_pre_decode);
+    jump_target <== mux2 (jump_ &: valid) jump_target_ decode_predicted_next_pc;
+    is_branch
+  in
   let module Execute_buffer = Fast_fifo.Make (Execute.Data_out) in
   let writeback_done = wire 1 in
   let { Execute_buffer.O.rd_data = execute_out
@@ -380,9 +400,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~cut_through:false
       ~capacity:1
       { Execute_buffer.I.clock
-      ; clear = clear |: flush_pre_writeback
+      ; clear
       ; wr_data = execute_data
-      ; wr_enable = execute_done
+      ; wr_enable = execute_outputs_valid
       ; rd_enable = writeback_done
       }
   in
@@ -402,9 +422,6 @@ let create scope ~bootloader { I.clock; clear; uart } =
         ; is_store_instruction
         ; store_data
         ; data_size = data_size_
-        ; jump
-        ; jump_target = jump_target_
-        ; is_branch = _
         ; bypass_id = _
         ; forward = { rd_address = rd_address_; error }
         }
@@ -416,8 +433,6 @@ let create scope ~bootloader { I.clock; clear; uart } =
     data_address <== data_address_;
     write_data <== store_data;
     Memory_controller.Size.Binary.Of_signal.assign data_size data_size_;
-    jump_target
-    <== mux2 (execute_out.jump &: writeback_done) jump_target_ decode_predicted_next_pc;
     rd_address <== rd_address_;
     let debounce start =
       start
@@ -434,14 +449,10 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; stall_mem_load
       ; is_store_instruction
       ; stall_mem_store
-      ; jump
       ; pipeline_error = error
       ; mem_error
       }
   in
-  flush_pre_writeback <== (execute_out.jump &: writeback_done);
-  flush_pre_decode <== (decode_jump &: decode_done);
-  jump <== (flush_pre_writeback |: flush_pre_decode);
   writeback_done <== writeback_done_;
   store_registers <== store_registers_;
   load_mem <== load_mem_;
@@ -505,15 +516,16 @@ let create scope ~bootloader { I.clock; clear; uart } =
            ~f:(fun count -> mux2 condition (count +:. 1) count)
            (Reg_spec.create ~clock ~clear ())
        in
-       let { Execute.Data_out.is_branch; _ } = execute_out in
        { cycles_since_boot = counter vdd
        ; empty_alu_cycles =
            (let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data = _ } } =
               load_registers_out
             in
             counter ~:(valid &: ready))
-       ; execute_branch_mispredictions = counter (is_branch &: flush_pre_writeback)
-       ; execute_jump_mispredictions = counter (~:is_branch &: flush_pre_writeback)
+       ; execute_branch_mispredictions =
+           counter (is_branch_for_counters &: flush_pre_writeback)
+       ; execute_jump_mispredictions =
+           counter (~:is_branch_for_counters &: flush_pre_writeback)
        })
   }
 ;;
