@@ -54,7 +54,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let { Memory_controller.O.instruction = raw_instruction
       ; read_data
-      ; error = mem_error
+      ; instruction_error = instruction_mem_error
+      ; data_error = data_mem_error
       ; uart
       ; stall_load_instruction
       ; stall_load = stall_mem_load
@@ -97,7 +98,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     ; clear
     ; pipeline_full = fetch_full |: lock_pipeline
     ; stall_load_instruction
-    ; mem_error
+    ; mem_error = instruction_mem_error
     }
   in
   let { Fetch_instruction.O.done_ = fetch_done
@@ -468,7 +469,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; is_store_instruction
       ; stall_mem_store
       ; pipeline_error = error
-      ; mem_error
+      ; mem_error = data_mem_error
       }
   in
   writeback_done <== writeback_done_;
