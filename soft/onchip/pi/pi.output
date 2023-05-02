@@ -5,7 +5,7 @@ pi(10) = 3.1415926535897913
 
 ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 100000) (empty_alu_cycles 22106)
-   (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 626)
-   (decode_jump_mispredictions 1888) (execute_branch_mispredictions 2584)
-   (execute_jump_mispredictions 4265))))
+  ((cycles_since_boot 100000) (empty_alu_cycles 22188)
+   (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 1534)
+   (decode_jump_mispredictions 3117) (execute_branch_mispredictions 4023)
+   (execute_jump_mispredictions 2565))))

@@ -11,7 +11,7 @@ libm = "0.2.6"
 slib = { path = "../../slib" }
 
 [profile.release]
-opt-level = "z"
+opt-level = "s"
 lto = true
 codegen-units = 1
 strip = true

@@ -4,11 +4,9 @@ target = "riscv32i-unknown-none-elf"
 [target.riscv32i-unknown-none-elf]
 rustflags = [
     "-Clink-arg=-T../program.lds",
-    "-Crelocation-model=pic",
     "-Ctarget-feature=+m",
-    # TODO https://github.com/rust-lang/rust/issues/108853
-    "-Zshare-generics=off",
 ]
 
 [unstable]
-build-std = ["core"]
+build-std = ["core", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
