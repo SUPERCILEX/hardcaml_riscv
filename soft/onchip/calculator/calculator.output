@@ -10,7 +10,7 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 33685) (empty_alu_cycles 5119)
-   (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 496)
-   (decode_jump_mispredictions 760) (execute_branch_mispredictions 799)
-   (execute_jump_mispredictions 642))))
+  ((cycles_since_boot 34968) (empty_alu_cycles 5370)
+   (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 532)
+   (decode_jump_mispredictions 758) (execute_branch_mispredictions 841)
+   (execute_jump_mispredictions 684))))
