@@ -168,7 +168,10 @@ module Decode_instruction = struct
     { O.done_ = start
     ; decoded
     ; predicted_next_pc
-    ; jump = ~:trust_fetch_prediction &: jump
+    ; jump =
+        ~:has_fetch_prediction
+        &: jump
+        |: (has_fetch_prediction &: ~:trust_fetch_prediction)
     ; is_branch
     ; forward
     }
