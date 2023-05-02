@@ -1,0 +1,74 @@
+(rule
+ (target wc.bin)
+ (deps
+  (file ../program.lds)
+  (glob_files Cargo.*)
+  (source_tree ../../shared)
+  (source_tree ../../slib)
+  (source_tree ../.cargo)
+  (source_tree src))
+ (mode
+  (promote (until-clean)))
+ (alias bin)
+ (locks cargo)
+ (action
+  (progn
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (run cargo clean)
+   (run cargo build --release)
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    target/riscv32i-unknown-none-elf/release/wc
+    %{target}))))
+
+(rule
+ (target wc-test.bin)
+ (deps
+  (file ../boot.lds)
+  (glob_files Cargo.*)
+  (source_tree ../../shared)
+  (source_tree ../../slib)
+  (source_tree ../.cargo)
+  (source_tree src))
+ (mode
+  (promote (until-clean)))
+ (alias bin)
+ (locks cargo)
+ (action
+  (progn
+   (run mkdir -p target)
+   (run chmod +rw -R target)
+   (run cargo clean)
+   (run cargo rustc --release -- -Clink-arg=-T../boot.lds --cfg test)
+   (run
+    riscv64-linux-gnu-objcopy
+    -O
+    binary
+    target/riscv32i-unknown-none-elf/release/wc
+    %{target}))))
+
+(rule
+ (target wc.output)
+ (deps
+  wc.input
+  (:exe ../../../hard/cpu/bin/cli.exe)
+  (:bin wc-test.bin))
+ (mode promote)
+ (alias runtest)
+ (action
+  (run
+   %{exe}
+   execute
+   -cycles
+   500000
+   -program
+   "custom"
+   -binary
+   %{bin}
+   -input-data-file
+   wc.input
+   -output-data-file
+   %{target})))

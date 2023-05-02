@@ -1,0 +1,19 @@
+[workspace]
+
+[package]
+name = "wc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+heapless = "0.7.16"
+slib = { path = "../../slib" }
+unicode-blocks = "0.1.6"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
