@@ -2,11 +2,8 @@ open! Core
 open Hardcaml
 
 module Make
-  (M : Hardcaml.Interface.S) (Params : sig
-    val size : int
+  (M : Interface.S) (Params : sig
     val address_bits : int
-    val address_to_index : Signal.t -> Signal.t
-    val address_to_tag : Signal.t -> Signal.t
   end) =
 struct
   module I = struct
@@ -30,8 +27,11 @@ struct
   end
 
   let create
-    ~name
     scope
+    ~name
+    ~size
+    ~address_to_index
+    ~address_to_tag
     { I.clock
     ; load = read_enable
     ; read_address
@@ -54,25 +54,25 @@ struct
       Ram.create
         ~name:(Scope.name scope name)
         ~collision_mode:Read_before_write
-        ~size:Params.size
+        ~size
         ~write_ports:
           [| { Ram.Write_port.write_clock = clock
              ; write_address =
-                 (let address = Params.address_to_index write_address in
-                  assert (width address = address_bits_for Params.size);
+                 (let address = address_to_index write_address in
+                  assert (width address = address_bits_for size);
                   address)
              ; write_enable
              ; write_data =
                  Line.Of_signal.pack
                    { Line.valid = vdd
                    ; data = write_data
-                   ; tag = Params.address_to_tag write_address
+                   ; tag = address_to_tag write_address
                    }
              }
           |]
         ~read_ports:
           [| { Ram.Read_port.read_clock = clock
-             ; read_address = Params.address_to_index read_address
+             ; read_address = address_to_index read_address
              ; read_enable
              }
           |]
@@ -82,15 +82,15 @@ struct
       let { Line.valid; data; tag } = Line.Of_signal.unpack data in
       let tag_match =
         tag
-        ==: (Params.address_to_tag read_address
+        ==: (address_to_tag read_address
              |> reg ~enable:read_enable (Reg_spec.create ~clock ()))
       in
       { O.data; hit = valid &: tag_match }
     | _ -> assert false
   ;;
 
-  let hierarchical ~name scope =
+  let hierarchical ~name ~size ~address_to_index ~address_to_tag scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    H.hierarchical ~scope ~name (create ~name)
+    H.hierarchical ~scope ~name (create ~name ~size ~address_to_index ~address_to_tag)
   ;;
 end
