@@ -23,7 +23,6 @@ module Fetch_instruction = struct
       { done_ : 'a
       ; load : 'a
       ; program_counter : 'a [@bits Parameters.word_width]
-      ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; has_prediction : 'a
       ; error : 'a
       }
@@ -46,7 +45,7 @@ module Fetch_instruction = struct
     =
     let open Signal in
     let load = ~:pipeline_full &: ~:jump in
-    let program_counter = wire Parameters.word_width in
+    let next_pc = wire Parameters.word_width in
     let { Branch_prediction.Branch_target_buffer.O.data = { taken_pc = predicted_next_pc }
         ; hit = has_prediction
         }
@@ -55,8 +54,8 @@ module Fetch_instruction = struct
         scope
         { Branch_prediction.Branch_target_buffer.I.clock
         ; load
-        ; read_address = program_counter
-        ; store = control_flow_resolved_to_taken
+        ; read_address = next_pc
+        ; store = control_flow_resolved_to_taken &: gnd
         ; write_address = control_flow_resolved_pc
         ; write_data =
             { Branch_prediction.Branch_target_buffer.Entry.taken_pc =
@@ -64,23 +63,25 @@ module Fetch_instruction = struct
             }
         }
     in
-    let next_pc =
-      mux2
-        jump
-        jump_target
-        (mux2 has_prediction predicted_next_pc (program_counter +:. 4))
-    in
-    program_counter
-    <== reg
-          ~enable:(~:pipeline_full &: ~:stall_load_instruction |: jump)
-          (Reg_spec.override
-             (Reg_spec.create ~clock ~clear ())
-             ~clear_to:(of_int ~width:(width program_counter) Parameters.bootloader_start))
-          next_pc;
-    { O.done_ = load &: ~:stall_load_instruction
+    let done_ = load &: ~:stall_load_instruction in
+    let latch_pc = done_ |: jump in
+    let current_pc = wire (width next_pc) in
+    next_pc
+    <== mux2
+          (has_prediction
+           &: (~:jump |> reg ~enable:latch_pc (Reg_spec.create ~clock ~clear ())))
+          predicted_next_pc
+          current_pc;
+    current_pc
+    <== (mux2 jump jump_target (next_pc +:. 4)
+         |> reg
+              ~enable:latch_pc
+              (Reg_spec.override
+                 (Reg_spec.create ~clock ~clear ())
+                 ~clear_to:(of_int ~width:(width next_pc) Parameters.bootloader_start)));
+    { O.done_
     ; load
-    ; program_counter
-    ; predicted_next_pc = next_pc
+    ; program_counter = next_pc
     ; has_prediction
     ; error = mem_error &: load
     }
@@ -155,17 +156,19 @@ module Decode_instruction = struct
     in
     let is_branch = is_branch instruction in
     let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
+    let jalr = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jalr) in
     let jump = is_branch &: (immediate <+. 0) |: jal in
+    let trust_fetch_prediction = has_fetch_prediction &: (is_branch |: jal |: jalr) in
     let predicted_next_pc =
       mux2
-        has_fetch_prediction
+        trust_fetch_prediction
         fetch_predicted_next_pc
         (mux2 jump (program_counter +: immediate) (program_counter +:. 4))
     in
     { O.done_ = start
     ; decoded
     ; predicted_next_pc
-    ; jump = predicted_next_pc <>: fetch_predicted_next_pc &: ~:has_fetch_prediction
+    ; jump = ~:trust_fetch_prediction &: jump
     ; is_branch
     ; forward
     }
