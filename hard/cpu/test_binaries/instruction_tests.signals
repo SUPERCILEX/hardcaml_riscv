@@ -210,7 +210,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 26) (empty_alu_cycles 7)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x12345000)
@@ -226,7 +226,7 @@
  ((error 0) (uart ((write_data 120) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 27) (empty_alu_cycles 7)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x12345678)
@@ -242,7 +242,7 @@
  ((error 0) (uart ((write_data 36) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 28) (empty_alu_cycles 7)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -258,7 +258,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 29) (empty_alu_cycles 7)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -274,7 +274,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 31) (empty_alu_cycles 8)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -290,7 +290,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 33) (empty_alu_cycles 8)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x12345624)
@@ -306,7 +306,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 34) (empty_alu_cycles 8)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x0)
@@ -322,7 +322,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 35) (empty_alu_cycles 8)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 0))))
  ((memory_controller$i$data_address 0x4064)
@@ -338,7 +338,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 36) (empty_alu_cycles 8)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x4064)
@@ -354,7 +354,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 41) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x4064)
@@ -370,7 +370,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 42) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x1c000)
@@ -386,7 +386,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 43) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x1c6a2)
@@ -402,7 +402,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 44) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xe000)
@@ -418,7 +418,7 @@
  ((error 0) (uart ((write_data 81) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 45) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xe351)
@@ -434,7 +434,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 46) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x1c6a2)
@@ -450,7 +450,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 47) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x1cdbc)
@@ -466,7 +466,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 48) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x1cdbc)
@@ -482,7 +482,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 49) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xfffff000)
@@ -498,7 +498,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 50) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xffffefc0)
@@ -514,7 +514,7 @@
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 51) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xffffffff)
@@ -530,7 +530,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 52) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -546,7 +546,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 54) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -562,7 +562,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 56) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x7fffff10)
@@ -578,7 +578,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 57) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b89000)
@@ -594,7 +594,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 58) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -610,7 +610,7 @@
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 59) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0x2b)
@@ -626,7 +626,7 @@
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 60) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -642,7 +642,7 @@
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 61) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -658,7 +658,7 @@
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 62) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -674,7 +674,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 63) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -690,7 +690,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 72) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -706,7 +706,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 81) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -722,7 +722,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 90) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)
@@ -738,7 +738,7 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 99) (empty_alu_cycles 11)
-    (fetch_branch_target_buffer_hits 0) (decode_branch_mispredictions 3)
+    (fetch_branch_target_buffer_hits 1) (decode_branch_mispredictions 2)
     (decode_jump_mispredictions 1) (execute_branch_mispredictions 1)
     (execute_jump_mispredictions 1))))
  ((memory_controller$i$data_address 0xc2b8915d)

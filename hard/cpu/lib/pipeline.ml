@@ -55,7 +55,7 @@ module Fetch_instruction = struct
         { Branch_prediction.Branch_target_buffer.I.clock
         ; load
         ; read_address = next_pc
-        ; store = control_flow_resolved_to_taken &: gnd
+        ; store = control_flow_resolved_to_taken
         ; write_address = control_flow_resolved_pc
         ; write_data =
             { Branch_prediction.Branch_target_buffer.Entry.taken_pc =
