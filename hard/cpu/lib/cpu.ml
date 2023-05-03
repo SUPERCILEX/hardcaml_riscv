@@ -16,6 +16,7 @@ end
 module Counters = struct
   type 'a t =
     { cycles_since_boot : 'a [@bits 64]
+    ; instructions_retired : 'a [@bits 64]
     ; empty_alu_cycles : 'a [@bits 64]
     ; fetch_branch_target_buffer_hits : 'a [@bits 64]
     ; decode_branch_mispredictions : 'a [@bits 64]
@@ -536,6 +537,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
            (Reg_spec.create ~clock ~clear ())
        in
        { cycles_since_boot = counter vdd
+       ; instructions_retired = counter writeback_done
        ; empty_alu_cycles =
            (let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data = _ } } =
               load_registers_out
