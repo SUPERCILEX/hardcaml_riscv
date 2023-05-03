@@ -64,18 +64,15 @@ module Fetch_instruction = struct
         }
     in
     let done_ = load &: ~:stall_load_instruction in
-    let latch_pc = done_ |: jump in
     let current_pc = wire (width next_pc) in
     next_pc
     <== mux2
-          (has_prediction
-           &: (~:jump |> reg ~enable:latch_pc (Reg_spec.create ~clock ~clear ())))
+          (has_prediction &: (done_ |> reg (Reg_spec.create ~clock ~clear ())))
           predicted_next_pc
           current_pc;
     current_pc
-    <== (mux2 jump jump_target (next_pc +:. 4)
+    <== (mux2 jump jump_target (mux2 done_ (next_pc +:. 4) next_pc)
          |> reg
-              ~enable:latch_pc
               (Reg_spec.override
                  (Reg_spec.create ~clock ~clear ())
                  ~clear_to:(of_int ~width:(width next_pc) Parameters.bootloader_start)));
