@@ -88,9 +88,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; stall_load_instruction = _
        ; jump
        ; jump_target
+       ; pending_return_address
        ; control_flow_resolved_pc
        ; control_flow_resolved_jump_target
        ; control_flow_resolved_to_taken
+       ; control_flow_resolved_is_return
        ; mem_error = _
        } as fetch_instruction_in)
     =
@@ -156,6 +158,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; jump = decode_jump
       ; is_branch = is_decode_branch_for_counters
       ; forward = decoder_forward
+      ; pending_return_address = pending_return_address_
       }
     =
     Fetch_buffer.Entry.Of_signal.assign
@@ -182,6 +185,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       { clock; clear; start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
   in
   fetch_consume <== decode_done;
+  pending_return_address <== pending_return_address_;
   let module Decode_buffer = Fast_fifo.Make (Load_registers.Data_in) in
   let decode_consume = wire 1 in
   let { Decode_buffer.O.rd_data = decode_out
@@ -381,6 +385,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; taken
           ; resolved_jump_target
           ; is_branch
+          ; is_return
           } )
       =
       ( reg (Reg_spec.create ~clock ~clear ()) execute_done
@@ -396,6 +401,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     control_flow_resolved_pc <== program_counter;
     control_flow_resolved_jump_target <== resolved_jump_target;
     control_flow_resolved_to_taken <== (valid &: taken);
+    control_flow_resolved_is_return <== is_return;
     is_branch
   in
   let module Execute_buffer = Fast_fifo.Make (Execute.Data_out) in

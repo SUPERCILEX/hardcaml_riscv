@@ -3,7 +3,10 @@ open Hardcaml
 
 module Branch_target_buffer = struct
   module Entry = struct
-    type 'a t = { taken_pc : 'a [@bits Parameters.word_width] }
+    type 'a t =
+      { taken_pc : 'a [@bits Parameters.word_width]
+      ; is_return : 'a
+      }
     [@@deriving sexp_of, hardcaml]
   end
 

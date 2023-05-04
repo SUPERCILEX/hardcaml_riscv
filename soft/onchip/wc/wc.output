@@ -5,7 +5,7 @@ WordsCount { words: 184, characters: 1132, whitespaces: 186, cjk: 0 }
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 496604) (instructions_retired 302016)
-   (empty_alu_cycles 95511) (fetch_branch_target_buffer_hits 101065)
-   (decode_branch_mispredictions 76) (decode_jump_mispredictions 72)
+  ((cycles_since_boot 496603) (instructions_retired 302016)
+   (empty_alu_cycles 95510) (fetch_branch_target_buffer_hits 101065)
+   (decode_branch_mispredictions 76) (decode_jump_mispredictions 44)
    (execute_branch_mispredictions 31810) (execute_jump_mispredictions 11))))

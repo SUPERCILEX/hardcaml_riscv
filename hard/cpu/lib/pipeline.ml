@@ -10,9 +10,11 @@ module Fetch_instruction = struct
       ; stall_load_instruction : 'a
       ; jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
+      ; pending_return_address : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_pc : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_jump_target : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_to_taken : 'a
+      ; control_flow_resolved_is_return : 'a
       ; mem_error : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -37,16 +39,19 @@ module Fetch_instruction = struct
     ; stall_load_instruction
     ; jump
     ; jump_target
+    ; pending_return_address
     ; control_flow_resolved_pc
     ; control_flow_resolved_jump_target
     ; control_flow_resolved_to_taken
+    ; control_flow_resolved_is_return
     ; mem_error
     }
     =
     let open Signal in
     let load = ~:pipeline_full &: ~:jump in
     let next_pc = wire Parameters.word_width in
-    let { Branch_prediction.Branch_target_buffer.O.data = { taken_pc = predicted_next_pc }
+    let { Branch_prediction.Branch_target_buffer.O.data =
+            { taken_pc = predicted_next_pc; is_return }
         ; hit = has_prediction
         }
       =
@@ -57,7 +62,10 @@ module Fetch_instruction = struct
         ; read_address = next_pc
         ; store = control_flow_resolved_to_taken
         ; write_address = control_flow_resolved_pc
-        ; write_data = { taken_pc = control_flow_resolved_jump_target }
+        ; write_data =
+            { taken_pc = control_flow_resolved_jump_target
+            ; is_return = control_flow_resolved_is_return
+            }
         }
     in
     let done_ = load &: ~:stall_load_instruction in
@@ -65,7 +73,7 @@ module Fetch_instruction = struct
     next_pc
     <== mux2
           (has_prediction &: (done_ |> reg (Reg_spec.create ~clock ~clear ())))
-          predicted_next_pc
+          (mux2 is_return pending_return_address predicted_next_pc)
           current_pc;
     current_pc
     <== (mux2 jump jump_target (mux2 done_ (next_pc +:. 4) next_pc)
@@ -92,6 +100,20 @@ let is_branch instruction =
   [ Instruction.RV32I.Beq; Bne; Blt; Bge; Bltu; Bgeu ]
   |> List.map ~f:(fun op -> Instruction.All.Rv32i op, vdd)
   |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
+;;
+
+let is_link_reg id =
+  let open Signal in
+  id ==:. 1 |: (id ==:. 5)
+;;
+
+let is_return { Decoder.O.instruction; rd; rs1; rs2 = _; immediate = _ } =
+  let open Signal in
+  let jalr = Instruction.Binary.Of_signal.is instruction (Rv32i Jalr) in
+  jalr
+  &: (~:(is_link_reg rd)
+      &: is_link_reg rs1
+      |: (is_link_reg rd &: is_link_reg rs1 &: (rs1 <>: rd)))
 ;;
 
 module Decode_instruction = struct
@@ -131,6 +153,7 @@ module Decode_instruction = struct
       ; jump : 'a
       ; is_branch : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
+      ; pending_return_address : 'a [@bits Parameters.word_width]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -155,13 +178,7 @@ module Decode_instruction = struct
     let is_branch = is_branch instruction in
     let jal = Instruction.Binary.Of_signal.is instruction (Rv32i Jal) in
     let jalr = Instruction.Binary.Of_signal.is instruction (Rv32i Jalr) in
-    let is_link_reg reg = reg ==:. 1 |: (reg ==:. 5) in
-    let is_return =
-      jalr
-      &: (~:(is_link_reg rd)
-          &: is_link_reg rs1
-          |: (is_link_reg rd &: is_link_reg rs1 &: (rs1 <>: rd)))
-    in
+    let is_return = is_return decoded in
     let { Branch_prediction.Return_address_stack.O.data = { return_pc } } =
       let is_call =
         jal
@@ -181,9 +198,7 @@ module Decode_instruction = struct
         }
     in
     let jump = is_branch &: (immediate <+. 0) |: jal |: (jalr &: is_return) in
-    let trust_fetch_prediction =
-      has_fetch_prediction &: (is_branch |: jal |: (jalr &: ~:is_return))
-    in
+    let trust_fetch_prediction = has_fetch_prediction &: (is_branch |: jal |: jalr) in
     let predicted_next_pc =
       mux2
         trust_fetch_prediction
@@ -202,6 +217,7 @@ module Decode_instruction = struct
         |: (has_fetch_prediction &: ~:trust_fetch_prediction)
     ; is_branch
     ; forward
+    ; pending_return_address = return_pc
     }
   ;;
 
@@ -336,6 +352,7 @@ module Execute = struct
       ; taken : 'a
       ; resolved_jump_target : 'a [@bits Parameters.word_width]
       ; is_branch : 'a
+      ; is_return : 'a
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -434,8 +451,8 @@ module Execute = struct
     ; start
     ; bypass_id
     ; data =
-        { rs1_address = _
-        ; rs2_address = _
+        { rs1_address
+        ; rs2_address
         ; rs1
         ; rs2
         ; program_counter
@@ -472,6 +489,14 @@ module Execute = struct
         ; taken = jump
         ; resolved_jump_target = jump_target
         ; is_branch = is_branch instruction
+        ; is_return =
+            is_return
+              { instruction
+              ; rd = rd_address
+              ; rs1 = rs1_address
+              ; rs2 = rs2_address
+              ; immediate
+              }
         }
     }
   ;;
