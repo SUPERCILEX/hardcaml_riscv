@@ -252,33 +252,22 @@ module Load_registers = struct
     [@@deriving sexp_of, hardcaml]
   end
 
-  let create _scope { I.start; data = { rs1_address; rs2_address; forward } } =
+  let create
+    _scope
+    { I.start
+    ; data = { rs1_address; rs2_address; forward = { error; instruction; _ } as forward }
+    }
+    =
     let open Signal in
     { O.done_ = start
     ; load = start
     ; rs1_address
     ; rs2_address
     ; forward =
-        (let { Forward.program_counter
-             ; predicted_next_pc
-             ; instruction
-             ; rd_address
-             ; immediate
-             ; error
-             }
-           =
-           forward
-         in
-         { program_counter
-         ; predicted_next_pc
-         ; instruction
-         ; rd_address
-         ; immediate
-         ; error =
-             error
-             |: (start
-                 &: Instruction.Binary.Of_signal.is forward.instruction (Rv32i Invalid))
-         })
+        { forward with
+          error =
+            error |: (start &: Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
+        }
     }
   ;;
 
