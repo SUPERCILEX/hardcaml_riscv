@@ -115,7 +115,9 @@ module Decode_instruction = struct
 
   module I = struct
     type 'a t =
-      { start : 'a
+      { clock : 'a
+      ; clear : 'a
+      ; start : 'a
       ; data : 'a Data_in.t
       }
     [@@deriving sexp_of, hardcaml]
@@ -135,7 +137,9 @@ module Decode_instruction = struct
 
   let create
     scope
-    { I.start
+    { I.clock
+    ; clear
+    ; start
     ; data =
         { raw_instruction
         ; fetch_predicted_next_pc
@@ -145,19 +149,49 @@ module Decode_instruction = struct
     }
     =
     let open Signal in
-    let ({ Decoder.O.instruction; immediate; _ } as decoded) =
+    let ({ Decoder.O.instruction; rd; rs1; rs2 = _; immediate } as decoded) =
       Decoder.hierarchical scope { instruction = raw_instruction }
     in
     let is_branch = is_branch instruction in
     let jal = Instruction.Binary.Of_signal.is instruction (Rv32i Jal) in
     let jalr = Instruction.Binary.Of_signal.is instruction (Rv32i Jalr) in
-    let jump = is_branch &: (immediate <+. 0) |: jal in
-    let trust_fetch_prediction = has_fetch_prediction &: (is_branch |: jal |: jalr) in
+    let is_link_reg reg = reg ==:. 1 |: (reg ==:. 5) in
+    let is_return =
+      jalr
+      &: (~:(is_link_reg rd)
+          &: is_link_reg rs1
+          |: (is_link_reg rd &: is_link_reg rs1 &: (rs1 <>: rd)))
+    in
+    let { Branch_prediction.Return_address_stack.O.data = { return_pc } } =
+      let is_call =
+        jal
+        &: is_link_reg rd
+        |: (jalr
+            &: (is_link_reg rd
+                &: ~:(is_link_reg rs1)
+                |: (is_link_reg rd &: is_link_reg rs1)))
+      in
+      Branch_prediction.Return_address_stack.hierarchical
+        scope
+        { clock
+        ; clear
+        ; push = start &: is_call
+        ; pop = start &: is_return
+        ; write_data = { return_pc = program_counter +:. 4 }
+        }
+    in
+    let jump = is_branch &: (immediate <+. 0) |: jal |: (jalr &: is_return) in
+    let trust_fetch_prediction =
+      has_fetch_prediction &: (is_branch |: jal |: (jalr &: ~:is_return))
+    in
     let predicted_next_pc =
       mux2
         trust_fetch_prediction
         fetch_predicted_next_pc
-        (mux2 jump (program_counter +: immediate) (program_counter +:. 4))
+        (mux2
+           jump
+           (mux2 is_return return_pc (program_counter +: immediate))
+           (program_counter +:. 4))
     in
     { O.done_ = start
     ; decoded
@@ -709,14 +743,12 @@ module Tests : sig end = struct
     type 'a t = { test : 'a } [@@deriving sexp_of, hardcaml]
   end
 
-  module B =
+  include
     Stage_buffer
       (struct
         let capacity = 2
       end)
       (Data)
-
-  open B
 
   let test_bench ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
     let open Bits in

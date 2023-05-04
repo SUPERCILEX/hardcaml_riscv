@@ -179,7 +179,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let { Fetch_buffer.Entry.id = _; raw = { valid; ready; data } } = fetch_out in
     Decode_instruction.hierarchical
       scope
-      { start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
+      { clock; clear; start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
   in
   fetch_consume <== decode_done;
   let module Decode_buffer = Fast_fifo.Make (Load_registers.Data_in) in
