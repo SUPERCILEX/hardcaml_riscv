@@ -4,7 +4,7 @@
 
 use core::{mem::MaybeUninit, str::from_utf8};
 
-use slib::{dbg, println, stdio::read_byte};
+use slib::{println, stdio::read_byte};
 
 #[cfg_attr(not(test), export_name = "_start")]
 #[cfg_attr(not(test), link_section = ".start")]

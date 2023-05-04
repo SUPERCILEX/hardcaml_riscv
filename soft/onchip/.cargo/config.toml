@@ -4,7 +4,7 @@ target = "riscv32i-unknown-none-elf"
 [target.riscv32i-unknown-none-elf]
 rustflags = [
     "-Clink-arg=-T../program.lds",
-    "-Ctarget-feature=+m",
+    "-Ctarget-feature=+m,+relax",
 ]
 
 [unstable]

@@ -5,7 +5,7 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 9325) (instructions_retired 5852)
-   (empty_alu_cycles 919) (fetch_branch_target_buffer_hits 816)
-   (decode_branch_mispredictions 21) (decode_jump_mispredictions 29)
-   (execute_branch_mispredictions 224) (execute_jump_mispredictions 72))))
+  ((cycles_since_boot 9240) (instructions_retired 5785)
+   (empty_alu_cycles 908) (fetch_branch_target_buffer_hits 822)
+   (decode_branch_mispredictions 21) (decode_jump_mispredictions 42)
+   (execute_branch_mispredictions 224) (execute_jump_mispredictions 64))))
