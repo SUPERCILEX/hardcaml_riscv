@@ -37,10 +37,10 @@ let create scope { I.clock; switches = _; buttons = _; resetn; uart_receive } =
   let { Uart_wrapper.O.transmit; uart } =
     Uart_wrapper.hierarchical
       scope
-      { Uart_wrapper.I.clock; resetn; receive = uart_receive; uart = uart_feedback }
+      { clock; resetn; receive = uart_receive; uart = uart_feedback }
   in
   let { Cpu.O.error; uart; counters = _ } =
-    Cpu.hierarchical scope { Cpu.I.clock; clear; uart }
+    Cpu.hierarchical scope { clock; clear; uart }
   in
   Cpu.Uart.O.iter2 uart_feedback uart ~f:( <== );
   { O.leds = error @: gnd @: gnd @: gnd; uart_transmit = transmit }

@@ -13,8 +13,8 @@ let compile =
         Rtl.output
           ~output_mode:
             (match filename with
-             | None -> Rtl.Output_mode.To_channel Stdio.Out_channel.stdout
-             | Some file -> Rtl.Output_mode.To_file file)
+             | None -> To_channel stdout
+             | Some file -> To_file file)
           ~database:(Scope.circuit_database scope)
           Verilog
           (Circuit.create_with_interface

@@ -52,15 +52,12 @@ module Fetch_instruction = struct
       =
       Branch_prediction.Branch_target_buffer.hierarchical
         scope
-        { Branch_prediction.Branch_target_buffer.I.clock
+        { clock
         ; load
         ; read_address = next_pc
         ; store = control_flow_resolved_to_taken
         ; write_address = control_flow_resolved_pc
-        ; write_data =
-            { Branch_prediction.Branch_target_buffer.Entry.taken_pc =
-                control_flow_resolved_jump_target
-            }
+        ; write_data = { taken_pc = control_flow_resolved_jump_target }
         }
     in
     let done_ = load &: ~:stall_load_instruction in
@@ -149,11 +146,11 @@ module Decode_instruction = struct
     =
     let open Signal in
     let ({ Decoder.O.instruction; immediate; _ } as decoded) =
-      Decoder.hierarchical scope { Decoder.I.instruction = raw_instruction }
+      Decoder.hierarchical scope { instruction = raw_instruction }
     in
     let is_branch = is_branch instruction in
-    let jal = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jal) in
-    let jalr = Instruction.Binary.Of_signal.is instruction (Instruction.All.Rv32i Jalr) in
+    let jal = Instruction.Binary.Of_signal.is instruction (Rv32i Jal) in
+    let jalr = Instruction.Binary.Of_signal.is instruction (Rv32i Jalr) in
     let jump = is_branch &: (immediate <+. 0) |: jal in
     let trust_fetch_prediction = has_fetch_prediction &: (is_branch |: jal |: jalr) in
     let predicted_next_pc =
@@ -430,15 +427,7 @@ module Execute = struct
     let { Alu.O.rd; jump; jump_target; done_ } =
       Alu.hierarchical
         scope
-        { Alu.I.clock
-        ; clear
-        ; start
-        ; pc = program_counter
-        ; instruction
-        ; rs1
-        ; rs2
-        ; immediate
-        }
+        { clock; clear; start; pc = program_counter; instruction; rs1; rs2; immediate }
     in
     { O.done_
     ; data =
@@ -682,7 +671,7 @@ struct
         Entry.Of_signal.mux2
           write
           (List.nth entries (i - 1)
-           |> Option.value ~default:{ Entry.id = next_id; raw = write_entry })
+           |> Option.value ~default:{ id = next_id; raw = write_entry })
           prev)
       |> update_overrides
       |> List.iter2_exn entries_next ~f:Entry.Of_signal.assign;

@@ -45,7 +45,7 @@ struct
       type 'a t =
         { valid : 'a
         ; data : 'a M.t
-        ; tag : 'a [@bits Params.(address_to_tag (zero address_bits) |> width)]
+        ; tag : 'a [@bits address_to_tag (zero Params.address_bits) |> width]
         }
       [@@deriving sexp_of, hardcaml]
     end
@@ -56,7 +56,7 @@ struct
         ~collision_mode:Read_before_write
         ~size
         ~write_ports:
-          [| { Ram.Write_port.write_clock = clock
+          [| { write_clock = clock
              ; write_address =
                  (let address = address_to_index write_address in
                   assert (width address = address_bits_for size);
@@ -64,14 +64,11 @@ struct
              ; write_enable
              ; write_data =
                  Line.Of_signal.pack
-                   { Line.valid = vdd
-                   ; data = write_data
-                   ; tag = address_to_tag write_address
-                   }
+                   { valid = vdd; data = write_data; tag = address_to_tag write_address }
              }
           |]
         ~read_ports:
-          [| { Ram.Read_port.read_clock = clock
+          [| { read_clock = clock
              ; read_address = address_to_index read_address
              ; read_enable
              }

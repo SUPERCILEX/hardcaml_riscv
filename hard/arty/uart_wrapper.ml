@@ -37,7 +37,7 @@ let create
       }
     =
     Axi_uartlite_0.create
-      { Axi_uartlite_0.I.clock
+      { clock
       ; resetn
       ; write_address = of_hex ~width:4 "04"
       ; write_address_valid = write_ready

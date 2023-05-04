@@ -34,7 +34,7 @@ module O = struct
   [@@deriving sexp_of, hardcaml]
 end
 
-let create (input : _ I.t) =
+let create input =
   let module Instance = Instantiation.With_interface (I) (O) in
   Instance.create ~name:"axi_uartlite_0" input
 ;;

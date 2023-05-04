@@ -65,7 +65,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     =
     Memory_controller.hierarchical
       scope
-      ~bootloader:(String.to_list bootloader |> List.map ~f:Signal.of_char)
+      ~bootloader:(String.to_list bootloader |> List.map ~f:of_char)
       memory_controller_in
   in
   let ({ Register_file.I.clock = _
@@ -141,7 +141,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Fetch_buffer.hierarchical
       scope
       ~name:"fetch_buffer"
-      { Fetch_buffer.I.clock
+      { clock
       ; clear = clear |: flush_pre_writeback |: flush_pre_decode
       ; write_tail = { valid = fetch_done; ready = gnd; data = fetch_write_data }
       ; update = fetch_head_update
@@ -160,8 +160,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     =
     Fetch_buffer.Entry.Of_signal.assign
       fetch_head_update
-      { Fetch_buffer.Entry.id =
-          fetch_id |> reg ~enable:fetch_done (Reg_spec.create ~clock ())
+      { id = fetch_id |> reg ~enable:fetch_done (Reg_spec.create ~clock ())
       ; raw =
           { valid = fetch_done |> reg (Reg_spec.create ~clock ~clear ())
           ; ready = vdd
@@ -180,9 +179,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let { Fetch_buffer.Entry.id = _; raw = { valid; ready; data } } = fetch_out in
     Decode_instruction.hierarchical
       scope
-      { Decode_instruction.I.start = valid &: ready &: ~:decode_full &: ~:lock_pipeline
-      ; data
-      }
+      { start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
   in
   fetch_consume <== decode_done;
   let module Decode_buffer = Fast_fifo.Make (Load_registers.Data_in) in
@@ -198,12 +195,12 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~name:"decode_buffer"
       ~cut_through:false
       ~capacity:1
-      { Decode_buffer.I.clock
+      { clock
       ; clear = clear |: flush_pre_writeback
       ; wr_data =
           (let { Decoder.O.instruction; rd; rs1; rs2; immediate } = decoded in
            let { Decode_instruction.Forward.program_counter; error } = decoder_forward in
-           { Load_registers.Data_in.rs1_address = rs1
+           { rs1_address = rs1
            ; rs2_address = rs2
            ; forward =
                { program_counter
@@ -229,8 +226,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     =
     Load_registers.hierarchical
       scope
-      { Load_registers.I.start =
-          decode_outputs_valid &: ~:load_registers_full &: ~:lock_pipeline
+      { start = decode_outputs_valid &: ~:load_registers_full &: ~:lock_pipeline
       ; data = decode_out
       }
   in
@@ -279,7 +275,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Load_registers_buffer.hierarchical
       scope
       ~name:"load_regs_buffer"
-      { Load_registers_buffer.I.clock
+      { clock
       ; clear = clear |: flush_pre_writeback
       ; write_tail =
           { valid = load_registers_done; ready = gnd; data = load_registers_write_data }
@@ -311,7 +307,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let { Execute.O.done_ = execute_done; data = execute_data; resolved_control_flow } =
     Load_registers_buffer.Entry.Of_signal.assign
       load_registers_head_update
-      { Load_registers_buffer.Entry.id =
+      { id =
           load_registers_id |> reg ~enable:load_registers_done (Reg_spec.create ~clock ())
       ; raw =
           { valid = load_registers_done |> reg (Reg_spec.create ~clock ~clear ())
@@ -342,11 +338,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let bypass ~target_address ~default =
       List.map
         bypass_registers
-        ~f:(fun
-             { Bypass_buffer.Entry.id = _
-             ; raw = { valid; ready; data = { rd_address; rd } }
-             }
-           ->
+        ~f:(fun { id = _; raw = { valid; ready; data = { rd_address; rd } } } ->
         { With_valid.valid = valid &: (rd_address ==: target_address)
         ; value = Bypass.Of_signal.pack { ready; rd }
         })
@@ -365,7 +357,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     in
     Execute.hierarchical
       scope
-      { Execute.I.clock
+      { clock
       ; clear = clear |: flush_pre_writeback
       ; start =
           (let debounce start =
@@ -419,7 +411,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ~name:"execute_buffer"
       ~cut_through:false
       ~capacity:1
-      { Execute_buffer.I.clock
+      { clock
       ; clear
       ; wr_data = execute_data
       ; wr_enable = execute_done
@@ -461,7 +453,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     in
     Load_memory_and_store.hierarchical
       scope
-      { Load_memory_and_store.I.clock
+      { clock
       ; clear
       ; start = debounce execute_outputs_valid &: ~:lock_pipeline
       ; is_writeback_instruction
@@ -491,7 +483,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     Bypass_buffer.hierarchical
       scope
       ~name:"execute_bypass_buffer"
-      { Bypass_buffer.I.clock
+      { clock
       ; clear
       ; write_tail =
           (let { Execute.Data_out.rd

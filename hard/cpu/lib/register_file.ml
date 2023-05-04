@@ -38,12 +38,10 @@ let create
       ~name:(Scope.name scope "register_file")
       ~collision_mode:Read_before_write
       ~size:32
-      ~write_ports:
-        [| { Ram.Write_port.write_clock = clock; write_address; write_enable; write_data }
-        |]
+      ~write_ports:[| { write_clock = clock; write_address; write_enable; write_data } |]
       ~read_ports:
-        [| { Ram.Read_port.read_clock = clock; read_address = read_address1; read_enable }
-         ; { Ram.Read_port.read_clock = clock; read_address = read_address2; read_enable }
+        [| { read_clock = clock; read_address = read_address1; read_enable }
+         ; { read_clock = clock; read_address = read_address2; read_enable }
         |]
       ()
   with

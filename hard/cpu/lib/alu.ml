@@ -115,7 +115,7 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
   let divided =
     Divider.hierarchical
       scope
-      { Divider.I.clock
+      { clock
       ; clear
       ; start = start_divider.value
       ; dividend = dividend.value

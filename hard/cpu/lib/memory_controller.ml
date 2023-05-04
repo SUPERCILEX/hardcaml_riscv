@@ -126,8 +126,8 @@ struct
     scope
     ~name
     { I.clock
-    ; read_address = { Address.address = read_address; size = read_size }
-    ; write_address = { Address.address = write_address; size = write_size }
+    ; read_address = { address = read_address; size = read_size }
+    ; write_address = { address = write_address; size = write_size }
     ; read_enable
     ; signed
     ; write_enable
@@ -145,7 +145,7 @@ struct
           ~collision_mode:Read_before_write
           ~size:(Params.size / bytes)
           ~write_ports:
-            [| { Ram.Write_port.write_clock = clock
+            [| { write_clock = clock
                ; write_address = bank_address write_address
                ; write_enable =
                    write_enable
@@ -157,7 +157,7 @@ struct
                }
             |]
           ~read_ports:
-            [| { Ram.Read_port.read_clock = clock
+            [| { read_clock = clock
                ; read_address = bank_address read_address
                ; read_enable =
                    read_enable
@@ -221,12 +221,12 @@ module Local_ram = struct
         Ram.ram
           scope
           ~name
-          { Ram.I.clock
+          { clock
           ; read_address =
-              { Ram.Address.address = mux2 load data_address program_counter
+              { address = mux2 load data_address program_counter
               ; size = Size.Binary.Of_signal.(mux2 load data_size (of_enum Word))
               }
-          ; write_address = { Ram.Address.address = data_address; size = data_size }
+          ; write_address = { address = data_address; size = data_size }
           ; read_enable = load_instruction |: load
           ; signed
           ; write_enable = store
@@ -315,17 +315,14 @@ module Uart_io = struct
     ; data_size
     ; signed
     ; write_data
-    ; uart = { Uart.I.write_done; read_data; read_done }
+    ; uart = { write_done; read_data; read_done }
     }
     =
     let open Signal in
     { O.uart =
-        { Uart.O.write_data = sel_bottom write_data 8
-        ; write_ready = store
-        ; read_ready = load
-        }
+        { write_data = sel_bottom write_data 8; write_ready = store; read_ready = load }
     ; segment =
-        { Segment.read_data =
+        { read_data =
             mux2
               signed
               (sresize read_data Parameters.word_width)
@@ -410,38 +407,37 @@ let create
          sresize active (address_bits_for (List.length segments)) &:. i)
        |> List.reduce_exn ~f:( |: )
        |> reg ~enable:(List.reduce_exn activations ~f:( |: )) (Reg_spec.create ~clock ()))
-      (List.map segments ~f:(fun (_, { Segment.read_data; _ }) -> read_data))
+      (List.map segments ~f:(fun (_, { read_data; _ }) -> read_data))
   in
-  { O.instruction = read_data (fun ({ I.load_instruction; _ }, _) -> load_instruction)
-  ; read_data = read_data (fun ({ I.load; _ }, _) -> load)
+  { O.instruction = read_data (fun ({ load_instruction; _ }, _) -> load_instruction)
+  ; read_data = read_data (fun ({ load; _ }, _) -> load)
   ; instruction_error =
-      List.map segments ~f:(fun (_, { Segment.instruction_error; _ }) ->
-        instruction_error)
+      List.map segments ~f:(fun (_, { instruction_error; _ }) -> instruction_error)
       @ [ is_unaligned_address ~size:(Size.Binary.Of_signal.of_enum Word) program_counter
           &: load_instruction
-        ; ~:(List.map segments ~f:(fun ({ I.load_instruction; _ }, _) -> load_instruction)
+        ; ~:(List.map segments ~f:(fun ({ load_instruction; _ }, _) -> load_instruction)
              |> List.reduce_exn ~f:( |: ))
           &: load_instruction
         ]
       |> List.reduce_exn ~f:( |: )
   ; data_error =
-      List.map segments ~f:(fun (_, { Segment.data_error; _ }) -> data_error)
+      List.map segments ~f:(fun (_, { data_error; _ }) -> data_error)
       @ [ is_unaligned_address ~size:data_size data_address &: (load |: store)
-        ; ~:(List.map segments ~f:(fun ({ I.load; store; _ }, _) -> load |: store)
+        ; ~:(List.map segments ~f:(fun ({ load; store; _ }, _) -> load |: store)
              |> List.reduce_exn ~f:( |: ))
           &: (load |: store)
         ]
       |> List.reduce_exn ~f:( |: )
   ; uart = uart_out
   ; stall_load_instruction =
-      List.map segments ~f:(fun (_, { Segment.stall_load_instruction; _ }) ->
+      List.map segments ~f:(fun (_, { stall_load_instruction; _ }) ->
         stall_load_instruction)
       |> List.reduce_exn ~f:( |: )
   ; stall_load =
-      List.map segments ~f:(fun (_, { Segment.stall_load; _ }) -> stall_load)
+      List.map segments ~f:(fun (_, { stall_load; _ }) -> stall_load)
       |> List.reduce_exn ~f:( |: )
   ; stall_store =
-      List.map segments ~f:(fun (_, { Segment.stall_store; _ }) -> stall_store)
+      List.map segments ~f:(fun (_, { stall_store; _ }) -> stall_store)
       |> List.reduce_exn ~f:( |: )
   }
 ;;

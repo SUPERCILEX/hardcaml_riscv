@@ -24,7 +24,7 @@ let test_bench ~step ?input_data_file ?output_data_file (sim : (_ I.t, _ O.t) Cy
   in
   let uart_output =
     Option.map output_data_file ~f:(Out_channel.create ~binary:true)
-    |> Option.value ~default:Out_channel.stdout
+    |> Option.value ~default:stdout
   in
   let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
   let clear () =
