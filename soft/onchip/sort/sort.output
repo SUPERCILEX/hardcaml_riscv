@@ -6,6 +6,7 @@
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
   ((cycles_since_boot 8900) (instructions_retired 5785)
-   (empty_alu_cycles 756) (fetch_branch_target_buffer_hits 828)
+   (empty_alu_cycles 756) (instruction_load_stalls 74) (data_load_stalls 418)
+   (data_store_stalls 630) (fetch_branch_target_buffer_hits 828)
    (decode_branch_mispredictions 21) (decode_jump_mispredictions 59)
    (execute_branch_mispredictions 224) (execute_jump_mispredictions 13))))

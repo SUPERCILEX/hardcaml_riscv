@@ -18,6 +18,9 @@ module Counters = struct
     { cycles_since_boot : 'a [@bits 64]
     ; instructions_retired : 'a [@bits 64]
     ; empty_alu_cycles : 'a [@bits 64]
+    ; instruction_load_stalls : 'a [@bits 64]
+    ; data_load_stalls : 'a [@bits 64]
+    ; data_store_stalls : 'a [@bits 64]
     ; fetch_branch_target_buffer_hits : 'a [@bits 64]
     ; decode_branch_mispredictions : 'a [@bits 64]
     ; decode_jump_mispredictions : 'a [@bits 64]
@@ -541,6 +544,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
               load_registers_out
             in
             counter ~:(valid &: ready))
+       ; instruction_load_stalls = counter (load_instruction &: stall_load_instruction)
+       ; data_load_stalls = counter (load_mem &: stall_mem_load)
+       ; data_store_stalls = counter (store_mem &: stall_mem_store)
        ; fetch_branch_target_buffer_hits = counter (fetch_done &: has_fetch_prediction)
        ; decode_branch_mispredictions =
            counter (is_decode_branch_for_counters &: flush_pre_decode)
