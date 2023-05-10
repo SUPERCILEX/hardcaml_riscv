@@ -28,7 +28,6 @@ struct
 
   let create
     scope
-    ~name
     ~size
     ~address_to_index
     ~address_to_tag
@@ -52,7 +51,7 @@ struct
     in
     match
       Ram.create
-        ~name:(Scope.name scope name)
+        ~name:(Scope.name scope "mem")
         ~collision_mode:Read_before_write
         ~size
         ~write_ports:
@@ -88,6 +87,6 @@ struct
 
   let hierarchical ~name ~size ~address_to_index ~address_to_tag scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    H.hierarchical ~scope ~name (create ~name ~size ~address_to_index ~address_to_tag)
+    H.hierarchical ~scope ~name (create ~size ~address_to_index ~address_to_tag)
   ;;
 end

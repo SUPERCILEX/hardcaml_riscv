@@ -35,7 +35,7 @@ let create
   =
   match
     Ram.create
-      ~name:(Scope.name scope "register_file")
+      ~name:(Scope.name scope "mem")
       ~collision_mode:Read_before_write
       ~size:32
       ~write_ports:[| { write_clock = clock; write_address; write_enable; write_data } |]

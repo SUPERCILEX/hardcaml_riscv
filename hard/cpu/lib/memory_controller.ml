@@ -124,7 +124,6 @@ struct
 
   let ram
     scope
-    ~name
     { I.clock
     ; read_address = { address = read_address; size = read_size }
     ; write_address = { address = write_address; size = write_size }
@@ -141,7 +140,7 @@ struct
     match
       Array.init bytes ~f:(fun bank ->
         Ram.create
-          ~name:(Printf.sprintf "%s%d" name bank |> Scope.name scope)
+          ~name:(Printf.sprintf "mem%d" bank |> Scope.name scope)
           ~collision_mode:Read_before_write
           ~size:(Params.size / bytes)
           ~write_ports:
@@ -197,7 +196,6 @@ end
 module Local_ram = struct
   let create
     scope
-    ~name
     ~size
     { I.clock
     ; load_instruction
@@ -220,7 +218,6 @@ module Local_ram = struct
     { Segment.read_data =
         Ram.ram
           scope
-          ~name
           { clock
           ; read_address =
               { address = mux2 load data_address program_counter
@@ -242,7 +239,7 @@ module Local_ram = struct
 
   let hierarchical scope ~name ~size =
     let module H = Hierarchy.In_scope (I) (Segment) in
-    H.hierarchical ~scope ~name (create ~name ~size)
+    H.hierarchical ~scope ~name (create ~size)
   ;;
 end
 

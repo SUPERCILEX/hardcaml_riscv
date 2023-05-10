@@ -51,7 +51,7 @@ module Fetch_instruction = struct
     let load = ~:pipeline_full &: ~:jump in
     let next_pc = wire Parameters.word_width in
     let { Branch_prediction.Branch_target_buffer.O.data =
-            { taken_pc = predicted_next_pc; is_return }
+            { target_pc = predicted_next_pc; is_return }
         ; hit = has_prediction
         }
       =
@@ -63,7 +63,7 @@ module Fetch_instruction = struct
         ; store = control_flow_resolved_to_taken
         ; write_address = control_flow_resolved_pc
         ; write_data =
-            { taken_pc = control_flow_resolved_jump_target
+            { target_pc = control_flow_resolved_jump_target
             ; is_return = control_flow_resolved_is_return
             }
         }

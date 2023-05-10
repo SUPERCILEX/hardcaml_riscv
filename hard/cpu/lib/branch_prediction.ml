@@ -4,7 +4,7 @@ open Hardcaml
 module Branch_target_buffer = struct
   module Entry = struct
     type 'a t =
-      { taken_pc : 'a [@bits Parameters.word_width]
+      { target_pc : 'a [@bits Parameters.word_width]
       ; is_return : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -59,7 +59,7 @@ module Return_address_stack = struct
         type 'a t = { data : 'a M.t [@rtlprefix "rd$"] } [@@deriving sexp_of, hardcaml]
       end
 
-      let create ~name ~size scope { I.clock; clear; push; pop; write_data } =
+      let create ~size scope { I.clock; clear; push; pop; write_data } =
         assert (size % 2 = 0);
         let open Signal in
         let ( -- ) = Scope.naming scope in
@@ -73,18 +73,18 @@ module Return_address_stack = struct
         in
         match
           Ram.create
-            ~name:(Scope.name scope name)
+            ~name:(Scope.name scope "mem")
             ~collision_mode:Read_before_write
             ~size
             ~write_ports:
-              [| { Ram.Write_port.write_clock = clock
+              [| { write_clock = clock
                  ; write_address = mux2 pop (entries -:. 1) entries
                  ; write_enable = push
                  ; write_data = M.Of_signal.pack write_data
                  }
               |]
             ~read_ports:
-              [| { Ram.Read_port.read_clock = clock
+              [| { read_clock = clock
                  ; read_address = mux2 pop (entries -:. 2) (entries -:. 1)
                  ; read_enable = vdd
                  }
@@ -103,7 +103,7 @@ module Return_address_stack = struct
 
       let hierarchical ~name ~size scope =
         let module H = Hierarchy.In_scope (I) (O) in
-        H.hierarchical ~scope ~name (create ~name ~size)
+        H.hierarchical ~scope ~name (create ~size)
       ;;
     end
 
@@ -142,9 +142,7 @@ module Return_address_stack = struct
         let module Simulator = Cyclesim.With_interface (I) (O) in
         let scope = Scope.create ~flatten_design:true () in
         let sim =
-          Simulator.create
-            ~config:Cyclesim.Config.trace_all
-            (create ~name:"test" ~size:4 scope)
+          Simulator.create ~config:Cyclesim.Config.trace_all (create ~size:4 scope)
         in
         test_bench ~f sim;
         ()
@@ -192,75 +190,75 @@ module Return_address_stack = struct
           {|
           ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0000)))))
            (outputs ((data ((test 0000)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 0001)))))
            (outputs ((data ((test 0001)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0010)))))
            (outputs ((data ((test 0001)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0011)))))
            (outputs ((data ((test 0001)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0100)))))
            (outputs ((data ((test 0000)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0101)))))
            (outputs ((data ((test 0000)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 0110)))))
            (outputs ((data ((test 0110)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 1) (write_data ((test 0111)))))
            (outputs ((data ((test 0111)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 1) (write_data ((test 1000)))))
            (outputs ((data ((test 1000)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1001)))))
            (outputs ((data ((test 1001)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1010)))))
            (outputs ((data ((test 1010)))))
-           (internals ((entries 10) (test 0000) (vdd 1))))
+           (internals ((entries 10) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1011)))))
            (outputs ((data ((test 1011)))))
-           (internals ((entries 11) (test 0000) (vdd 1))))
+           (internals ((entries 11) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1100)))))
            (outputs ((data ((test 1100)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1101)))))
            (outputs ((data ((test 1011)))))
-           (internals ((entries 01) (test 0000) (vdd 1))))
+           (internals ((entries 01) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1110)))))
            (outputs ((data ((test 1010)))))
-           (internals ((entries 00) (test 0000) (vdd 1))))
+           (internals ((entries 00) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1111)))))
            (outputs ((data ((test 1001)))))
-           (internals ((entries 11) (test 0000) (vdd 1))))
+           (internals ((entries 11) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0000)))))
            (outputs ((data ((test 1100)))))
-           (internals ((entries 10) (test 0000) (vdd 1))))
+           (internals ((entries 10) (mem 0000) (vdd 1))))
 
           ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0001)))))
            (outputs ((data ((test 1011)))))
-           (internals ((entries 01) (test 0000) (vdd 1)))) |}]
+           (internals ((entries 01) (mem 0000) (vdd 1)))) |}]
       ;;
     end
   end
