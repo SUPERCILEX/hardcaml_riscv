@@ -9,7 +9,7 @@ end
 
 module Shared_commands = struct
   type t =
-    { cycles : int
+    { cycles : int option
     ; program : Programs.t
     ; file_name : string option
     ; input_data_file : string option
@@ -24,7 +24,7 @@ module Shared_commands = struct
           ~aliases:[ "-n" ]
           ~doc:"N Number of cycles to simulate"
           "-cycles"
-          (required int)
+          (optional int)
       and program =
         flag
           ~doc:"NAME Program to simulate"
@@ -76,16 +76,17 @@ let waves =
         Harness.waves
           ~program:(Shared_commands.program program file_name)
           ~verilator
-          ~cycles
+          ~f:(fun ~display_rules waves ->
+            Hardcaml_waveterm_interactive.run
+              ~signals_width:30
+              ?start_cycle
+              ~wave_width:5
+              ~display_rules
+              waves)
+          ?cycles
           ?input_data_file
           ?output_data_file
-          (fun ~display_rules waves ->
-          Hardcaml_waveterm_interactive.run
-            ~signals_width:30
-            ?start_cycle
-            ~wave_width:5
-            ~display_rules
-            waves))
+          ())
 ;;
 
 let execute =
@@ -106,9 +107,10 @@ let execute =
         Harness.execute
           ~program:(Shared_commands.program program file_name)
           ~verilator
+          ?cycles
           ?input_data_file
           ?output_data_file
-          cycles)
+          ())
 ;;
 
 let simulate =
@@ -129,9 +131,10 @@ let simulate =
         Harness.sim
           ~program:(Shared_commands.program program file_name)
           ~verilator
+          ?cycles
           ?input_data_file
           ?output_data_file
-          (( = ) cycles))
+          ())
 ;;
 
 let locate =

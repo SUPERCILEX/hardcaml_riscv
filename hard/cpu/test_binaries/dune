@@ -50,7 +50,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 10 -program "(sample simple)"))))
+   (run %{exe} sim -program "(sample simple)"))))
 
 (rule
  (target strchr.bin)
@@ -84,7 +84,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 100 -program "(sample string_search)"))))
+   (run %{exe} sim -program "(sample string_search)"))))
 
 (rule
  (target fibonacci.bin)
@@ -118,7 +118,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 5000 -program "(sample fibonacci)"))))
+   (run %{exe} sim -program "(sample fibonacci)"))))
 
 (rule
  (target atoi.bin)
@@ -152,7 +152,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 150 -program "(sample atoi)"))))
+   (run %{exe} sim -program "(sample atoi)"))))
 
 (rule
  (target uart_echo.bin)
@@ -190,8 +190,6 @@
    (run
     %{exe}
     sim
-    -cycles
-    300
     -program
     "(sample uart_echo)"
     -input-data-file
@@ -231,7 +229,7 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 150 -program "(sample instruction_tests)"))))
+   (run %{exe} sim -program "(sample instruction_tests)"))))
 
 (rule
  (target dependencies.bin)
@@ -265,4 +263,4 @@
  (action
   (with-outputs-to
    %{target}
-   (run %{exe} sim -cycles 100 -program "(sample dependencies)"))))
+   (run %{exe} sim -program "(sample dependencies)"))))

@@ -61,8 +61,6 @@
   (run
    %{exe}
    execute
-   -cycles
-   10000
    -program
    "custom"
    -binary

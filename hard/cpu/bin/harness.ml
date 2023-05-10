@@ -69,7 +69,14 @@ let prettify_enum ~sim ~(enums : 'a list) ~signal_name : 'a =
            ~equal:String.equal))
 ;;
 
-let sim ~program ~verilator ?input_data_file ?output_data_file termination =
+let max_cycles_or_error max_cycles error cycles =
+  let open Bits in
+  match max_cycles with
+  | Some max_cycles -> max_cycles = cycles
+  | None -> to_bool !error
+;;
+
+let sim ~program ~verilator ?cycles ?input_data_file ?output_data_file () =
   let sim = create ~program ~verilator in
   let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
   test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
@@ -106,13 +113,18 @@ let sim ~program ~verilator ?input_data_file ?output_data_file termination =
            ( I.map inputs ~f:(fun p -> to_int !p)
            , O.map outputs ~f:(fun p -> to_int !p)
            , all_signals ));
-    termination i);
+    max_cycles_or_error cycles outputs.error i);
   ()
 ;;
 
-let execute ~program ~verilator ?input_data_file ?output_data_file cycles =
+let execute ~program ~verilator ?cycles ?input_data_file ?output_data_file () =
   let sim = create ~program ~verilator in
-  test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
+  let outputs = Cyclesim.outputs sim in
+  test_bench
+    sim
+    ~step:(max_cycles_or_error cycles outputs.error)
+    ?input_data_file
+    ?output_data_file;
   let () =
     let out =
       Option.map output_data_file ~f:(Out_channel.create ~append:true)
@@ -122,19 +134,24 @@ let execute ~program ~verilator ?input_data_file ?output_data_file cycles =
       out
       "\n\n============================================================\n\n";
     Sexp.to_string_hum
-      [%message
-        "" ~_:(Cyclesim.outputs sim |> O.map ~f:(fun p -> Bits.to_int !p) : int O.t)]
+      [%message "" ~_:(outputs |> O.map ~f:(fun p -> Bits.to_int !p) : int O.t)]
     |> Out_channel.output_string out;
     ()
   in
   ()
 ;;
 
-let waves ~program ~verilator ~cycles ?input_data_file ?output_data_file f =
+let waves ~program ~verilator ~f ?cycles ?input_data_file ?output_data_file () =
   let open Hardcaml_waveterm in
   let sim = create ~program ~verilator in
   let waves, sim = Waveform.create sim in
-  test_bench sim ~step:(( = ) cycles) ?input_data_file ?output_data_file;
+  test_bench
+    sim
+    ~step:
+      (let outputs = Cyclesim.outputs sim in
+       max_cycles_or_error cycles outputs.error)
+    ?input_data_file
+    ?output_data_file;
   let open Hardcaml_waveterm.Display_rule in
   let input_rules =
     I.(map port_names ~f:(port_name_is ~wave_format:(Bit_or Hex)) |> to_list)

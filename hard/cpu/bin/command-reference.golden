@@ -5,13 +5,13 @@ Hardware dev tools
 === subcommands and flags ===
 
   execute                    . Simulate execution
-  . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
                                (Sample Dependencies), (Sample Fibonacci),
                                (Sample Instruction_tests), (Sample Invalid),
                                (Sample Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
+  . [-cycles N], -n          . Number of cycles to simulate
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
   . [-verilator-cache-dir <directory>]
@@ -22,13 +22,13 @@ Hardware dev tools
   . -circuit-name CIRCUIT-NAME
                              . Name of the circuit/module
   simulate                   . Simulate execution with cycle state dump
-  . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
                                (Sample Dependencies), (Sample Fibonacci),
                                (Sample Instruction_tests), (Sample Invalid),
                                (Sample Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
+  . [-cycles N], -n          . Number of cycles to simulate
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
   . [-verilator-cache-dir <directory>]
@@ -36,13 +36,13 @@ Hardware dev tools
                                set when with the -verilator flag.)
   . [-verilator]             . <flag> Use the verilator backend
   waves                      . Open waveform viewer
-  . -cycles N, -n            . Number of cycles to simulate
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
                                (Sample Dependencies), (Sample Fibonacci),
                                (Sample Instruction_tests), (Sample Invalid),
                                (Sample Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
+  . [-cycles N], -n          . Number of cycles to simulate
   . [-input-data-file FILE]  . UART input stream file
   . [-output-data-file FILE] . UART output stream file
   . [-start-cycle N]         . Start cycle
