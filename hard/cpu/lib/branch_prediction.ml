@@ -98,7 +98,7 @@ module Return_address_stack = struct
                 (M.Of_signal.reg ~enable:push (Reg_spec.create ~clock ()) write_data)
                 (M.Of_signal.unpack data)
           }
-        | _ -> assert false
+        | _ -> failwith "Code out of date"
       ;;
 
       let hierarchical ~name ~size scope =

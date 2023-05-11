@@ -177,7 +177,7 @@ struct
         ~data
         ~size:(read_size |> Size.Binary.Of_signal.reg ~enable:read_enable spec)
         ~signed:(signed |> reg ~enable:read_enable spec)
-    | _ -> assert false
+    | _ -> failwith "Code out of date"
   ;;
 end
 

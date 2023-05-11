@@ -82,7 +82,7 @@ struct
              |> reg ~enable:read_enable (Reg_spec.create ~clock ()))
       in
       { O.data; hit = valid &: tag_match }
-    | _ -> assert false
+    | _ -> failwith "Code out of date"
   ;;
 
   let hierarchical ~name ~size ~address_to_index ~address_to_tag scope =

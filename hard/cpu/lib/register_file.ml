@@ -46,7 +46,7 @@ let create
       ()
   with
   | [| rs1; rs2 |] -> { O.rs1; rs2 }
-  | _ -> assert false
+  | _ -> failwith "Code out of date"
 ;;
 
 let hierarchical scope =
