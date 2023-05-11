@@ -30,7 +30,7 @@ module Branch_target_buffer = struct
       useful_address ^: sel_bottom random_prime (width useful_address)
       |> split_msb ~exact:false ~part_width:bits
       |> List.map ~f:(Fn.flip uresize bits)
-      |> List.reduce_exn ~f:( ^: )
+      |> reduce ~f:( ^: )
     in
     let size = 1024 in
     hierarchical

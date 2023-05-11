@@ -683,7 +683,7 @@ struct
         })
     in
     let empty, full =
-      let reduce_valid = List.map entries ~f:(fun e -> e.raw.valid) |> List.reduce_exn in
+      let reduce_valid = List.map entries ~f:(fun e -> e.raw.valid) |> reduce in
       ~:(reduce_valid ~f:( |: )), reduce_valid ~f:( &: )
     in
     let write = (write &: (~:full |: pop)) -- "write_enable" in

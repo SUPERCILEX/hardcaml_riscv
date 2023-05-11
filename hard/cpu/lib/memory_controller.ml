@@ -402,8 +402,8 @@ let create
       (let activations = List.map segments ~f:activator in
        List.mapi activations ~f:(fun i active ->
          sresize active (address_bits_for (List.length segments)) &:. i)
-       |> List.reduce_exn ~f:( |: )
-       |> reg ~enable:(List.reduce_exn activations ~f:( |: )) (Reg_spec.create ~clock ()))
+       |> reduce ~f:( |: )
+       |> reg ~enable:(reduce activations ~f:( |: )) (Reg_spec.create ~clock ()))
       (List.map segments ~f:(fun (_, { read_data; _ }) -> read_data))
   in
   { O.instruction = read_data (fun ({ load_instruction; _ }, _) -> load_instruction)
@@ -413,29 +413,28 @@ let create
       @ [ is_unaligned_address ~size:(Size.Binary.Of_signal.of_enum Word) program_counter
           &: load_instruction
         ; ~:(List.map segments ~f:(fun ({ load_instruction; _ }, _) -> load_instruction)
-             |> List.reduce_exn ~f:( |: ))
+             |> reduce ~f:( |: ))
           &: load_instruction
         ]
-      |> List.reduce_exn ~f:( |: )
+      |> reduce ~f:( |: )
   ; data_error =
       List.map segments ~f:(fun (_, { data_error; _ }) -> data_error)
       @ [ is_unaligned_address ~size:data_size data_address &: (load |: store)
         ; ~:(List.map segments ~f:(fun ({ load; store; _ }, _) -> load |: store)
-             |> List.reduce_exn ~f:( |: ))
+             |> reduce ~f:( |: ))
           &: (load |: store)
         ]
-      |> List.reduce_exn ~f:( |: )
+      |> reduce ~f:( |: )
   ; uart = uart_out
   ; stall_load_instruction =
       List.map segments ~f:(fun (_, { stall_load_instruction; _ }) ->
         stall_load_instruction)
-      |> List.reduce_exn ~f:( |: )
+      |> reduce ~f:( |: )
   ; stall_load =
-      List.map segments ~f:(fun (_, { stall_load; _ }) -> stall_load)
-      |> List.reduce_exn ~f:( |: )
+      List.map segments ~f:(fun (_, { stall_load; _ }) -> stall_load) |> reduce ~f:( |: )
   ; stall_store =
       List.map segments ~f:(fun (_, { stall_store; _ }) -> stall_store)
-      |> List.reduce_exn ~f:( |: )
+      |> reduce ~f:( |: )
   }
 ;;
 

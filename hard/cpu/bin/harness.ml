@@ -102,11 +102,11 @@ let sim ~program ~verilator ?cycles ?input_data_file ?output_data_file () =
        |> List.filter_map ~f:(fun (signal_name, signal) ->
             if [ "register_file$i$store"; "memory_controller$i$store" ]
                |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
-               |> List.reduce_exn ~f:( || )
+               |> reduce ~f:( || )
             then Some signal
             else None)
        |> List.map ~f:(Fn.compose to_bool ( ! ))
-       |> List.reduce_exn ~f:( || )
+       |> reduce ~f:( || )
     then
       Stdio.print_s
         ([%sexp_of: int I.t * int O.t * (string * string) list]
