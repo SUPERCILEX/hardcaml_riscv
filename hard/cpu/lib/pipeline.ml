@@ -752,253 +752,255 @@ struct
   ;;
 end
 
-module Tests : sig end = struct
+module Tests = struct
   module Data = struct
     type 'a t = { test : 'a } [@@deriving sexp_of, hardcaml]
   end
 
-  include
+  open
     Stage_buffer
       (struct
         let capacity = 2
       end)
       (Data)
 
-  let test_bench ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
-    let open Bits in
-    let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-    let print_state () =
-      Stdio.print_s
-        [%message
-          (inputs : Bits.t ref I.t)
-            (outputs : Bits.t ref O.t)
-            ~internals:(Cyclesim.internal_ports sim : (string * Bits.t ref) list)];
-      Stdio.print_endline "";
-      ()
-    in
-    let clear () =
-      Cyclesim.reset sim;
-      inputs.clear := vdd;
-      Cyclesim.cycle sim;
-      inputs.clear := gnd;
-      ()
-    in
-    clear ();
-    f print_state sim;
-    ()
-  ;;
-
-  let sim ~f =
-    let module Simulator = Cyclesim.With_interface (I) (O) in
-    let scope = Scope.create ~flatten_design:true () in
-    let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-    test_bench ~f sim;
-    ()
-  ;;
-
-  let%expect_test "Simple" =
-    sim ~f:(fun print_state sim ->
-      let open Bits in
-      let inputs = Cyclesim.inputs sim in
-      let next () =
-        Cyclesim.cycle sim;
-        print_state ();
-        ()
-      in
-      next ();
-      inputs.pop := vdd;
-      next ();
-      inputs.write_tail.valid := vdd;
-      inputs.write_tail.data.test := vdd;
-      next ();
-      inputs.write_tail.valid := gnd;
-      next ();
-      inputs.write_tail.valid := vdd;
-      next ();
-      next ();
-      inputs.pop := gnd;
-      next ();
-      next ();
-      inputs.write_tail.valid := gnd;
-      inputs.pop := vdd;
-      next ();
-      next ();
-      next ();
-      ());
-    [%expect
-      {|
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
-       (outputs
-        ((empty 1) (full 0) (write_id 0)
-         (all
-          (((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 0)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 1) (full 0) (write_id 0)
-         (all
-          (((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 0)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 1) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
-         (head ((id 1) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 1))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
-       (outputs
-        ((empty 0) (full 1) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
-       (outputs
-        ((empty 0) (full 1) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
-         (head ((id 1) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 1) (full 0) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
-         (head ((id 1) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
-
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 1) (full 0) (write_id 0)
-         (all
-          (((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
-         (head ((id 1) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0)))) |}]
-  ;;
-
-  let%expect_test "Update" =
-    sim ~f:(fun print_state sim ->
+  module Stage_buffer : sig end = struct
+    let test_bench ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
       let open Bits in
       let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
-      inputs.pop := vdd;
-      inputs.write_tail.valid := vdd;
-      inputs.write_tail.data.test := vdd;
-      inputs.update.id := !(outputs.write_id);
-      Cyclesim.cycle sim;
-      print_state ();
-      inputs.write_tail.valid := gnd;
-      inputs.update.raw.valid := vdd;
-      inputs.update.raw.ready := vdd;
-      print_state ();
-      Cyclesim.cycle sim;
-      print_state ();
-      ());
-    [%expect
-      {|
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+      let print_state () =
+        Stdio.print_s
+          [%message
+            (inputs : Bits.t ref I.t)
+              (outputs : Bits.t ref O.t)
+              ~internals:(Cyclesim.internal_ports sim : (string * Bits.t ref) list)];
+        Stdio.print_endline "";
+        ()
+      in
+      let clear () =
+        Cyclesim.reset sim;
+        inputs.clear := vdd;
+        Cyclesim.cycle sim;
+        inputs.clear := gnd;
+        ()
+      in
+      clear ();
+      f print_state sim;
+      ()
+    ;;
 
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 0) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+    let sim ~f =
+      let module Simulator = Cyclesim.With_interface (I) (O) in
+      let scope = Scope.create ~flatten_design:true () in
+      let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+      test_bench ~f sim;
+      ()
+    ;;
 
-      ((inputs
-        ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-         (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
-       (outputs
-        ((empty 1) (full 0) (write_id 1)
-         (all
-          (((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))
-           ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
-         (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
-       (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0)))) |}]
-  ;;
+    let%expect_test "Simple" =
+      sim ~f:(fun print_state sim ->
+        let open Bits in
+        let inputs = Cyclesim.inputs sim in
+        let next () =
+          Cyclesim.cycle sim;
+          print_state ();
+          ()
+        in
+        next ();
+        inputs.pop := vdd;
+        next ();
+        inputs.write_tail.valid := vdd;
+        inputs.write_tail.data.test := vdd;
+        next ();
+        inputs.write_tail.valid := gnd;
+        next ();
+        inputs.write_tail.valid := vdd;
+        next ();
+        next ();
+        inputs.pop := gnd;
+        next ();
+        next ();
+        inputs.write_tail.valid := gnd;
+        inputs.pop := vdd;
+        next ();
+        next ();
+        next ();
+        ());
+      [%expect
+        {|
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+         (outputs
+          ((empty 1) (full 0) (write_id 0)
+           (all
+            (((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 0)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 1) (full 0) (write_id 0)
+           (all
+            (((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 0)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 1) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
+           (head ((id 1) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+         (outputs
+          ((empty 0) (full 1) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+         (outputs
+          ((empty 0) (full 1) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
+           (head ((id 1) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 1) (full 0) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
+           (head ((id 1) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 1) (full 0) (write_id 0)
+           (all
+            (((id 1) (raw ((valid 0) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))))
+           (head ((id 1) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 0)))) |}]
+    ;;
+
+    let%expect_test "Update" =
+      sim ~f:(fun print_state sim ->
+        let open Bits in
+        let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+        inputs.pop := vdd;
+        inputs.write_tail.valid := vdd;
+        inputs.write_tail.data.test := vdd;
+        inputs.update.id := !(outputs.write_id);
+        Cyclesim.cycle sim;
+        print_state ();
+        inputs.write_tail.valid := gnd;
+        inputs.update.raw.valid := vdd;
+        inputs.update.raw.ready := vdd;
+        print_state ();
+        Cyclesim.cycle sim;
+        print_state ();
+        ());
+      [%expect
+        {|
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 0) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 1) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 1) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 0) (write_enable 1))))
+
+        ((inputs
+          ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
+           (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
+         (outputs
+          ((empty 1) (full 0) (write_id 1)
+           (all
+            (((id 0) (raw ((valid 0) (ready 0) (data ((test 1))))))
+             ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))))
+           (head ((id 0) (raw ((valid 0) (ready 0) (data ((test 1)))))))))
+         (internals ((vdd 1) (gnd 0) (read_enable 1) (write_enable 0)))) |}]
+    ;;
+  end
 end

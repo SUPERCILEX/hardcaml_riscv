@@ -112,7 +112,7 @@ module Return_address_stack = struct
         type 'a t = { test : 'a [@bits 4] } [@@deriving sexp_of, hardcaml]
       end
 
-      include Make (Data)
+      open Make (Data)
 
       let test_bench ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
         let open Bits in
