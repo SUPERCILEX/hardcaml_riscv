@@ -701,26 +701,21 @@ struct
     let update_overrides = List.map ~f:update_override in
     let _assign =
       let entries =
-        List.mapi entries ~f:(fun i prev ->
-          Entry.Of_signal.mux2
-            pop
-            { prev with
-              raw =
-                { prev.raw with
-                  valid =
-                    List.nth entries (i + 1)
-                    |> Option.map ~f:(fun e -> e.raw.valid)
-                    |> Option.value ~default:gnd
-                }
-            }
-            prev)
+        List.map entries ~f:(fun e -> e.raw.valid)
+        |> Fn.flip List.zip_exn entries
+        |> List.rev
+        |> List.folding_map ~init:gnd ~f:(fun right (next_right, prev) ->
+             ( next_right
+             , Entry.Of_signal.mux2
+                 pop
+                 { prev with raw = { prev.raw with valid = right } }
+                 prev ))
+        |> List.rev
       in
-      List.mapi entries ~f:(fun i prev ->
-        Entry.Of_signal.mux2
-          write
-          (List.nth entries (i - 1)
-           |> Option.value ~default:{ id = next_id; raw = write_entry })
-          prev)
+      List.folding_map
+        entries
+        ~init:{ Entry.id = next_id; raw = write_entry }
+        ~f:(fun left prev -> prev, Entry.Of_signal.mux2 write left prev)
       |> update_overrides
       |> List.iter2_exn entries_next ~f:Entry.Of_signal.assign;
       ()
