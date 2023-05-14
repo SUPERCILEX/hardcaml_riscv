@@ -3,7 +3,7 @@
 ## Setup
 
 1. Get the Digilent Utilities: https://digilent.com/reference/software/adept/start
-1. (Optional) Install Vivado: https://www.xilinx.com/support/download.html
+2. Install Vivado: https://www.xilinx.com/support/download.html
 
 ## Building
 
