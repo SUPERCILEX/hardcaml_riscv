@@ -77,42 +77,44 @@ let max_cycles_or_error max_cycles error cycles =
 ;;
 
 let sim ~program ~verilator ?cycles ?input_data_file ?output_data_file () =
+  let open Bits in
   let sim = create ~program ~verilator in
   let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+  let all_signals =
+    Cyclesim.internal_ports sim
+    |> List.filter_map ~f:(fun (signal_name, signal) ->
+         (if String.is_substring ~substring:"clock" signal_name
+             || String.is_substring ~substring:"clear" signal_name
+          then None
+          else if (String.is_substring ~substring:"memory_controller$i$" signal_name
+                   && String.is_substring
+                        ~substring:"memory_controller$i$uart"
+                        signal_name
+                      |> not)
+                  || String.is_substring ~substring:"register_file$i$" signal_name
+          then Some signal
+          else None)
+         |> Option.map ~f:(fun s -> signal_name, s))
+    |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
+  in
+  let store_signals =
+    Cyclesim.internal_ports sim
+    |> List.filter_map ~f:(fun (signal_name, signal) ->
+         if [ "register_file$i$store"; "memory_controller$i$store" ]
+            |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
+            |> reduce ~f:( || )
+         then Some signal
+         else None)
+  in
   test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
-    let open Bits in
-    let all_signals =
-      Cyclesim.internal_ports sim
-      |> List.filter_map ~f:(fun (signal_name, signal) ->
-           (if String.is_substring ~substring:"clock" signal_name
-               || String.is_substring ~substring:"clear" signal_name
-            then None
-            else if (String.is_substring ~substring:"memory_controller$i$" signal_name
-                     && String.is_substring
-                          ~substring:"memory_controller$i$uart"
-                          signal_name
-                        |> not)
-                    || String.is_substring ~substring:"register_file$i$" signal_name
-            then to_int !signal |> Printf.sprintf "0x%x" |> String.sexp_of_t |> Some
-            else None)
-           |> Option.map ~f:(fun s -> signal_name, Sexp.to_string s))
-      |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
-    in
-    if Cyclesim.internal_ports sim
-       |> List.filter_map ~f:(fun (signal_name, signal) ->
-            if [ "register_file$i$store"; "memory_controller$i$store" ]
-               |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
-               |> reduce ~f:( || )
-            then Some signal
-            else None)
-       |> List.map ~f:(Fn.compose to_bool ( ! ))
-       |> reduce ~f:( || )
+    if List.map store_signals ~f:(Fn.compose to_bool ( ! )) |> reduce ~f:( || )
     then
       Stdio.print_s
         ([%sexp_of: int I.t * int O.t * (string * string) list]
            ( I.map inputs ~f:(fun p -> to_int !p)
            , O.map outputs ~f:(fun p -> to_int !p)
-           , all_signals ));
+           , List.map all_signals ~f:(fun (name, signal) ->
+               name, to_int !signal |> Printf.sprintf "0x%x") ));
     max_cycles_or_error cycles outputs.error i);
   ()
 ;;
