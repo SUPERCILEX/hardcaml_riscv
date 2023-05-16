@@ -580,7 +580,8 @@ struct
       { clock : 'a
       ; clear : 'a
       ; write_tail : 'a Raw_Entry.t [@rtlmangle true]
-      ; update : 'a Entry.t [@rtlmangle true]
+      ; update_id : 'a [@bits id_width]
+      ; update_valid : 'a
       ; pop : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -599,11 +600,12 @@ struct
 
   let create
     scope
+    ~update_f
     { I.clock
     ; clear
     ; write_tail = { valid = write; ready = _; data = _ } as write_entry
-    ; update =
-        { id = update_id; raw = { valid = update; ready = _; data = _ } } as update_entry
+    ; update_id
+    ; update_valid = update
     ; pop
     }
     =
@@ -633,8 +635,13 @@ struct
         ~f:(Fn.flip ( +:. ) 1)
         (Reg_spec.create ~clock ())
     in
-    let update_override ({ Entry.id; raw = { valid; ready = _; data = _ } } as next) =
-      Entry.Of_signal.mux2 (valid &: update &: (update_id ==: id)) update_entry next
+    let update_override
+      ({ Entry.id; raw = { valid; ready = _; data = _ } as raw } as next)
+      =
+      Entry.Of_signal.mux2
+        (valid &: update &: (update_id ==: id))
+        { next with raw = update_f raw }
+        next
     in
     let update_overrides = List.map ~f:update_override in
     let _assign =
@@ -679,9 +686,9 @@ struct
     }
   ;;
 
-  let hierarchical ~name scope =
+  let hierarchical ~name ~update_f scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    H.hierarchical ~scope ~name create
+    H.hierarchical ~scope ~name (create ~update_f)
   ;;
 end
 
@@ -722,16 +729,18 @@ module Tests = struct
       ()
     ;;
 
-    let sim ~f =
+    let sim ~f ~update_f =
       let module Simulator = Cyclesim.With_interface (I) (O) in
       let scope = Scope.create ~flatten_design:true () in
-      let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+      let sim =
+        Simulator.create ~config:Cyclesim.Config.trace_all (create ~update_f scope)
+      in
       test_bench ~f sim;
       ()
     ;;
 
     let%expect_test "Simple" =
-      sim ~f:(fun print_state sim ->
+      sim ~update_f:Fn.id ~f:(fun print_state sim ->
         let open Bits in
         let inputs = Cyclesim.inputs sim in
         let next () =
@@ -763,7 +772,7 @@ module Tests = struct
         {|
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+           (update_id 0) (update_valid 0) (pop 0)))
          (outputs
           ((empty 1) (full 0) (write_id 0)
            (all
@@ -774,7 +783,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 0)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 1) (full 0) (write_id 0)
            (all
@@ -785,7 +794,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 1)
            (all
@@ -796,7 +805,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 1) (full 0) (write_id 1)
            (all
@@ -807,7 +816,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 0)
            (all
@@ -818,7 +827,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 1)
            (all
@@ -829,7 +838,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+           (update_id 0) (update_valid 0) (pop 0)))
          (outputs
           ((empty 0) (full 1) (write_id 0)
            (all
@@ -840,7 +849,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 0)))
+           (update_id 0) (update_valid 0) (pop 0)))
          (outputs
           ((empty 0) (full 1) (write_id 0)
            (all
@@ -851,7 +860,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 0)
            (all
@@ -862,7 +871,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 1) (full 0) (write_id 0)
            (all
@@ -873,7 +882,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 1) (full 0) (write_id 0)
            (all
@@ -884,18 +893,17 @@ module Tests = struct
     ;;
 
     let%expect_test "Update" =
-      sim ~f:(fun print_state sim ->
+      sim ~update_f:Fn.id ~f:(fun print_state sim ->
         let open Bits in
         let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
         inputs.pop := vdd;
         inputs.write_tail.valid := vdd;
         inputs.write_tail.data.test := vdd;
-        inputs.update.id := !(outputs.write_id);
+        inputs.update_id := !(outputs.write_id);
         Cyclesim.cycle sim;
         print_state ();
         inputs.write_tail.valid := gnd;
-        inputs.update.raw.valid := vdd;
-        inputs.update.raw.ready := vdd;
+        inputs.update_valid := vdd;
         print_state ();
         Cyclesim.cycle sim;
         print_state ();
@@ -904,7 +912,7 @@ module Tests = struct
         {|
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 1) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 0) (ready 0) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 0) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 1)
            (all
@@ -915,7 +923,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 1) (pop 1)))
          (outputs
           ((empty 0) (full 0) (write_id 1)
            (all
@@ -926,7 +934,7 @@ module Tests = struct
 
         ((inputs
           ((clock 0) (clear 0) (write_tail ((valid 0) (ready 0) (data ((test 1)))))
-           (update ((id 0) (raw ((valid 1) (ready 1) (data ((test 0))))))) (pop 1)))
+           (update_id 0) (update_valid 1) (pop 1)))
          (outputs
           ((empty 1) (full 0) (write_id 1)
            (all
