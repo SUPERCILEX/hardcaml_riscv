@@ -125,12 +125,13 @@ let create scope ~bootloader { I.clock; clear; uart } =
       (struct
         let capacity = 2
       end)
-      (Decode_instruction.Data_in)
+      (Decode_instruction_and_load_registers.Data_in)
   in
   let fetch_consume = wire 1 in
   let fetch_head_update = Fetch_buffer.Entry.Of_signal.wires () in
   let fetch_write_data =
-    { Decode_instruction.Data_in.raw_instruction = zero Parameters.word_width
+    { Decode_instruction_and_load_registers.Data_in.raw_instruction =
+        zero Parameters.word_width
     ; fetch_predicted_next_pc = zero Parameters.word_width
     ; has_fetch_prediction = gnd
     ; forward = { program_counter; error = fetch_error }
@@ -155,7 +156,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   fetch_full <== fetch_full_;
   let decode_full = wire 1 in
-  let { Decode_instruction.O.done_ = decode_done
+  let { Decode_instruction_and_load_registers.O.done_ = decode_done
       ; decoded
       ; predicted_next_pc = decode_predicted_next_pc
       ; jump = decode_jump
@@ -172,7 +173,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; ready = vdd
           ; data =
               { (fetch_write_data
-                 |> Decode_instruction.Data_in.Of_signal.reg
+                 |> Decode_instruction_and_load_registers.Data_in.Of_signal.reg
                       ~enable:fetch_done
                       (Reg_spec.create ~clock ()))
                 with
@@ -183,114 +184,73 @@ let create scope ~bootloader { I.clock; clear; uart } =
           }
       };
     let { Fetch_buffer.Entry.id = _; raw = { valid; ready; data } } = fetch_out in
-    Decode_instruction.hierarchical
+    Decode_instruction_and_load_registers.hierarchical
       scope
       { clock; clear; start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
   in
   fetch_consume <== decode_done;
   pending_return_address <== pending_return_address_;
-  let module Decode_buffer = Fast_fifo.Make (Load_registers.Data_in) in
-  let decode_consume = wire 1 in
-  let { Decode_buffer.O.rd_data = decode_out
-      ; rd_valid = decode_outputs_valid
-      ; full = decode_full_
-      ; one_from_full = _
-      }
-    =
-    Decode_buffer.hierarchical
-      scope
-      ~name:"decode_buffer"
-      ~cut_through:false
-      ~capacity:1
-      { clock
-      ; clear = clear |: flush_pre_writeback
-      ; wr_data =
-          (let { Decoder.O.instruction; rd; rs1; rs2; immediate } = decoded in
-           let { Decode_instruction.Forward.program_counter; error } = decoder_forward in
-           { rs1_address = rs1
-           ; rs2_address = rs2
-           ; forward =
-               { program_counter
-               ; predicted_next_pc = decode_predicted_next_pc
-               ; instruction
-               ; rd_address = rd
-               ; immediate
-               ; error
-               }
-           })
-      ; wr_enable = decode_done
-      ; rd_enable = decode_consume
-      }
+  load_registers <== decode_done;
+  let () =
+    let { Decoder.O.rs1; rs2; _ } = decoded in
+    rs1_address <== rs1;
+    rs2_address <== rs2;
+    ()
   in
-  decode_full <== decode_full_;
-  let load_registers_full = wire 1 in
-  let { Load_registers.O.done_ = load_registers_done
-      ; load = load_registers_
-      ; rs1_address = rs1_address_
-      ; rs2_address = rs2_address_
-      ; forward = load_registers_forward
-      }
-    =
-    Load_registers.hierarchical
-      scope
-      { start = decode_outputs_valid &: ~:load_registers_full &: ~:lock_pipeline
-      ; data = decode_out
-      }
-  in
-  decode_consume <== load_registers_done;
-  load_registers <== load_registers_;
-  rs1_address <== rs1_address_;
-  rs2_address <== rs2_address_;
-  let module Load_registers_buffer =
+  let module Decode_instruction_and_load_registers_buffer =
     Stage_buffer
       (struct
         let capacity = 2
       end)
       (Execute.Data_in)
   in
-  let load_registers_consume = wire 1 in
-  let load_registers_head_update = Load_registers_buffer.Entry.Of_signal.wires () in
+  let decode_consume = wire 1 in
+  let load_registers_head_update =
+    Decode_instruction_and_load_registers_buffer.Entry.Of_signal.wires ()
+  in
   let load_registers_write_data =
-    let { Load_registers.Forward.program_counter
-        ; predicted_next_pc
-        ; instruction
-        ; rd_address
+    let { Decoder.O.instruction
+        ; rd = rd_address
+        ; rs1 = rs1_address
+        ; rs2 = rs2_address
         ; immediate
-        ; error
         }
       =
-      load_registers_forward
+      decoded
+    in
+    let { Decode_instruction_and_load_registers.Forward.program_counter; error } =
+      decoder_forward
     in
     { Execute.Data_in.rs1_address
     ; rs2_address
     ; rs1 = zero Parameters.word_width
     ; rs2 = zero Parameters.word_width
     ; program_counter
-    ; predicted_next_pc
+    ; predicted_next_pc = decode_predicted_next_pc
     ; instruction
     ; immediate
     ; forward = { rd_address; error }
     }
   in
-  let { Load_registers_buffer.O.empty = _
-      ; full = load_registers_full_
-      ; write_id = load_registers_id
+  let { Decode_instruction_and_load_registers_buffer.O.empty = _
+      ; full = decode_instruction_and_load_registers_full_
+      ; write_id = decode_instruction_and_load_registers_id
       ; all = _
-      ; head = load_registers_out
+      ; head = decode_instruction_and_load_registers_out
       }
     =
-    Load_registers_buffer.hierarchical
+    Decode_instruction_and_load_registers_buffer.hierarchical
       scope
-      ~name:"load_regs_buffer"
+      ~name:"decode_and_load_regs_buffer"
       { clock
       ; clear = clear |: flush_pre_writeback
       ; write_tail =
-          { valid = load_registers_done; ready = gnd; data = load_registers_write_data }
+          { valid = decode_done; ready = gnd; data = load_registers_write_data }
       ; update = load_registers_head_update
-      ; pop = load_registers_consume
+      ; pop = decode_consume
       }
   in
-  load_registers_full <== load_registers_full_;
+  decode_full <== decode_instruction_and_load_registers_full_;
   let module Bypass_register = struct
     type 'a t =
       { rd_address : 'a [@bits 5]
@@ -312,17 +272,18 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let execute_full = wire 1 in
   let alu_bypass_id = wire 2 in
   let { Execute.O.done_ = execute_done; data = execute_data; resolved_control_flow } =
-    Load_registers_buffer.Entry.Of_signal.assign
+    Decode_instruction_and_load_registers_buffer.Entry.Of_signal.assign
       load_registers_head_update
       { id =
-          load_registers_id |> reg ~enable:load_registers_done (Reg_spec.create ~clock ())
+          decode_instruction_and_load_registers_id
+          |> reg ~enable:decode_done (Reg_spec.create ~clock ())
       ; raw =
-          { valid = load_registers_done |> reg (Reg_spec.create ~clock ~clear ())
+          { valid = decode_done |> reg (Reg_spec.create ~clock ~clear ())
           ; ready = vdd
           ; data =
               { (load_registers_write_data
                  |> Execute.Data_in.Of_signal.reg
-                      ~enable:load_registers_done
+                      ~enable:decode_done
                       (Reg_spec.create ~clock ()))
                 with
                 rs1
@@ -330,8 +291,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
               }
           }
       };
-    let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data } } =
-      load_registers_out
+    let { Decode_instruction_and_load_registers_buffer.Entry.id = _
+        ; raw = { valid; ready; data }
+        }
+      =
+      decode_instruction_and_load_registers_out
     in
     let { Execute.Data_in.rs1_address; rs2_address; rs1; rs2; _ } = data in
     let module Bypass = struct
@@ -370,7 +334,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           (let debounce start =
              start
              &: (~:(start |> reg (Reg_spec.create ~clock ~clear ()))
-                 |: (load_registers_consume |> reg (Reg_spec.create ~clock ~clear ())))
+                 |: (decode_consume |> reg (Reg_spec.create ~clock ~clear ())))
            in
            debounce (valid &: ready &: regs_ready &: ~:execute_full &: ~:lock_pipeline))
           |: (valid &: data.forward.error)
@@ -379,7 +343,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       }
   in
   let execute_done = execute_done &: ~:flush_pre_writeback in
-  load_registers_consume <== execute_done;
+  decode_consume <== execute_done;
   let is_execute_branch_for_counters =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
@@ -540,8 +504,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
        { cycles_since_boot = counter vdd
        ; instructions_retired = counter writeback_done
        ; empty_alu_cycles =
-           (let { Load_registers_buffer.Entry.id = _; raw = { valid; ready; data = _ } } =
-              load_registers_out
+           (let { Decode_instruction_and_load_registers_buffer.Entry.id = _
+                ; raw = { valid; ready; data = _ }
+                }
+              =
+              decode_instruction_and_load_registers_out
             in
             counter ~:(valid &: ready))
        ; instruction_load_stalls = counter (load_instruction &: stall_load_instruction)

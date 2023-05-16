@@ -116,7 +116,7 @@ let is_return { Decoder.O.instruction; rd; rs1; rs2 = _; immediate = _ } =
       |: (is_link_reg rd &: is_link_reg rs1 &: (rs1 <>: rd)))
 ;;
 
-module Decode_instruction = struct
+module Decode_instruction_and_load_registers = struct
   module Forward = struct
     type 'a t =
       { program_counter : 'a [@bits Parameters.word_width]
@@ -167,7 +167,7 @@ module Decode_instruction = struct
         { raw_instruction
         ; fetch_predicted_next_pc
         ; has_fetch_prediction
-        ; forward = { program_counter; _ } as forward
+        ; forward = { program_counter; error } as forward
         }
     }
     =
@@ -216,80 +216,18 @@ module Decode_instruction = struct
         &: jump
         |: (has_fetch_prediction &: ~:trust_fetch_prediction)
     ; is_branch
-    ; forward
+    ; forward =
+        { forward with
+          error =
+            error |: (start &: Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
+        }
     ; pending_return_address = return_pc
     }
   ;;
 
   let hierarchical scope =
     let module H = Hierarchy.In_scope (I) (O) in
-    H.hierarchical ~scope ~name:"decode_stage" create
-  ;;
-end
-
-module Load_registers = struct
-  module Forward = struct
-    type 'a t =
-      { program_counter : 'a [@bits Parameters.word_width]
-      ; predicted_next_pc : 'a [@bits Parameters.word_width]
-      ; instruction : 'a Instruction.Binary.t [@rtlmangle true]
-      ; rd_address : 'a [@bits 5]
-      ; immediate : 'a [@bits 32]
-      ; error : 'a
-      }
-    [@@deriving sexp_of, hardcaml]
-  end
-
-  module Data_in = struct
-    type 'a t =
-      { rs1_address : 'a [@bits 5] [@rtlsuffix "_in"]
-      ; rs2_address : 'a [@bits 5] [@rtlsuffix "_in"]
-      ; forward : 'a Forward.t [@rtlprefix "fi$"]
-      }
-    [@@deriving sexp_of, hardcaml]
-  end
-
-  module I = struct
-    type 'a t =
-      { start : 'a
-      ; data : 'a Data_in.t
-      }
-    [@@deriving sexp_of, hardcaml]
-  end
-
-  module O = struct
-    type 'a t =
-      { done_ : 'a
-      ; load : 'a
-      ; rs1_address : 'a [@bits 5] [@rtlsuffix "_out"]
-      ; rs2_address : 'a [@bits 5] [@rtlsuffix "_out"]
-      ; forward : 'a Forward.t [@rtlprefix "fo$"]
-      }
-    [@@deriving sexp_of, hardcaml]
-  end
-
-  let create
-    _scope
-    { I.start
-    ; data = { rs1_address; rs2_address; forward = { error; instruction; _ } as forward }
-    }
-    =
-    let open Signal in
-    { O.done_ = start
-    ; load = start
-    ; rs1_address
-    ; rs2_address
-    ; forward =
-        { forward with
-          error =
-            error |: (start &: Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
-        }
-    }
-  ;;
-
-  let hierarchical scope =
-    let module H = Hierarchy.In_scope (I) (O) in
-    H.hierarchical ~scope ~name:"load_regs_stage" create
+    H.hierarchical ~scope ~name:"decode_and_load_regs_stage" create
   ;;
 end
 
