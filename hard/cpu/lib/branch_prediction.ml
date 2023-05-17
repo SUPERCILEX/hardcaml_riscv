@@ -1,6 +1,34 @@
 open! Core
 open Hardcaml
 
+let extract_high_entropy_bits_from_program_counter address =
+  let open Signal in
+  concat_msb
+    [ address.:(Int.floor_log2 Parameters.code_bottom)
+    ; sel_bottom address (Int.floor_log2 Parameters.imem_size) |> msbs
+    ]
+;;
+
+let hash_program_counter ~bits address =
+  let open Signal in
+  let shuffle list =
+    let random_prime =
+      "155932701214303184326864131316095681640290247695109515520724340505777567578309211013555223897242597556615485113571634396826737509550588918899636445222600177152071201620397262999574183535311513714762158246551801564970296048152341668550491010639120717043516543640455187677926056798474846669042658878200255193621"
+    in
+    List.mapi list ~f:(fun i c ->
+      String.slice random_prime i (i + 10) |> Int.of_string, c)
+    |> List.sort ~compare:(fun (random1, _) (random2, _) -> Int.compare random1 random2)
+    |> List.map ~f:snd
+  in
+  let useful_address = extract_high_entropy_bits_from_program_counter address in
+  let bits = Int.min bits (width useful_address) in
+  useful_address
+  |> split_msb ~exact:false ~part_width:bits
+  |> List.map ~f:(fun part -> bits_msb part |> shuffle |> concat_msb)
+  |> List.map ~f:(Fn.flip uresize bits)
+  |> reduce ~f:( ^: )
+;;
+
 module Branch_target_buffer = struct
   module Entry = struct
     type 'a t =
@@ -19,25 +47,12 @@ module Branch_target_buffer = struct
 
   let hierarchical =
     let open Signal in
-    let hash ~bits address =
-      let random_prime =
-        of_decimal_string
-          ~width:1024
-          "155932701214303184326864131316095681640290247695109515520724340505777567578309211013555223897242597556615485113571634396826737509550588918899636445222600177152071201620397262999574183535311513714762158246551801564970296048152341668550491010639120717043516543640455187677926056798474846669042658878200255193621"
-      in
-      let useful_address = msbs address in
-      let bits = Int.min bits (width useful_address) in
-      useful_address ^: sel_bottom random_prime (width useful_address)
-      |> split_msb ~exact:false ~part_width:bits
-      |> List.map ~f:(Fn.flip uresize bits)
-      |> reduce ~f:( ^: )
-    in
     let size = 1024 in
     hierarchical
       ~name:"branch_target_buffer"
       ~size
-      ~address_to_index:(hash ~bits:(address_bits_for size))
-      ~address_to_tag:(hash ~bits:13)
+      ~address_to_index:(hash_program_counter ~bits:(address_bits_for size))
+      ~address_to_tag:(hash_program_counter ~bits:13)
   ;;
 end
 
