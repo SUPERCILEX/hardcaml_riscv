@@ -398,13 +398,13 @@ let create
     mem_segments @ [ uart_segment ], uart_out
   in
   let read_data activator =
-    mux
-      (let activations = List.map segments ~f:activator in
-       List.mapi activations ~f:(fun i active ->
-         sresize active (address_bits_for (List.length segments)) &:. i)
-       |> reduce ~f:( |: )
-       |> reg ~enable:(reduce activations ~f:( |: )) (Reg_spec.create ~clock ()))
-      (List.map segments ~f:(fun (_, { read_data; _ }) -> read_data))
+    let activations = List.map segments ~f:activator in
+    let any_active = reduce activations ~f:( |: ) in
+    List.map2_exn activations segments ~f:(fun active (_, { read_data; _ }) ->
+      { With_valid.valid = active |> reg ~enable:any_active (Reg_spec.create ~clock ())
+      ; value = read_data
+      })
+    |> onehot_select
   in
   { O.instruction = read_data (fun ({ load_instruction; _ }, _) -> load_instruction)
   ; read_data = read_data (fun ({ load; _ }, _) -> load)
