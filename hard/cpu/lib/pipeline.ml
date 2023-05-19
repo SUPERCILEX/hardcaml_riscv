@@ -212,9 +212,10 @@ module Decode_instruction_and_load_registers = struct
     ; decoded
     ; predicted_next_pc
     ; jump =
-        ~:has_fetch_prediction
-        &: jump
-        |: (has_fetch_prediction &: ~:trust_fetch_prediction)
+        ~:error
+        &: (~:has_fetch_prediction
+            &: jump
+            |: (has_fetch_prediction &: ~:trust_fetch_prediction))
     ; is_branch
     ; forward =
         { forward with
