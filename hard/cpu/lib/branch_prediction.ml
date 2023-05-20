@@ -33,6 +33,7 @@ module Branch_target_buffer = struct
   module Entry = struct
     type 'a t =
       { target_pc : 'a [@bits Parameters.word_width]
+      ; is_branch : 'a
       ; is_return : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -346,7 +347,7 @@ module BayesianTage = struct
           in
           mux2
             direction
-            (negate hysteresis
+            (negate (uresize hysteresis Params.counter_width)
              +:. (hysteresis_max_half + Int.shift_left 1 Params.bimodal_hysteresis_width)
             )
             (of_int ~width:Params.counter_width hysteresis_max_half)
@@ -648,6 +649,10 @@ module BayesianTage = struct
         =
         let open Signal in
         let ( -- ) = Scope.naming scope in
+        let next_fetch_tag, retirement_tag =
+          (next_fetch_program_counter, retirement_program_counter)
+          |> Tuple2.map ~f:(hash_program_counter ~bits:Params.tag_width)
+        in
         let next_fetch_program_counter, retirement_program_counter =
           (next_fetch_program_counter, retirement_program_counter)
           |> Tuple2.map ~f:(hash_program_counter ~bits:Params.bank_address_width)
@@ -711,10 +716,10 @@ module BayesianTage = struct
                    (List.map ~f:(fun (update, input) ->
                       { With_valid.valid = update; value = input }))
             |> Fn.flip List.take length
-            |> List.map ~f:(fun udpates ->
+            |> List.map ~f:(fun updates ->
                  reg_fb
                    ~width:entry_width
-                   ~f:(fun entry -> priority_select_with_default ~default:entry udpates)
+                   ~f:(fun entry -> priority_select_with_default ~default:entry updates)
                    (Reg_spec.create ~clock ())) )
         in
         let branch_pointers, branch_history =
@@ -773,7 +778,10 @@ module BayesianTage = struct
               (next_folded_history
                <==
                let next =
-                 let head_entry = sel_bottom head_entry injected_bits in
+                 let head_entry =
+                   sel_bottom head_entry injected_bits
+                   |> Fn.flip uresize compressed_length
+                 in
                  let tail_entry =
                    let tail = ue pointer +:. (original_length - 1) in
                    let tail =
@@ -783,7 +791,9 @@ module BayesianTage = struct
                        tail
                      |> lsbs
                    in
-                   mux tail history |> Fn.flip sel_bottom injected_bits
+                   mux tail history
+                   |> Fn.flip sel_bottom injected_bits
+                   |> Fn.flip uresize compressed_length
                  in
                  let () =
                    head_entry -- Printf.sprintf "%s_head_entry" name |> ignore;
@@ -911,16 +921,14 @@ module BayesianTage = struct
                      ~pc:next_fetch_program_counter
                      ~branch:fetch_branch_index
                      ~jump:fetch_jump_index
-                 , tags
-                     ~pc:next_fetch_program_counter
-                     ~branch:fetch_branch_tag
-                     ~jump:fetch_jump_tag )
+                 , tags ~pc:next_fetch_tag ~branch:fetch_branch_tag ~jump:fetch_jump_tag
+                 )
                , ( indices
                      ~pc:retirement_program_counter
                      ~branch:retirement_branch_index
                      ~jump:retirement_jump_index
                  , tags
-                     ~pc:retirement_program_counter
+                     ~pc:retirement_tag
                      ~branch:retirement_branch_tag
                      ~jump:retirement_jump_tag ) ))
           |> List.unzip
@@ -941,17 +949,19 @@ module BayesianTage = struct
           { clock : 'a
           ; clear : 'a
           ; update : 'a Update.t
-          ; read_entries : 'a Entry.t list [@length Params.num_banks]
+          ; read_entries : 'a Entry.t list
+               [@length Params.num_banks] [@rtlprefix "read_entries$"]
           ; tags : 'a list [@bits Params.tag_width] [@length Params.num_banks]
-          ; bimodal_entry : 'a Bimodal_entry.t
+          ; bimodal_entry : 'a Bimodal_entry.t [@rtlprefix "bimodal_entry$"]
           }
         [@@deriving sexp_of, hardcaml]
       end
 
       module O = struct
         type 'a t =
-          { next_entries : 'a Entry.t list [@length Params.num_banks]
-          ; next_bimodal_entry : 'a Bimodal_entry.t
+          { next_entries : 'a Entry.t list
+               [@length Params.num_banks] [@rtlprefix "next_entries$"]
+          ; next_bimodal_entry : 'a Bimodal_entry.t [@rtlprefix "next_bimodal_entry$"]
           ; meta : 'a [@bits Params.meta_width]
           }
         [@@deriving sexp_of, hardcaml]
@@ -1146,7 +1156,9 @@ module BayesianTage = struct
                    / Params.max_counter_value))
             in
             List.map mods ~f:(fun mod_ ->
-              let skip = sel_bottom random4 (Int.ceil_log2 mod_) in
+              let skip =
+                if mod_ = 1 then zero 1 else sel_bottom random4 (Int.ceil_log2 mod_)
+              in
               mux2 (skip >=:. mod_) (skip -:. mod_) skip
               |> Fn.flip uresize Params.counter_width)
             |> mux (Dual_counter.diff first_hitter_counters)
@@ -1191,7 +1203,7 @@ module BayesianTage = struct
           ; Dual_counter.prediction prediction_counters <>: resolved_direction
           ; ((* TODO I don't know what this stands for. A is probably allocation. *)
              let min_ap = 4 in
-             sel_bottom random3 min_ap
+             uresize (sel_bottom random3 min_ap) (width controlled_allocation_throttler)
              >=: srl
                    controlled_allocation_throttler
                    (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1)
@@ -1648,7 +1660,14 @@ module BayesianTage = struct
         ; clear
         ; update = retirement_update
         ; read_entries = retirement_read_entries
-        ; tags = retirement_tags
+        ; tags =
+            retirement_tags
+            |> List.map
+                 ~f:
+                   (pipeline
+                      ~n:2
+                      ~enable:retirement_update_valid
+                      (Reg_spec.create ~clock ()))
         ; bimodal_entry = retirement_bimodal_entry
         }
     in
@@ -1658,7 +1677,7 @@ module BayesianTage = struct
       Predict.hierarchical
         scope
         { read_entries = prediction_read_entries
-        ; tags = prediction_tags
+        ; tags = prediction_tags |> List.map ~f:(reg (Reg_spec.create ~clock ()))
         ; bimodal_entry = prediction_bimodal_entry
         ; meta
         }
@@ -1981,7 +2000,7 @@ module BayesianTage = struct
   end
 end
 
-module Branch_direction_preditor = struct
+module Branch_direction_predictor = struct
   include BayesianTage
 
   let hierarchical =

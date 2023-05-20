@@ -92,9 +92,12 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; jump
        ; jump_target
        ; pending_return_address
+       ; predicted_branch_direction
+       ; control_flow_resolved
        ; control_flow_resolved_pc
        ; control_flow_resolved_jump_target
        ; control_flow_resolved_to_taken
+       ; control_flow_resolved_is_branch
        ; control_flow_resolved_is_return
        ; mem_error = _
        } as fetch_instruction_in)
@@ -109,15 +112,16 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let { Fetch_instruction.O.done_ = fetch_done
       ; load = load_instruction_
-      ; program_counter = program_counter_
+      ; program_counter = next_fetch_program_counter
       ; has_prediction = has_fetch_prediction
+      ; predicted_direction = fetch_predicted_direction
       ; error = fetch_error
       }
     =
     Fetch_instruction.hierarchical scope fetch_instruction_in
   in
   load_instruction <== load_instruction_;
-  program_counter <== program_counter_;
+  program_counter <== next_fetch_program_counter;
   let flush_pre_writeback = wire 1 -- "flush_pre_writeback" in
   let flush_pre_decode = wire 1 -- "flush_pre_decode" in
   let module Fetch_buffer =
@@ -134,6 +138,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         zero Parameters.word_width
     ; fetch_predicted_next_pc = zero Parameters.word_width
     ; has_fetch_prediction = gnd
+    ; fetch_predicted_direction
     ; forward = { program_counter; error = fetch_error }
     }
   in
@@ -160,7 +165,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; decoded
       ; predicted_next_pc = decode_predicted_next_pc
       ; jump = decode_jump
+      ; is_control_flow = decoded_control_flow
       ; is_branch = is_decode_branch_for_counters
+      ; predicted_direction = decode_predicted_direction
       ; forward = decoder_forward
       ; pending_return_address = pending_return_address_
       }
@@ -344,7 +351,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   let execute_done = execute_done &: ~:flush_pre_writeback in
   decode_consume <== execute_done;
-  let is_execute_branch_for_counters =
+  let () =
     let ( valid
         , { Execute.Resolved_control_flow.jump = jump_
           ; jump_target = jump_target_
@@ -368,11 +375,40 @@ let create scope ~bootloader { I.clock; clear; uart } =
     flush_pre_decode <== (decode_jump &: decode_done);
     jump <== (flush_pre_writeback |: flush_pre_decode);
     jump_target <== mux2 flush_pre_writeback jump_target_ decode_predicted_next_pc;
+    control_flow_resolved <== valid;
     control_flow_resolved_pc <== program_counter;
     control_flow_resolved_jump_target <== resolved_jump_target;
-    control_flow_resolved_to_taken <== (valid &: taken);
+    control_flow_resolved_to_taken <== taken;
+    control_flow_resolved_is_branch <== is_branch;
     control_flow_resolved_is_return <== is_return;
-    is_branch
+    let { Branch_prediction.Branch_direction_predictor.O.predicted_direction } =
+      Branch_prediction.Branch_direction_predictor.hierarchical
+        scope
+        { clock
+        ; clear
+        ; next_fetch_program_counter
+        ; retirement_program_counter = control_flow_resolved_pc
+        ; speculative_fetch_update =
+            { valid = fetch_done &: has_fetch_prediction
+            ; resolved_direction = fetch_predicted_direction
+            ; branch_target = next_fetch_program_counter
+            }
+        ; speculative_decode_update =
+            { valid = decode_done &: decoded_control_flow
+            ; resolved_direction = decode_predicted_direction
+            ; branch_target = decode_predicted_next_pc
+            }
+        ; retirement_update =
+            { valid
+            ; resolved_direction = control_flow_resolved_to_taken
+            ; branch_target = control_flow_resolved_jump_target
+            }
+        ; restore_from_decode = flush_pre_decode
+        ; restore_from_retirement = flush_pre_writeback
+        }
+    in
+    predicted_branch_direction <== predicted_direction;
+    ()
   in
   let module Execute_buffer = Fast_fifo.Make (Execute.Data_out) in
   let writeback_done = wire 1 in
@@ -523,9 +559,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; decode_jump_mispredictions =
            counter (~:is_decode_branch_for_counters &: flush_pre_decode)
        ; execute_branch_mispredictions =
-           counter (is_execute_branch_for_counters &: flush_pre_writeback)
+           counter (control_flow_resolved_is_branch &: flush_pre_writeback)
        ; execute_jump_mispredictions =
-           counter (~:is_execute_branch_for_counters &: flush_pre_writeback)
+           counter (~:control_flow_resolved_is_branch &: flush_pre_writeback)
        })
   }
 ;;

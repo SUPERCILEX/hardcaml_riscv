@@ -11,9 +11,12 @@ module Fetch_instruction = struct
       ; jump : 'a
       ; jump_target : 'a [@bits Parameters.word_width]
       ; pending_return_address : 'a [@bits Parameters.word_width]
+      ; predicted_branch_direction : 'a
+      ; control_flow_resolved : 'a
       ; control_flow_resolved_pc : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_jump_target : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_to_taken : 'a
+      ; control_flow_resolved_is_branch : 'a
       ; control_flow_resolved_is_return : 'a
       ; mem_error : 'a
       }
@@ -26,6 +29,7 @@ module Fetch_instruction = struct
       ; load : 'a
       ; program_counter : 'a [@bits Parameters.word_width]
       ; has_prediction : 'a
+      ; predicted_direction : 'a
       ; error : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -40,9 +44,12 @@ module Fetch_instruction = struct
     ; jump
     ; jump_target
     ; pending_return_address
+    ; predicted_branch_direction
+    ; control_flow_resolved
     ; control_flow_resolved_pc
     ; control_flow_resolved_jump_target
     ; control_flow_resolved_to_taken
+    ; control_flow_resolved_is_branch
     ; control_flow_resolved_is_return
     ; mem_error
     }
@@ -51,7 +58,7 @@ module Fetch_instruction = struct
     let load = ~:pipeline_full &: ~:jump in
     let next_pc = wire Parameters.word_width in
     let { Branch_prediction.Branch_target_buffer.O.data =
-            { target_pc = predicted_next_pc; is_return }
+            { target_pc = predicted_next_pc; is_branch; is_return }
         ; hit = has_prediction
         }
       =
@@ -60,10 +67,11 @@ module Fetch_instruction = struct
         { clock
         ; load
         ; read_address = next_pc
-        ; store = control_flow_resolved_to_taken
+        ; store = control_flow_resolved &: control_flow_resolved_to_taken
         ; write_address = control_flow_resolved_pc
         ; write_data =
             { target_pc = control_flow_resolved_jump_target
+            ; is_branch = control_flow_resolved_is_branch
             ; is_return = control_flow_resolved_is_return
             }
         }
@@ -73,7 +81,13 @@ module Fetch_instruction = struct
     next_pc
     <== mux2
           (has_prediction &: (done_ |> reg (Reg_spec.create ~clock ~clear ())))
-          (mux2 is_return pending_return_address predicted_next_pc)
+          (mux2
+             is_return
+             pending_return_address
+             (mux2
+                is_branch
+                (mux2 predicted_branch_direction predicted_next_pc current_pc)
+                predicted_next_pc))
           current_pc;
     current_pc
     <== (mux2 jump jump_target (mux2 done_ (next_pc +:. 4) next_pc)
@@ -85,6 +99,7 @@ module Fetch_instruction = struct
     ; load
     ; program_counter = next_pc
     ; has_prediction
+    ; predicted_direction = is_branch &: predicted_branch_direction |: ~:is_branch
     ; error = mem_error &: load
     }
   ;;
@@ -130,6 +145,7 @@ module Decode_instruction_and_load_registers = struct
       { raw_instruction : 'a [@bits Parameters.word_width]
       ; fetch_predicted_next_pc : 'a [@bits Parameters.word_width]
       ; has_fetch_prediction : 'a
+      ; fetch_predicted_direction : 'a
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -151,7 +167,9 @@ module Decode_instruction_and_load_registers = struct
       ; decoded : 'a Decoder.O.t
       ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; jump : 'a
+      ; is_control_flow : 'a
       ; is_branch : 'a
+      ; predicted_direction : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       ; pending_return_address : 'a [@bits Parameters.word_width]
       }
@@ -167,6 +185,7 @@ module Decode_instruction_and_load_registers = struct
         { raw_instruction
         ; fetch_predicted_next_pc
         ; has_fetch_prediction
+        ; fetch_predicted_direction
         ; forward = { program_counter; error } as forward
         }
     }
@@ -216,7 +235,9 @@ module Decode_instruction_and_load_registers = struct
         &: (~:has_fetch_prediction
             &: jump
             |: (has_fetch_prediction &: ~:trust_fetch_prediction))
+    ; is_control_flow = is_branch |: jal |: jalr
     ; is_branch
+    ; predicted_direction = mux2 trust_fetch_prediction fetch_predicted_direction jump
     ; forward =
         { forward with
           error =
