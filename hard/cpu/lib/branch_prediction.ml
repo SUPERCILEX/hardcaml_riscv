@@ -666,6 +666,16 @@ module BayesianTage = struct
           , retirement_branch_target )
           |> Tuple3.map ~f:(hash_program_counter ~bits:Params.jump_history_entry_width)
         in
+        let () =
+          next_fetch_tag -- "next_fetch_tag" |> ignore;
+          retirement_tag -- "retirement_tag" |> ignore;
+          next_fetch_program_counter -- "next_fetch_program_counter" |> ignore;
+          retirement_program_counter -- "retirement_program_counter" |> ignore;
+          speculative_fetch_branch_target -- "speculative_fetch_branch_target" |> ignore;
+          speculative_decode_branch_target -- "speculative_decode_branch_target" |> ignore;
+          retirement_branch_target -- "retirement_branch_target" |> ignore;
+          ()
+        in
         let gen_path_history ~name ~length ~entry_width ~inputs =
           let length = length + Params.instruction_window_size in
           let pointers =
@@ -698,9 +708,9 @@ module BayesianTage = struct
                   (mux2 restore_from_retirement retirement_pointer decode_pointer)
             in
             let () =
-              fetch_pointer -- Printf.sprintf "%s_fetch_pointer" name |> ignore;
-              decode_pointer -- Printf.sprintf "%s_decode_pointer" name |> ignore;
-              retirement_pointer -- Printf.sprintf "%s_retirement_pointer" name |> ignore;
+              fetch_pointer -- Printf.sprintf "fetch$%s_pointer" name |> ignore;
+              decode_pointer -- Printf.sprintf "decode$%s_pointer" name |> ignore;
+              retirement_pointer -- Printf.sprintf "retirement$%s_pointer" name |> ignore;
               ()
             in
             [ fetch_pointer; decode_pointer; retirement_pointer ]
@@ -724,7 +734,7 @@ module BayesianTage = struct
         in
         let branch_pointers, branch_history =
           gen_path_history
-            ~name:"branch_direction_history"
+            ~name:"branch_direction"
             ~length:Params.largest_branch_history_length
             ~entry_width:1
             ~inputs:
@@ -735,7 +745,7 @@ module BayesianTage = struct
         in
         let jump_pointers, jump_history =
           gen_path_history
-            ~name:"jump_target_history"
+            ~name:"jump_target"
             ~length:Params.jump_history_length
             ~entry_width:Params.jump_history_entry_width
             ~inputs:
@@ -798,6 +808,7 @@ module BayesianTage = struct
                  let () =
                    head_entry -- Printf.sprintf "%s_head_entry" name |> ignore;
                    tail_entry -- Printf.sprintf "%s_tail_entry" name |> ignore;
+                   folded_history -- Printf.sprintf "%s_folded_history" name |> ignore;
                    ()
                  in
                  head_entry ^: rotl folded_history 1 ^: rotl tail_entry out_point
@@ -818,7 +829,9 @@ module BayesianTage = struct
                         ; jump = { index = restore_jump_index; tag = restore_jump_tag }
                         } )
                     ->
-                 let update = update ~name:(Printf.sprintf "%s_%d" name i) in
+                 let update ~type_name =
+                   update ~name:(Printf.sprintf "%s%s_%d" name type_name i)
+                 in
                  { Indices_and_tags.branch =
                      (let update =
                         update
@@ -826,8 +839,16 @@ module BayesianTage = struct
                           ~history:branch_history
                           ~pointer:branch_pointer
                       in
-                      { index = update ~restore_from:restore_branch_index branch_index
-                      ; tag = update ~restore_from:restore_branch_tag branch_tag
+                      { index =
+                          update
+                            ~type_name:"branch_index"
+                            ~restore_from:restore_branch_index
+                            branch_index
+                      ; tag =
+                          update
+                            ~type_name:"jump_index"
+                            ~restore_from:restore_branch_tag
+                            branch_tag
                       })
                  ; jump =
                      (let update =
@@ -836,8 +857,16 @@ module BayesianTage = struct
                           ~history:jump_history
                           ~pointer:jump_pointer
                       in
-                      { index = update ~restore_from:restore_jump_index jump_index
-                      ; tag = update ~restore_from:restore_jump_tag jump_tag
+                      { index =
+                          update
+                            ~type_name:"jump_index"
+                            ~restore_from:restore_jump_index
+                            jump_index
+                      ; tag =
+                          update
+                            ~type_name:"jump_tag"
+                            ~restore_from:restore_jump_tag
+                            jump_tag
                       })
                  })
           in
@@ -853,7 +882,7 @@ module BayesianTage = struct
           in
           let retirement_indices_and_tags =
             indices_and_tags
-              ~name:"retirement"
+              ~name:"retirement$entries$"
               ~enable:retirement_valid
               ~restore:gnd
               ~restore_from:
@@ -869,7 +898,7 @@ module BayesianTage = struct
           in
           let decode_indices_and_tags =
             indices_and_tags
-              ~name:"decode"
+              ~name:"decode$entries$"
               ~enable:speculative_decode_valid
               ~restore:restore_from_retirement
               ~restore_from:
@@ -881,7 +910,7 @@ module BayesianTage = struct
           in
           let fetch_indices_and_tags =
             indices_and_tags
-              ~name:"fetch"
+              ~name:"fetch$entries$"
               ~enable:speculative_fetch_valid
               ~restore:(restore_from_decode |: restore_from_retirement)
               ~restore_from:
@@ -1004,6 +1033,7 @@ module BayesianTage = struct
         =
         let open Signal in
         let ( -- ) = Scope.naming scope in
+        let bank_num_width = address_bits_for (Params.num_banks + 1) in
         let base_prediction_counters = Dual_counter.of_bimodal bimodal_entry in
         let hit_vector =
           List.map2_exn
@@ -1016,14 +1046,14 @@ module BayesianTage = struct
         let module Counters_and_metadata = struct
           type 'a t =
             { counters : 'a Dual_counter.t
-            ; bank : 'a [@bits address_bits_for Params.num_banks]
+            ; bank : 'a [@bits bank_num_width]
             ; mask : 'a [@bits Params.num_banks]
             }
           [@@deriving sexp_of, hardcaml]
 
           let of_bank_and_counters ~f bank counters =
             { counters
-            ; bank = of_int ~width:(address_bits_for Params.num_banks) bank
+            ; bank = of_int ~width:bank_num_width bank
             ; mask = String.init Params.num_banks ~f |> of_bit_string
             }
           ;;
@@ -1139,6 +1169,14 @@ module BayesianTage = struct
         let random1, random2, random3, random4, random5 =
           randoms ~clock ~clear ~enable:valid
         in
+        let () =
+          random1 -- "randoms$1" |> ignore;
+          random2 -- "randoms$2" |> ignore;
+          random3 -- "randoms$3" |> ignore;
+          random4 -- "randoms$4" |> ignore;
+          random5 -- "randoms$5" |> ignore;
+          ()
+        in
         let next_controlled_allocation_throttler =
           wire (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1))
         in
@@ -1162,7 +1200,7 @@ module BayesianTage = struct
               mux2 (skip >=:. mod_) (skip -:. mod_) skip
               |> Fn.flip uresize Params.counter_width)
             |> mux (Dual_counter.diff first_hitter_counters)
-            |> Fn.flip uresize (address_bits_for Params.num_banks)
+            |> Fn.flip uresize bank_num_width
           in
           { With_valid.valid = skip <: bank_used_for_prediction
           ; value = bank_used_for_prediction -: skip
@@ -1341,14 +1379,17 @@ module BayesianTage = struct
                  let { Bimodal_entry.direction; hysteresis } = bimodal_entry in
                  if_
                    (direction ==: resolved_direction)
-                   [ when_ (hysteresis >:. 0) [ next_hysteresis <-- hysteresis -:. 1 ] ]
                    [ (let hysteresis_max =
                         Int.shift_left 1 Params.bimodal_hysteresis_width - 1
                       in
-                      if_
+                      when_
                         (hysteresis <:. hysteresis_max)
-                        [ next_hysteresis <-- hysteresis +:. 1 ]
-                        [ next_direction <-- resolved_direction ])
+                        [ next_hysteresis <-- hysteresis +:. 1 ])
+                   ]
+                   [ if_
+                       (hysteresis >:. 0)
+                       [ next_hysteresis <-- hysteresis -:. 1 ]
+                       [ next_direction <-- resolved_direction ]
                    ]
                in
                compile
@@ -1449,6 +1490,55 @@ module BayesianTage = struct
     type 'a t = { predicted_direction : 'a } [@@deriving sexp_of, hardcaml]
   end
 
+  let forwarding_ram scope ~clock ~name ~collision_mode ~size ~write_ports ~read_ports () =
+    let open Signal in
+    let ( -- ) = Scope.naming scope in
+    Array.iteri read_ports ~f:(fun i { read_clock = _; read_address; read_enable } ->
+      read_address -- Printf.sprintf "%s$read_address%d" name i |> ignore;
+      read_enable -- Printf.sprintf "%s$read_enable%d" name i |> ignore;
+      ());
+    Array.iteri
+      write_ports
+      ~f:(fun i { write_clock = _; write_address; write_enable; write_data } ->
+      write_address -- Printf.sprintf "%s$write_address%d" name i |> ignore;
+      write_enable -- Printf.sprintf "%s$write_enable%d" name i |> ignore;
+      write_data -- Printf.sprintf "%s$write_data%d" name i |> ignore;
+      ());
+    let writes =
+      Array.map
+        write_ports
+        ~f:(fun { write_clock = _; write_address; write_enable; write_data } ->
+        write_address @: write_data
+        |> reg ~enable:write_enable (Reg_spec.create ~clock ()))
+    in
+    let outputs =
+      Ram.create
+        ~name:(Scope.name scope name)
+        ~collision_mode
+        ~size
+        ~write_ports
+        ~read_ports
+        ()
+      |> Array.zip_exn read_ports
+      |> Array.map ~f:(fun ({ read_clock = _; read_address; read_enable }, read_output) ->
+           let read_address =
+             read_address |> reg ~enable:read_enable (Reg_spec.create ~clock ())
+           in
+           Array.to_list writes
+           |> List.map ~f:(fun forwarded ->
+                let forwarded_address = sel_top forwarded (width read_address) in
+                let forwarded_data = drop_top forwarded (width read_address) in
+                { With_valid.valid = forwarded_address ==: read_address
+                ; value = forwarded_data
+                })
+           |> priority_select_with_default ~default:read_output)
+    in
+    Array.iteri outputs ~f:(fun i data ->
+      data -- Printf.sprintf "%s$data%d" name i |> ignore;
+      ());
+    outputs
+  ;;
+
   let create
     scope
     ~params:
@@ -1497,6 +1587,16 @@ module BayesianTage = struct
       let jump_history_length = jump_history_length
       let jump_history_entry_width = jump_history_entry_width
     end) in
+    let { Update.valid = retirement_update_valid; _ } = retirement_update in
+    let ({ Update.valid = write_enable; _ } as retirement_update) =
+      { (retirement_update
+         |> Update.Of_signal.reg
+              ~enable:retirement_update_valid
+              (Reg_spec.create ~clock ()))
+        with
+        valid = retirement_update_valid |> reg (Reg_spec.create ~clock ~clear ())
+      }
+    in
     let { Update_history.O.prediction_indices
         ; prediction_tags
         ; retirement_indices
@@ -1512,28 +1612,21 @@ module BayesianTage = struct
         ; speculative_fetch_update
         ; speculative_decode_update
         ; retirement_update
-        ; restore_from_decode
-        ; restore_from_retirement
+        ; restore_from_decode =
+            restore_from_decode |> reg (Reg_spec.create ~clock ~clear ())
+        ; restore_from_retirement =
+            restore_from_retirement |> reg (Reg_spec.create ~clock ~clear ())
         }
     in
-    let { Update.valid = retirement_update_valid; _ } = retirement_update in
-    let ({ Update.valid = write_enable; _ } as retirement_update) =
-      { (retirement_update
-         |> Update.Of_signal.reg
-              ~enable:retirement_update_valid
-              (Reg_spec.create ~clock ()))
-        with
-        valid = retirement_update_valid |> reg (Reg_spec.create ~clock ~clear ())
-      }
-    in
     let bimodal_entry = Bimodal_entry.Of_signal.wires () in
-    (* TODO forward write-read conflicts *)
     let prediction_bimodal_entry, retirement_bimodal_entry =
       let { Bimodal_entry.direction; hysteresis } = bimodal_entry in
       let prediction_direction, retirement_direction =
         match
-          Ram.create
-            ~name:(Scope.name scope "bimodal_direction_mem")
+          forwarding_ram
+            scope
+            ~clock
+            ~name:"mems$bimodal_direction"
             ~collision_mode:Read_before_write
             ~size:num_bimodal_direction_entries
             ~write_ports:
@@ -1542,6 +1635,7 @@ module BayesianTage = struct
                      hash_program_counter
                        ~bits:(address_bits_for num_bimodal_direction_entries)
                        retirement_program_counter
+                     |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
                  ; write_enable
                  ; write_data = direction
                  }
@@ -1559,7 +1653,6 @@ module BayesianTage = struct
                      hash_program_counter
                        ~bits:(address_bits_for num_bimodal_direction_entries)
                        retirement_program_counter
-                     |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
                  ; read_enable = retirement_update_valid
                  }
               |]
@@ -1570,8 +1663,10 @@ module BayesianTage = struct
       in
       let prediction_hysteresis, retirement_hysteresis =
         match
-          Ram.create
-            ~name:(Scope.name scope "bimodal_hysteresis_mem")
+          forwarding_ram
+            scope
+            ~clock
+            ~name:"mems$bimodal_hysteresis"
             ~collision_mode:Read_before_write
             ~size:num_bimodal_hysteresis_entries
             ~write_ports:
@@ -1580,6 +1675,7 @@ module BayesianTage = struct
                      hash_program_counter
                        ~bits:(address_bits_for num_bimodal_hysteresis_entries)
                        retirement_program_counter
+                     |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
                  ; write_enable
                  ; write_data = hysteresis
                  }
@@ -1597,7 +1693,6 @@ module BayesianTage = struct
                      hash_program_counter
                        ~bits:(address_bits_for num_bimodal_hysteresis_entries)
                        retirement_program_counter
-                     |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
                  ; read_enable = retirement_update_valid
                  }
               |]
@@ -1623,13 +1718,17 @@ module BayesianTage = struct
              |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
            in
            match
-             Ram.create
-               ~name:(Printf.sprintf "tage_mem%d" bank |> Scope.name scope)
+             forwarding_ram
+               scope
+               ~clock
+               ~name:(Printf.sprintf "mems$tage%d" bank)
                ~collision_mode:Read_before_write
                ~size:num_entries_per_bank
                ~write_ports:
                  [| { write_clock = clock
-                    ; write_address = retirement_index
+                    ; write_address =
+                        retirement_index
+                        |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
                     ; write_enable
                     ; write_data = Entry.Of_signal.pack write_entry
                     }
@@ -1640,9 +1739,7 @@ module BayesianTage = struct
                     ; read_enable = vdd
                     }
                   ; { read_clock = clock
-                    ; read_address =
-                        retirement_index
-                        |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
+                    ; read_address = retirement_index
                     ; read_enable = retirement_update_valid
                     }
                  |]
@@ -1663,11 +1760,7 @@ module BayesianTage = struct
         ; tags =
             retirement_tags
             |> List.map
-                 ~f:
-                   (pipeline
-                      ~n:2
-                      ~enable:retirement_update_valid
-                      (Reg_spec.create ~clock ()))
+                 ~f:(reg ~enable:retirement_update_valid (Reg_spec.create ~clock ()))
         ; bimodal_entry = retirement_bimodal_entry
         }
     in

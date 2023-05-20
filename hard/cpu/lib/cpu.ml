@@ -168,6 +168,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; is_control_flow = decoded_control_flow
       ; is_branch = is_decode_branch_for_counters
       ; predicted_direction = decode_predicted_direction
+      ; did_fetch_have_prediction = decode_did_fetch_have_prediction
       ; forward = decoder_forward
       ; pending_return_address = pending_return_address_
       }
@@ -403,7 +404,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
             ; resolved_direction = control_flow_resolved_to_taken
             ; branch_target = control_flow_resolved_jump_target
             }
-        ; restore_from_decode = flush_pre_decode
+        ; restore_from_decode =
+            flush_pre_decode
+            |: (decode_done &: ~:decode_did_fetch_have_prediction &: decoded_control_flow)
         ; restore_from_retirement = flush_pre_writeback
         }
     in

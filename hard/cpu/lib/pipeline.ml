@@ -170,6 +170,7 @@ module Decode_instruction_and_load_registers = struct
       ; is_control_flow : 'a
       ; is_branch : 'a
       ; predicted_direction : 'a
+      ; did_fetch_have_prediction : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       ; pending_return_address : 'a [@bits Parameters.word_width]
       }
@@ -238,6 +239,7 @@ module Decode_instruction_and_load_registers = struct
     ; is_control_flow = is_branch |: jal |: jalr
     ; is_branch
     ; predicted_direction = mux2 trust_fetch_prediction fetch_predicted_direction jump
+    ; did_fetch_have_prediction = has_fetch_prediction
     ; forward =
         { forward with
           error =
