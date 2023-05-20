@@ -26,7 +26,7 @@ let hash_program_counter ~bits address =
   |> split_msb ~exact:false ~part_width:bits
   |> List.map ~f:(fun part -> bits_msb part |> shuffle |> concat_msb)
   |> List.map ~f:(Fn.flip uresize bits)
-  |> reduce ~f:( ^: )
+  |> tree ~arity:2 ~f:(reduce ~f:( ^: ))
 ;;
 
 module Branch_target_buffer = struct
@@ -1042,7 +1042,7 @@ module BayesianTage = struct
             ~f:(fun { Entry.tag = entry_tag; counters = _ } tag -> entry_tag ==: tag)
         in
         concat_msb hit_vector -- "hit_vector" |> ignore;
-        let any_hitters = reduce hit_vector ~f:( |: ) in
+        let any_hitters = tree ~arity:2 hit_vector ~f:(reduce ~f:( |: )) in
         let module Counters_and_metadata = struct
           type 'a t =
             { counters : 'a Dual_counter.t
@@ -1108,7 +1108,7 @@ module BayesianTage = struct
                      ; Dual_counter.prediction first_hitter_counters
                        <>: Dual_counter.prediction second_hitter_counters
                      ]
-                     |> reduce ~f:( &: ))
+                     |> tree ~arity:2 ~f:(reduce ~f:( &: )))
                     [ (let meta_max = Int.shift_left 1 (Params.meta_width - 1) - 1 in
                        let meta_min = -meta_max - 1 in
                        if_
@@ -1247,7 +1247,7 @@ module BayesianTage = struct
                    (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1)
                     - min_ap))
           ]
-          |> reduce ~f:( &: )
+          |> tree ~arity:2 ~f:(reduce ~f:( &: ))
         in
         allocate -- "allocate" |> ignore;
         (* TODO implement cd *)
@@ -1299,7 +1299,7 @@ module BayesianTage = struct
                              ; prediction counters <>: prediction prediction_counters
                              ; sel_bottom random1 3 ==:. 0
                              ]
-                             |> reduce ~f:( |: ))
+                             |> tree ~arity:2 ~f:(reduce ~f:( |: )))
                             [ update ~resolved_direction counters
                               |> Of_always.assign next_counters
                             ]
@@ -1315,7 +1315,7 @@ module BayesianTage = struct
                                |: (controlled_allocation_throttler
                                    >=:. Params.controlled_allocation_throtter_max / 2)
                              ]
-                             |> reduce ~f:( &: ))
+                             |> tree ~arity:2 ~f:(reduce ~f:( &: )))
                             [ when_
                                 (~:(is_saturated counters)
                                  |: (next_meta <+. 0 &: (sel_bottom random2 8 ==:. 0)))

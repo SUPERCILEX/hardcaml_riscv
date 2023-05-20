@@ -399,7 +399,7 @@ let create
   in
   let read_data activator =
     let activations = List.map segments ~f:activator in
-    let any_active = reduce activations ~f:( |: ) in
+    let any_active = tree ~arity:2 activations ~f:(reduce ~f:( |: )) in
     List.map2_exn activations segments ~f:(fun active (_, { read_data; _ }) ->
       { With_valid.valid = active |> reg ~enable:any_active (Reg_spec.create ~clock ())
       ; value = read_data
@@ -413,28 +413,29 @@ let create
       @ [ is_unaligned_address ~size:(Size.Binary.Of_signal.of_enum Word) program_counter
           &: load_instruction
         ; ~:(List.map segments ~f:(fun ({ load_instruction; _ }, _) -> load_instruction)
-             |> reduce ~f:( |: ))
+             |> tree ~arity:2 ~f:(reduce ~f:( |: )))
           &: load_instruction
         ]
-      |> reduce ~f:( |: )
+      |> tree ~arity:2 ~f:(reduce ~f:( |: ))
   ; data_error =
       List.map segments ~f:(fun (_, { data_error; _ }) -> data_error)
       @ [ is_unaligned_address ~size:data_size data_address &: (load |: store)
         ; ~:(List.map segments ~f:(fun ({ load; store; _ }, _) -> load |: store)
-             |> reduce ~f:( |: ))
+             |> tree ~arity:2 ~f:(reduce ~f:( |: )))
           &: (load |: store)
         ]
-      |> reduce ~f:( |: )
+      |> tree ~arity:2 ~f:(reduce ~f:( |: ))
   ; uart = uart_out
   ; stall_load_instruction =
       List.map segments ~f:(fun (_, { stall_load_instruction; _ }) ->
         stall_load_instruction)
-      |> reduce ~f:( |: )
+      |> tree ~arity:2 ~f:(reduce ~f:( |: ))
   ; stall_load =
-      List.map segments ~f:(fun (_, { stall_load; _ }) -> stall_load) |> reduce ~f:( |: )
+      List.map segments ~f:(fun (_, { stall_load; _ }) -> stall_load)
+      |> tree ~arity:2 ~f:(reduce ~f:( |: ))
   ; stall_store =
       List.map segments ~f:(fun (_, { stall_store; _ }) -> stall_store)
-      |> reduce ~f:( |: )
+      |> tree ~arity:2 ~f:(reduce ~f:( |: ))
   }
 ;;
 
