@@ -290,6 +290,7 @@ module Execute = struct
       ; program_counter : 'a [@bits Parameters.word_width] [@rtlsuffix "_out"]
       ; taken : 'a
       ; resolved_jump_target : 'a [@bits Parameters.word_width]
+      ; is_control_flow : 'a
       ; is_branch : 'a
       ; is_return : 'a
       }
@@ -367,6 +368,13 @@ module Execute = struct
     |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
   ;;
 
+  let is_jump instruction =
+    let open Signal in
+    [ Instruction.RV32I.Jal; Jalr ]
+    |> List.map ~f:(fun op -> Instruction.All.Rv32i op, vdd)
+    |> Instruction.Binary.Of_signal.match_ ~default:gnd instruction
+  ;;
+
   let compute_data_size instruction =
     Instruction.Binary.Of_signal.match_
       ~default:Memory_controller.Size.(Binary.Of_signal.of_enum Byte |> Binary.to_raw)
@@ -422,21 +430,23 @@ module Execute = struct
         ; bypass_id
         }
     ; resolved_control_flow =
-        { jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
-        ; jump_target = mux2 jump jump_target (program_counter +:. 4)
-        ; program_counter
-        ; taken = jump
-        ; resolved_jump_target = jump_target
-        ; is_branch = is_branch instruction
-        ; is_return =
-            is_return
-              { instruction
-              ; rd = rd_address
-              ; rs1 = rs1_address
-              ; rs2 = rs2_address
-              ; immediate
-              }
-        }
+        (let is_branch = is_branch instruction in
+         { jump = mux2 jump jump_target (program_counter +:. 4) <>: predicted_next_pc
+         ; jump_target = mux2 jump jump_target (program_counter +:. 4)
+         ; program_counter
+         ; taken = jump
+         ; resolved_jump_target = jump_target
+         ; is_control_flow = is_branch |: is_jump instruction
+         ; is_branch
+         ; is_return =
+             is_return
+               { instruction
+               ; rd = rd_address
+               ; rs1 = rs1_address
+               ; rs2 = rs2_address
+               ; immediate
+               }
+         })
     }
   ;;
 

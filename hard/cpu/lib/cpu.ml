@@ -351,11 +351,14 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; program_counter
           ; taken
           ; resolved_jump_target
+          ; is_control_flow = _
           ; is_branch
           ; is_return
           } )
       =
-      ( reg (Reg_spec.create ~clock ~clear ()) execute_done
+      ( reg
+          (Reg_spec.create ~clock ~clear ())
+          (execute_done &: resolved_control_flow.is_control_flow)
       , Execute.Resolved_control_flow.Of_signal.reg
           ~enable:execute_done
           (Reg_spec.create ~clock ())
