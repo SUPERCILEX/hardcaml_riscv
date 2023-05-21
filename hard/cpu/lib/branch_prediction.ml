@@ -488,7 +488,10 @@ module BayesianTage = struct
 
       let is_very_high_confidence { num_takens; num_not_takens } =
         let open Signal in
-        let f a b = a ==:. 0 &: (b >=:. 4) in
+        let f a b =
+          let max_half = Int.shift_left 1 (Params.counter_width - 1) in
+          a ==:. 0 &: (b >=:. max_half)
+        in
         f num_takens num_not_takens |: f num_not_takens num_takens
       ;;
 
@@ -592,6 +595,7 @@ module BayesianTage = struct
           ; out_point : int
           ; injected_bits : int
           }
+        [@@deriving sexp_of]
 
         let init ~original_length ~compressed_length ~injected_bits =
           { original_length
@@ -607,16 +611,19 @@ module BayesianTage = struct
           { index : 'a
           ; tag : 'a
           }
+        [@@deriving sexp_of]
 
         type 'a jump_history =
           { index : 'a
           ; tag : 'a
           }
+        [@@deriving sexp_of]
 
         type 'a t =
           { branch : 'a branch_history
           ; jump : 'a jump_history
           }
+        [@@deriving sexp_of]
 
         let map
           { branch = { index = branch_index; tag = branch_tag }
@@ -755,13 +762,13 @@ module BayesianTage = struct
             let width = address_bits_for length in
             let gen_pointer ~enable ~restore ~restore_from =
               reg_fb
-                ~enable:(enable |: restore)
                 ~width
                 ~f:(fun pointer ->
+                  let pointer = mux2 restore restore_from pointer in
                   let next_pointer =
                     mux2 (pointer ==:. 0) (of_int ~width (length - 1)) (pointer -:. 1)
                   in
-                  mux2 restore restore_from next_pointer)
+                  mux2 enable next_pointer pointer)
                 (Reg_spec.create ~clock ~clear ())
             in
             let retirement_pointer =
@@ -788,21 +795,27 @@ module BayesianTage = struct
             in
             [ fetch_pointer; decode_pointer; retirement_pointer ]
           in
+          let inputs_with_valid =
+            List.zip_exn
+              inputs
+              [ speculative_fetch_valid; speculative_decode_valid; retirement_valid ]
+            |> List.map ~f:(fun (input, valid) -> { With_valid.valid; value = input })
+          in
           ( pointers
-          , List.rev pointers
-            |> List.map ~f:binary_to_onehot
-            |> List.map ~f:bits_msb
+          , List.map pointers ~f:binary_to_onehot
+            |> List.map ~f:bits_lsb
             |> List.transpose_exn
-            |> List.map ~f:(Fn.flip List.zip_exn inputs)
+            |> List.map ~f:(Fn.flip List.zip_exn inputs_with_valid)
             |> List.map
                  ~f:
-                   (List.map ~f:(fun (update, input) ->
-                      { With_valid.valid = update; value = input }))
+                   (List.map ~f:(fun (update, { With_valid.valid; value = input }) ->
+                      { With_valid.valid = update &: valid; value = input }))
             |> Fn.flip List.take length
             |> List.map ~f:(fun updates ->
                  reg_fb
                    ~width:entry_width
-                   ~f:(fun entry -> priority_select_with_default ~default:entry updates)
+                   ~f:(fun entry ->
+                     List.rev updates |> priority_select_with_default ~default:entry)
                    (Reg_spec.create ~clock ())) )
         in
         let branch_pointers, branch_history =
@@ -828,8 +841,11 @@ module BayesianTage = struct
               ]
         in
         let () =
-          concat_msb branch_history -- "branch_history" |> ignore;
-          concat_msb jump_history -- "jump_history" |> ignore;
+          List.mapi branch_history ~f:(fun i s ->
+            s -- Printf.sprintf "branch_history_%d" i)
+          |> ignore;
+          List.mapi jump_history ~f:(fun i s -> s -- Printf.sprintf "jump_history_%d" i)
+          |> ignore;
           ()
         in
         let (prediction_indices, prediction_tags), (retirement_indices, retirement_tags) =
@@ -856,10 +872,11 @@ module BayesianTage = struct
               =
               let next_folded_history = wire compressed_length in
               let folded_history =
-                next_folded_history |> reg ~enable (Reg_spec.create ~clock ~clear ())
+                next_folded_history |> reg (Reg_spec.create ~clock ~clear ())
               in
               (next_folded_history
                <==
+               let folded_history = mux2 restore restore_from folded_history in
                let next =
                  let head_entry =
                    sel_bottom head_entry injected_bits
@@ -886,7 +903,7 @@ module BayesianTage = struct
                  in
                  head_entry ^: rotl folded_history 1 ^: rotl tail_entry out_point
                in
-               mux2 restore restore_from next);
+               mux2 enable next folded_history);
               folded_history, next_folded_history
             in
             List.zip_exn folded_histories restore_from
@@ -1860,29 +1877,25 @@ module BayesianTage = struct
   ;;
 
   module Tests = struct
-    module DefaultParams = struct
-      let num_banks = 0
-      let num_entries_per_bank = 0
-      let counter_width = 0
-      let tag_width = 0
-      let controlled_allocation_throtter_max = 0
-      let max_banks_skipped_on_allocation = 0
-      let meta_width = 0
-      let num_bimodal_direction_entries = 0
-      let num_bimodal_hysteresis_entries = 0
-      let bimodal_hysteresis_width = 0
-      let smallest_branch_history_length = 0
-      let largest_branch_history_length = 0
+    module Params = struct
+      let num_banks = 2
+      let num_entries_per_bank = 128
+      let counter_width = 2
+      let tag_width = 7
+      let controlled_allocation_throtter_max = 128
+      let max_banks_skipped_on_allocation = 1
+      let meta_width = 4
+      let num_bimodal_direction_entries = 128
+      let num_bimodal_hysteresis_entries = 64
+      let bimodal_hysteresis_width = 1
+      let smallest_branch_history_length = 2
+      let largest_branch_history_length = 17
       let instruction_window_size = 0
-      let jump_history_length = 0
-      let jump_history_entry_width = 0
+      let jump_history_length = 3
+      let jump_history_entry_width = 6
     end
 
-    open Internal (struct
-      include DefaultParams
-
-      let counter_width = 2
-    end)
+    open Internal (Params)
 
     module Dual_counter : sig end = struct
       let test_bench ~f (sim : (Cyclesim.Port_list.t, Cyclesim.Port_list.t) Cyclesim.t) =
@@ -2164,6 +2177,325 @@ module BayesianTage = struct
 
           ((inputs ((num_not_takens 11) (num_takens 11))) (outputs ((out 11)))
            (internals ((gnd 0)))) |}]
+      ;;
+    end
+
+    module Update_history : sig end = struct
+      open Update_history
+
+      let test_bench ~f ?(debug = false) (sim : (_ I.t, _ O.t) Cyclesim.t) =
+        let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+        let print_state () =
+          Stdio.print_s
+            [%message
+              (inputs : Bits.t ref I.t)
+                (outputs : Bits.t ref O.t)
+                ~internals:
+                  (if debug
+                   then
+                     Cyclesim.internal_ports sim
+                     |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
+                   else []
+                    : (string * Bits.t ref) list)];
+          Stdio.print_endline "";
+          ()
+        in
+        Cyclesim.reset sim;
+        f print_state sim;
+        ()
+      ;;
+
+      let sim ~f =
+        let module Simulator = Cyclesim.With_interface (I) (O) in
+        let scope = Scope.create ~flatten_design:true () in
+        let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+        test_bench ~f sim;
+        ()
+      ;;
+
+      let%expect_test "All" =
+        Stdio.print_s
+          [%message
+            (folded_histories : Folded_history_metadata.t Indices_and_tags.t list)];
+        Stdio.print_endline "";
+        sim ~f:(fun print_state sim ->
+          let open Bits in
+          let inputs = Cyclesim.inputs sim in
+          let next () =
+            Cyclesim.cycle sim;
+            print_state ();
+            ()
+          in
+          next ();
+          inputs.retirement_update.valid := vdd;
+          inputs.retirement_update.resolved_direction := vdd;
+          next ();
+          next ();
+          next ();
+          inputs.retirement_update.valid := gnd;
+          next ();
+          next ();
+          inputs.retirement_update.valid := vdd;
+          inputs.retirement_update.resolved_direction := gnd;
+          next ();
+          next ();
+          inputs.retirement_update.valid := gnd;
+          next ();
+          next ();
+          inputs.restore_from_retirement := vdd;
+          next ();
+          ());
+        [%expect
+          {|
+          (folded_histories
+           (((branch
+              ((index
+                ((original_length 17) (compressed_length 7) (out_point 3)
+                 (injected_bits 1)))
+               (tag
+                ((original_length 17) (compressed_length 7) (out_point 3)
+                 (injected_bits 1)))))
+             (jump
+              ((index
+                ((original_length 17) (compressed_length 5) (out_point 2)
+                 (injected_bits 1)))
+               (tag
+                ((original_length 17) (compressed_length 6) (out_point 5)
+                 (injected_bits 1))))))
+            ((branch
+              ((index
+                ((original_length 2) (compressed_length 7) (out_point 2)
+                 (injected_bits 1)))
+               (tag
+                ((original_length 2) (compressed_length 7) (out_point 2)
+                 (injected_bits 1)))))
+             (jump
+              ((index
+                ((original_length 2) (compressed_length 5) (out_point 2)
+                 (injected_bits 5)))
+               (tag
+                ((original_length 2) (compressed_length 6) (out_point 2)
+                 (injected_bits 6))))))))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0000000 0000001))
+             (retirement_tags (0000000 0000001))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0000011 0000110))
+             (retirement_tags (1100000 1110001))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0000111 0001010))
+             (retirement_tags (1110000 1101001))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0001111 0010010))
+             (retirement_tags (1111000 1100101))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0000111 0001010))
+             (retirement_tags (1110000 1101001))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0000111 0001010))
+             (retirement_tags (1110000 1101001))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0011100 0100101))
+             (retirement_tags (0011100 0010011))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0111000 1001001))
+             (retirement_tags (0001110 0001000))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0011100 0100101))
+             (retirement_tags (0011100 0010011))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001)) (prediction_tags (0000000 0000001))
+             (retirement_indices (0011100 0100101))
+             (retirement_tags (0011100 0010011))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 1)))
+           (outputs
+            ((prediction_indices (0011100 0100101)) (prediction_tags (0011100 0010011))
+             (retirement_indices (0011100 0100101))
+             (retirement_tags (0011100 0010011))))
+           (internals ())) |}]
       ;;
     end
   end

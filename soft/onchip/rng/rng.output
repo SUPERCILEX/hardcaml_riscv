@@ -105,8 +105,8 @@
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
   ((cycles_since_boot 162588) (instructions_retired 114372)
-   (empty_alu_cycles 5167) (instruction_load_stalls 2514)
-   (data_load_stalls 0) (data_store_stalls 2625)
+   (empty_alu_cycles 5165) (instruction_load_stalls 2514)
+   (data_load_stalls 0) (data_store_stalls 2628)
    (fetch_branch_target_buffer_hits 17324) (decode_branch_mispredictions 111)
-   (decode_jump_mispredictions 242) (execute_branch_mispredictions 2459)
+   (decode_jump_mispredictions 242) (execute_branch_mispredictions 2458)
    (execute_jump_mispredictions 3))))
