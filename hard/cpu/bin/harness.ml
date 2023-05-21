@@ -37,7 +37,7 @@ let test_bench ~step ?input_data_file ?output_data_file (sim : (_ I.t, _ O.t) Cy
   clear ();
   let rec run i =
     let read_done = i % 11 = 0 && to_bool !(outputs.uart.read_ready) in
-    let write_done = i % 17 = 0 && to_bool !(outputs.uart.write_ready) in
+    let write_done = i % 7 = 0 && to_bool !(outputs.uart.write_ready) in
     inputs.uart.read_done := if read_done then vdd else gnd;
     inputs.uart.write_done := if write_done then vdd else gnd;
     inputs.uart.read_data
