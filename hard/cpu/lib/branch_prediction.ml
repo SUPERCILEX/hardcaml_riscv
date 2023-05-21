@@ -1169,7 +1169,9 @@ module BayesianTage = struct
             first_hitter_mask &: concat_msb hit_vector |> bits_msb |> select_oldest_hitter
           in
           let next_meta = wire Params.meta_width in
-          let meta = next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()) in
+          let meta =
+            (next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ())) -- "meta"
+          in
           let () =
             let next_meta_var = Always.Variable.wire ~default:meta in
             Always.(
@@ -1254,8 +1256,9 @@ module BayesianTage = struct
           wire (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1))
         in
         let controlled_allocation_throttler =
-          next_controlled_allocation_throttler
-          |> reg ~enable:valid (Reg_spec.create ~clock ~clear ())
+          (next_controlled_allocation_throttler
+           |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()))
+          -- "controlled_allocation_throttler"
         in
         let { With_valid.valid = end_allocation_bank_valid; value = end_allocation_bank } =
           let skip =
@@ -1275,6 +1278,7 @@ module BayesianTage = struct
             |> mux (Dual_counter.diff first_hitter_counters)
             |> Fn.flip uresize bank_num_width
           in
+          skip -- "skipped_allocation_banks" |> ignore;
           { With_valid.valid = skip <: bank_used_for_prediction
           ; value = bank_used_for_prediction -: skip
           }
@@ -1426,14 +1430,16 @@ module BayesianTage = struct
                               ; when_
                                   (hitter_after_prediction_bank ==:. bank)
                                   [ maybe_update_younger_hitter ]
-                              ; when_
-                                  (allocate
-                                   &: (allocation_bank
-                                       <:. bank
-                                       &: (end_allocation_bank >:. bank)))
+                              ]
+                          ; when_
+                              allocate
+                              [ when_
+                                  (allocation_bank
+                                   <:. bank
+                                   &: (end_allocation_bank >:. bank))
                                   [ maybe_decay_on_allocation ]
                               ; when_
-                                  (allocate &: (allocation_bank ==:. bank))
+                                  (allocation_bank ==:. bank)
                                   [ Of_signal.of_int 0
                                     |> update ~resolved_direction
                                     |> Of_always.assign next_counters
@@ -1787,10 +1793,6 @@ module BayesianTage = struct
       List.zip_exn prediction_indices retirement_indices
       |> List.zip_exn write_entries
       |> List.mapi ~f:(fun bank (write_entry, (prediction_index, retirement_index)) ->
-           let retirement_index =
-             retirement_index
-             |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
-           in
            match
              forwarding_ram
                scope
