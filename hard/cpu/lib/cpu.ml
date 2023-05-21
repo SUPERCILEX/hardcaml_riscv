@@ -161,6 +161,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
   in
   fetch_full <== fetch_full_;
   let decode_full = wire 1 in
+  let decode_return_address_stack_entries_restored =
+    wire Branch_prediction.Return_address_stack.Params.address_bits
+  in
   let { Decode_instruction_and_load_registers.O.done_ = decode_done
       ; decoded
       ; predicted_next_pc = decode_predicted_next_pc
@@ -171,6 +174,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; did_fetch_have_prediction = decode_did_fetch_have_prediction
       ; forward = decoder_forward
       ; pending_return_address = pending_return_address_
+      ; return_address_stack_entries = return_address_stack_entries_
       }
     =
     Fetch_buffer.Entry.Of_signal.assign
@@ -194,7 +198,14 @@ let create scope ~bootloader { I.clock; clear; uart } =
     let { Fetch_buffer.Entry.id = _; raw = { valid; ready; data } } = fetch_out in
     Decode_instruction_and_load_registers.hierarchical
       scope
-      { clock; clear; start = valid &: ready &: ~:decode_full &: ~:lock_pipeline; data }
+      { clock
+      ; clear
+      ; start = valid &: ready &: ~:decode_full &: ~:lock_pipeline
+      ; restore_from_retirement = flush_pre_writeback
+      ; return_address_stack_entries_from_retirement =
+          decode_return_address_stack_entries_restored
+      ; data
+      }
   in
   fetch_consume <== decode_done;
   pending_return_address <== pending_return_address_;
@@ -237,6 +248,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     ; predicted_next_pc = decode_predicted_next_pc
     ; instruction
     ; immediate
+    ; return_address_stack_entries = return_address_stack_entries_
     ; forward = { rd_address; error }
     }
   in
@@ -362,6 +374,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; is_control_flow = _
           ; is_branch
           ; is_return
+          ; return_address_stack_entries
           } )
       =
       ( reg
@@ -382,6 +395,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     control_flow_resolved_to_taken <== taken;
     control_flow_resolved_is_branch <== is_branch;
     control_flow_resolved_is_return <== is_return;
+    decode_return_address_stack_entries_restored <== return_address_stack_entries;
     let { Branch_prediction.Branch_direction_predictor.O.predicted_direction } =
       Branch_prediction.Branch_direction_predictor.hierarchical
         scope

@@ -156,6 +156,9 @@ module Decode_instruction_and_load_registers = struct
       { clock : 'a
       ; clear : 'a
       ; start : 'a
+      ; restore_from_retirement : 'a
+      ; return_address_stack_entries_from_retirement : 'a
+           [@bits Branch_prediction.Return_address_stack.Params.address_bits]
       ; data : 'a Data_in.t
       }
     [@@deriving sexp_of, hardcaml]
@@ -173,6 +176,8 @@ module Decode_instruction_and_load_registers = struct
       ; did_fetch_have_prediction : 'a
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       ; pending_return_address : 'a [@bits Parameters.word_width]
+      ; return_address_stack_entries : 'a
+           [@bits Branch_prediction.Return_address_stack.Params.address_bits]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -182,6 +187,8 @@ module Decode_instruction_and_load_registers = struct
     { I.clock
     ; clear
     ; start
+    ; restore_from_retirement
+    ; return_address_stack_entries_from_retirement
     ; data =
         { raw_instruction
         ; fetch_predicted_next_pc
@@ -199,7 +206,7 @@ module Decode_instruction_and_load_registers = struct
     let jal = Instruction.Binary.Of_signal.is instruction (Rv32i Jal) in
     let jalr = Instruction.Binary.Of_signal.is instruction (Rv32i Jalr) in
     let is_return = is_return decoded in
-    let { Branch_prediction.Return_address_stack.O.data = { return_pc } } =
+    let { Branch_prediction.Return_address_stack.O.entries; data = { return_pc } } =
       let is_call =
         jal
         &: is_link_reg rd
@@ -214,6 +221,8 @@ module Decode_instruction_and_load_registers = struct
         ; clear
         ; push = start &: is_call
         ; pop = start &: is_return
+        ; set_num_entries = restore_from_retirement
+        ; entries = return_address_stack_entries_from_retirement
         ; write_data = { return_pc = program_counter +:. 4 }
         }
     in
@@ -247,6 +256,7 @@ module Decode_instruction_and_load_registers = struct
             error |: (start &: Instruction.Binary.Of_signal.is instruction (Rv32i Invalid))
         }
     ; pending_return_address = return_pc
+    ; return_address_stack_entries = entries
     }
   ;;
 
@@ -275,6 +285,8 @@ module Execute = struct
       ; predicted_next_pc : 'a [@bits Parameters.word_width]
       ; instruction : 'a Instruction.Binary.t [@rtlmangle true]
       ; immediate : 'a [@bits 32]
+      ; return_address_stack_entries : 'a
+           [@bits Branch_prediction.Return_address_stack.Params.address_bits]
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -317,6 +329,8 @@ module Execute = struct
       ; is_control_flow : 'a
       ; is_branch : 'a
       ; is_return : 'a
+      ; return_address_stack_entries : 'a
+           [@bits Branch_prediction.Return_address_stack.Params.address_bits]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -430,6 +444,7 @@ module Execute = struct
         ; predicted_next_pc
         ; instruction
         ; immediate
+        ; return_address_stack_entries
         ; forward = { rd_address; error = _ } as forward
         }
     }
@@ -470,6 +485,7 @@ module Execute = struct
                ; rs2 = rs2_address
                ; immediate
                }
+         ; return_address_stack_entries
          })
     }
   ;;

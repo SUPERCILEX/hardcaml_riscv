@@ -59,39 +59,67 @@ end
 
 module Return_address_stack = struct
   module Overflowable_stack = struct
-    module Make (M : Interface.S) = struct
+    module Make (Params : sig
+      val size : int
+    end)
+    (M : Interface.S) =
+    struct
+      module Params = struct
+        include Params
+
+        let address_bits = Signal.address_bits_for size
+      end
+
       module I = struct
         type 'a t =
           { clock : 'a
           ; clear : 'a
           ; push : 'a
           ; pop : 'a
+          ; set_num_entries : 'a
+          ; entries : 'a [@bits Params.address_bits] [@rtlprefix "restore_"]
           ; write_data : 'a M.t [@rtlprefix "wr$"]
           }
         [@@deriving sexp_of, hardcaml]
       end
 
       module O = struct
-        type 'a t = { data : 'a M.t [@rtlprefix "rd$"] } [@@deriving sexp_of, hardcaml]
+        type 'a t =
+          { entries : 'a [@bits Params.address_bits]
+          ; data : 'a M.t [@rtlprefix "rd$"]
+          }
+        [@@deriving sexp_of, hardcaml]
       end
 
-      let create ~size scope { I.clock; clear; push; pop; write_data } =
-        assert (size % 2 = 0);
+      let create
+        scope
+        { I.clock
+        ; clear
+        ; push
+        ; pop
+        ; set_num_entries
+        ; entries = restore_entries
+        ; write_data
+        }
+        =
+        assert (Params.size % 2 = 0);
         let open Signal in
         let ( -- ) = Scope.naming scope in
+        let next_entries = wire Params.address_bits in
         let entries =
-          reg_fb
-            ~enable:(push ^: pop)
-            ~width:(address_bits_for size)
-            ~f:(fun entries -> mux2 push (entries +:. 1) (entries -:. 1))
-            (Reg_spec.create ~clock ~clear ())
-          -- "entries"
+          (next_entries |> reg (Reg_spec.create ~clock ~clear ())) -- "entries"
         in
+        next_entries
+        <== mux2
+              (push ^: pop |: set_num_entries)
+              (mux2 push (entries +:. 1) (entries -:. 1)
+               |> mux2 set_num_entries restore_entries)
+              entries;
         match
           Ram.create
             ~name:(Scope.name scope "mem")
             ~collision_mode:Read_before_write
-            ~size
+            ~size:Params.size
             ~write_ports:
               [| { write_clock = clock
                  ; write_address = mux2 pop (entries -:. 1) entries
@@ -108,7 +136,8 @@ module Return_address_stack = struct
             ()
         with
         | [| data |] ->
-          { O.data =
+          { O.entries = next_entries
+          ; data =
               M.Of_signal.mux2
                 (push |> reg (Reg_spec.create ~clock ()))
                 (M.Of_signal.reg ~enable:push (Reg_spec.create ~clock ()) write_data)
@@ -117,9 +146,9 @@ module Return_address_stack = struct
         | _ -> failwith "Code out of date"
       ;;
 
-      let hierarchical ~name ~size scope =
+      let hierarchical ~name scope =
         let module H = Hierarchy.In_scope (I) (O) in
-        H.hierarchical ~scope ~name (create ~size)
+        H.hierarchical ~scope ~name create
       ;;
     end
 
@@ -128,7 +157,11 @@ module Return_address_stack = struct
         type 'a t = { test : 'a [@bits 4] } [@@deriving sexp_of, hardcaml]
       end
 
-      open Make (Data)
+      module Params = struct
+        let size = 4
+      end
+
+      open Make (Params) (Data)
 
       let test_bench ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
         let open Bits in
@@ -157,9 +190,7 @@ module Return_address_stack = struct
       let sim ~f =
         let module Simulator = Cyclesim.With_interface (I) (O) in
         let scope = Scope.create ~flatten_design:true () in
-        let sim =
-          Simulator.create ~config:Cyclesim.Config.trace_all (create ~size:4 scope)
-        in
+        let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
         test_bench ~f sim;
         ()
       ;;
@@ -204,77 +235,113 @@ module Return_address_stack = struct
           ());
         [%expect
           {|
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0000)))))
-           (outputs ((data ((test 0000)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0000)))))
+           (outputs ((entries 00) (data ((test 0000)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 0001)))))
-           (outputs ((data ((test 0001)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0001)))))
+           (outputs ((entries 10) (data ((test 0001)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0010)))))
-           (outputs ((data ((test 0001)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0010)))))
+           (outputs ((entries 01) (data ((test 0001)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0011)))))
-           (outputs ((data ((test 0001)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0011)))))
+           (outputs ((entries 01) (data ((test 0001)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0100)))))
-           (outputs ((data ((test 0000)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 0100)))))
+           (outputs ((entries 11) (data ((test 0000)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 0) (write_data ((test 0101)))))
-           (outputs ((data ((test 0000)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0101)))))
+           (outputs ((entries 00) (data ((test 0000)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 0110)))))
-           (outputs ((data ((test 0110)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 0110)))))
+           (outputs ((entries 10) (data ((test 0110)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 1) (write_data ((test 0111)))))
-           (outputs ((data ((test 0111)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 0111)))))
+           (outputs ((entries 01) (data ((test 0111)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 1) (write_data ((test 1000)))))
-           (outputs ((data ((test 1000)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 1000)))))
+           (outputs ((entries 01) (data ((test 1000)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1001)))))
-           (outputs ((data ((test 1001)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 1001)))))
+           (outputs ((entries 11) (data ((test 1001)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1010)))))
-           (outputs ((data ((test 1010)))))
-           (internals ((entries 10) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 1010)))))
+           (outputs ((entries 00) (data ((test 1010)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 10))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1011)))))
-           (outputs ((data ((test 1011)))))
-           (internals ((entries 11) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 1011)))))
+           (outputs ((entries 01) (data ((test 1011)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 11))))
 
-          ((inputs ((clock 0) (clear 0) (push 1) (pop 0) (write_data ((test 1100)))))
-           (outputs ((data ((test 1100)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 1) (pop 0) (set_num_entries 0) (entries 00)
+             (write_data ((test 1100)))))
+           (outputs ((entries 10) (data ((test 1100)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1101)))))
-           (outputs ((data ((test 1011)))))
-           (internals ((entries 01) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 1101)))))
+           (outputs ((entries 11) (data ((test 1011)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1110)))))
-           (outputs ((data ((test 1010)))))
-           (internals ((entries 00) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 1110)))))
+           (outputs ((entries 10) (data ((test 1010)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 00))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 1111)))))
-           (outputs ((data ((test 1001)))))
-           (internals ((entries 11) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 1111)))))
+           (outputs ((entries 01) (data ((test 1001)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 11))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0000)))))
-           (outputs ((data ((test 1100)))))
-           (internals ((entries 10) (mem 0000) (vdd 1))))
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 0000)))))
+           (outputs ((entries 00) (data ((test 1100)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 10))))
 
-          ((inputs ((clock 0) (clear 0) (push 0) (pop 1) (write_data ((test 0001)))))
-           (outputs ((data ((test 1011)))))
-           (internals ((entries 01) (mem 0000) (vdd 1)))) |}]
+          ((inputs
+            ((clock 0) (clear 0) (push 0) (pop 1) (set_num_entries 0) (entries 00)
+             (write_data ((test 0001)))))
+           (outputs ((entries 11) (data ((test 1011)))))
+           (internals ((mem 0000) (vdd 1) (entries_0 01)))) |}]
       ;;
     end
   end
@@ -284,9 +351,14 @@ module Return_address_stack = struct
     [@@deriving sexp_of, hardcaml]
   end
 
-  include Overflowable_stack.Make (Entry)
+  include
+    Overflowable_stack.Make
+      (struct
+        let size = 32
+      end)
+      (Entry)
 
-  let hierarchical = hierarchical ~name:"return_address_stack" ~size:32
+  let hierarchical = hierarchical ~name:"return_address_stack"
 end
 
 module BayesianTage = struct
