@@ -347,9 +347,10 @@ module BayesianTage = struct
           in
           mux2
             direction
-            (negate (uresize hysteresis Params.counter_width)
-             +:. (hysteresis_max_half + Int.shift_left 1 Params.bimodal_hysteresis_width)
-            )
+            (of_int
+               (hysteresis_max_half + Int.shift_left 1 Params.bimodal_hysteresis_width)
+               ~width:Params.counter_width
+             -: uresize hysteresis Params.counter_width)
             (of_int ~width:Params.counter_width hysteresis_max_half)
         in
         { num_takens = f direction; num_not_takens = f ~:direction }
@@ -1271,7 +1272,9 @@ module BayesianTage = struct
          let catr_num, _catr_den = 2, 3 in
          let width = width controlled_allocation_throttler in
          let diff =
-           negate ((mhc @: gnd) +: ue mhc) +:. catr_num |> Fn.flip sresize width
+           of_int ~width:(max_range + 2) catr_num
+           -: (ue (mhc @: gnd) +: uresize mhc (max_range + 2))
+           |> Fn.flip sresize width
          in
          let result =
            uresize controlled_allocation_throttler (width + 2) +: sresize diff (width + 2)
@@ -1386,11 +1389,10 @@ module BayesianTage = struct
                         (hysteresis <:. hysteresis_max)
                         [ next_hysteresis <-- hysteresis +:. 1 ])
                    ]
-                   [ if_
-                       (hysteresis >:. 0)
-                       [ next_hysteresis <-- hysteresis -:. 1 ]
-                       [ next_direction <-- resolved_direction ]
-                   ]
+                 @@ elif
+                      (hysteresis >:. 0)
+                      [ next_hysteresis <-- hysteresis -:. 1 ]
+                      [ next_direction <-- resolved_direction ]
                in
                compile
                  [ Bimodal_entry.Of_always.assign next_bimodal bimodal_entry
