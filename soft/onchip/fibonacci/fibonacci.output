@@ -5,8 +5,8 @@ Fibonacci of 11: 89
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 5090) (instructions_retired 3591)
-   (empty_alu_cycles 419) (instruction_load_stalls 23) (data_load_stalls 0)
-   (data_store_stalls 213) (fetch_branch_target_buffer_hits 679)
+  ((cycles_since_boot 4900) (instructions_retired 3591)
+   (empty_alu_cycles 297) (instruction_load_stalls 24) (data_load_stalls 0)
+   (data_store_stalls 205) (fetch_branch_target_buffer_hits 590)
    (decode_branch_mispredictions 7) (decode_jump_mispredictions 20)
-   (execute_branch_mispredictions 192) (execute_jump_mispredictions 8))))
+   (execute_branch_mispredictions 132) (execute_jump_mispredictions 6))))

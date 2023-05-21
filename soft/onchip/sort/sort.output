@@ -5,8 +5,8 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 8645) (instructions_retired 5697)
-   (empty_alu_cycles 543) (instruction_load_stalls 89) (data_load_stalls 442)
-   (data_store_stalls 646) (fetch_branch_target_buffer_hits 765)
-   (decode_branch_mispredictions 20) (decode_jump_mispredictions 62)
-   (execute_branch_mispredictions 232) (execute_jump_mispredictions 7))))
+  ((cycles_since_boot 8297) (instructions_retired 5696)
+   (empty_alu_cycles 463) (instruction_load_stalls 92) (data_load_stalls 178)
+   (data_store_stalls 672) (fetch_branch_target_buffer_hits 791)
+   (decode_branch_mispredictions 20) (decode_jump_mispredictions 63)
+   (execute_branch_mispredictions 167) (execute_jump_mispredictions 32))))
