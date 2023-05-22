@@ -1191,7 +1191,7 @@ module BayesianTage = struct
             =
             first_hitter_mask &: concat_msb hit_vector |> bits_msb |> select_oldest_hitter
           in
-          let next_meta = wire Params.meta_width in
+          let next_meta = wire Params.meta_width -- "next_meta" in
           let meta = next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()) in
           let () =
             let next_meta_var = Always.Variable.wire ~default:meta in
@@ -1279,6 +1279,7 @@ module BayesianTage = struct
         in
         let next_controlled_allocation_throttler =
           wire (Int.floor_log2 (Params.controlled_allocation_throttler_max + 1))
+          -- "next_controlled_allocation_throttler"
         in
         let controlled_allocation_throttler =
           (next_controlled_allocation_throttler
@@ -3136,9 +3137,6 @@ module BayesianTage = struct
                     := of_int ~width:Params.counter_width num_not_takens;
                   ());
                 Cyclesim.cycle sim;
-                inputs.update.valid := gnd;
-                Cyclesim.cycle sim;
-                inputs.update.valid := of_bool valid;
                 if valid
                 then (
                   let expected_entries, expected_bimodal, expected_meta, expected_cat =
@@ -3149,7 +3147,7 @@ module BayesianTage = struct
                       (bimodal_direction, bimodal_hysteresis)
                       model
                   in
-                  let { O.next_entries; next_bimodal_entry; meta } =
+                  let { O.next_entries; next_bimodal_entry; meta = _ } =
                     O.map outputs ~f:(( ! ) |> Fn.compose to_int)
                   in
                   [%test_result: Dual_counter.Model.t list * (bool * int) * int * int]
@@ -3162,10 +3160,14 @@ module BayesianTage = struct
                              { Entry.tag = _; counters = { num_takens; num_not_takens } }
                            -> { Dual_counter.Model.num_takens; num_not_takens })
                     , (next_bimodal_entry.direction = 1, next_bimodal_entry.hysteresis)
-                    , meta
                     , Cyclesim.internal_ports sim
                       |> List.find_map_exn ~f:(fun (name, s) ->
-                           if String.equal name "controlled_allocation_throttler"
+                           if String.equal name "next_meta"
+                           then Some (to_int !s)
+                           else None)
+                    , Cyclesim.internal_ports sim
+                      |> List.find_map_exn ~f:(fun (name, s) ->
+                           if String.equal name "next_controlled_allocation_throttler"
                            then Some (to_int !s)
                            else None) );
                   ());
