@@ -1175,12 +1175,13 @@ module BayesianTage = struct
           |> Counters_and_metadata.Of_signal.unpack
         in
         let { Counters_and_metadata.counters = first_hitter_counters
-            ; bank = _
+            ; bank = first_hitter_bank
             ; mask = first_hitter_mask
             }
           =
           select_oldest_hitter hit_vector
         in
+        first_hitter_bank -- "first_hitter_bank" |> ignore;
         first_hitter_mask -- "first_hitter_mask" |> ignore;
         let meta, next_meta =
           let { Counters_and_metadata.counters = second_hitter_counters
@@ -1265,6 +1266,10 @@ module BayesianTage = struct
           randoms ~clock ~clear ~enable:valid
         in
         let () =
+          (* TODO these randoms are used incorrectly.
+             They should be generated repeated in the loops but currently aren't.
+             We should look at the bit widths needed and generate enough randoms to all possible random usage.
+          *)
           random1 -- "randoms$1" |> ignore;
           random2 -- "randoms$2" |> ignore;
           random3 -- "randoms$3" |> ignore;
@@ -1299,16 +1304,17 @@ module BayesianTage = struct
             |> Fn.flip uresize bank_num_width
           in
           skip -- "skipped_allocation_banks" |> ignore;
-          { With_valid.valid = skip <: bank_used_for_prediction
-          ; value = bank_used_for_prediction -: skip
+          { With_valid.valid = skip <: first_hitter_bank
+          ; value = first_hitter_bank -: skip
           }
         in
         let end_allocation_bank_mask =
-          List.init Params.num_banks ~f:(fun banks ->
-            String.init Params.num_banks ~f:(fun bank ->
+          List.init (Params.num_banks + 1) ~f:(fun banks ->
+            String.init (Params.num_banks + 1) ~f:(fun bank ->
               if bank < banks then '1' else '0'))
           |> List.map ~f:of_bit_string
           |> mux end_allocation_bank
+          |> msbs
         in
         end_allocation_bank_valid -- "end_allocation_bank_valid" |> ignore;
         end_allocation_bank -- "end_allocation_bank" |> ignore;
@@ -1324,17 +1330,20 @@ module BayesianTage = struct
                Counters_and_metadata.for_hitters (Params.num_banks - (bank + 1)))
         in
         let allocation_bank_mask =
-          List.init Params.num_banks ~f:(fun banks ->
-            String.init Params.num_banks ~f:(fun bank ->
-              if bank > banks then '1' else '0'))
+          List.init (Params.num_banks + 1) ~f:(fun banks ->
+            String.init (Params.num_banks + 1) ~f:(fun bank ->
+              if bank > banks || banks = Params.num_banks then '1' else '0'))
           |> List.map ~f:of_bit_string
           |> mux allocation_bank
+          |> msbs
         in
         allocation_bank -- "allocation_bank" |> ignore;
         allocation_bank_mask -- "allocation_bank_mask" |> ignore;
         let allocation_decay_range = allocation_bank_mask &: end_allocation_bank_mask in
+        allocation_decay_range -- "allocation_decay_range" |> ignore;
         let allocate =
-          [ end_allocation_bank_valid
+          [ allocation_bank <>:. Params.num_banks
+          ; end_allocation_bank_valid
           ; Dual_counter.prediction prediction_counters <>: resolved_direction
           ; ((* TODO I don't know what this stands for. A is probably allocation. *)
              let min_ap = 4 in
@@ -1350,7 +1359,7 @@ module BayesianTage = struct
         (* TODO implement cd *)
         (next_controlled_allocation_throttler
          <==
-         let max_range = Int.ceil_log2 Params.max_banks_skipped_on_allocation in
+         let max_range = Int.ceil_log2 (Params.max_banks_skipped_on_allocation + 1) in
          let mhc =
            List.map2_exn
              (bits_msb allocation_decay_range)
@@ -1362,6 +1371,7 @@ module BayesianTage = struct
                (zero max_range))
            |> tree ~arity:2 ~f:(reduce ~f:( +: ))
          in
+         mhc -- "mhc" |> ignore;
          (* TODO don't know what the R or DEN stands for.
             CATR_NUM - mhc * CATR_DEN
           *)
@@ -1497,7 +1507,9 @@ module BayesianTage = struct
                  ; when_
                      (bank_used_for_prediction
                       ==:. Params.num_banks
-                      |: (hitter_after_prediction_bank ==:. Params.num_banks))
+                      |: (hitter_after_prediction_bank
+                          ==:. Params.num_banks
+                          &: ~:(Dual_counter.is_high_confidence prediction_counters)))
                      [ maybe_update_bimodal ]
                  ]);
              Bimodal_entry.Of_always.value next_bimodal)
@@ -2402,6 +2414,11 @@ module BayesianTage = struct
         sim ~debug:true ~f:(fun _print_state sim ->
           let inputs = Cyclesim.inputs sim in
           let outputs = Cyclesim.outputs sim in
+          Cyclesim.reset sim;
+          inputs.clear := vdd;
+          Cyclesim.cycle sim;
+          inputs.clear := gnd;
+          Cyclesim.cycle sim;
           let model = Model.init () in
           Quickcheck.test
             (List.quickcheck_generator
@@ -2760,6 +2777,448 @@ module BayesianTage = struct
              (prediction_tags (0011100 0011111 0010000))
              (retirement_indices (0011100 0111101 0100110))
              (retirement_tags (0011100 0011111 0010000))))
+           (internals ())) |}]
+      ;;
+    end
+
+    module Update_counters = struct
+      open Update_counters
+
+      module Dual_counter = struct
+        module Model = struct
+          type t =
+            { num_takens : int
+            ; num_not_takens : int
+            }
+          [@@deriving sexp_of, compare]
+
+          let of_bimodal direction hysteresis =
+            let n = Array.create ~len:2 0 in
+            Array.set
+              n
+              (direction lxor 1)
+              ((1 lsl (Params.bimodal_hysteresis_width - 1)) - 1);
+            Array.set
+              n
+              direction
+              (n.(direction lxor 1) + (1 lsl Params.bimodal_hysteresis_width) - hysteresis);
+            { num_takens = n.(1); num_not_takens = n.(0) }
+          ;;
+
+          let prediction { num_takens; num_not_takens } =
+            if num_takens > num_not_takens then 1 else 0
+          ;;
+
+          let is_medium_confidence { num_takens; num_not_takens } =
+            num_takens = (2 * num_not_takens) + 1 || num_not_takens = (2 * num_takens) + 1
+          ;;
+
+          let is_low_confidence { num_takens; num_not_takens } =
+            num_takens < (2 * num_not_takens) + 1 && num_not_takens < (2 * num_takens) + 1
+          ;;
+
+          let is_high_confidence counters =
+            (not (is_medium_confidence counters)) && not (is_low_confidence counters)
+          ;;
+
+          let is_very_high_confidence { num_takens; num_not_takens } =
+            (num_not_takens = 0 && num_takens >= 4)
+            || (num_takens = 0 && num_not_takens >= 4)
+          ;;
+
+          let sum { num_takens; num_not_takens } = num_takens + num_not_takens
+          let diff { num_takens; num_not_takens } = abs (num_takens - num_not_takens)
+
+          let is_saturated { num_takens; num_not_takens } =
+            num_takens = Params.max_counter_value
+            || num_not_takens = Params.max_counter_value
+          ;;
+
+          let confidence_level meta ({ num_takens; num_not_takens } as counters) =
+            if num_takens = num_not_takens
+            then 3
+            else (
+              let low = is_low_confidence counters in
+              let promotemed = meta >= 0 && sum counters = 1 in
+              let med = (not promotemed) && is_medium_confidence counters in
+              (if low then 2 else 0) + if med then 1 else 0)
+          ;;
+
+          let decay { num_takens; num_not_takens } =
+            let n = List.to_array [ num_not_takens; num_takens ] in
+            if n.(1) > n.(0) then Array.set n 1 (n.(1) - 1);
+            if n.(0) > n.(1) then Array.set n 0 (n.(0) - 1);
+            { num_takens = n.(1); num_not_takens = n.(0) }
+          ;;
+
+          let update taken { num_takens; num_not_takens } =
+            let n = List.to_array [ num_not_takens; num_takens ] in
+            let d = if taken then 1 else 0 in
+            if n.(d) < Params.max_counter_value
+            then Array.set n d (n.(d) + 1)
+            else if n.(d lxor 1) > 0
+            then Array.set n (d lxor 1) (n.(d lxor 1) - 1);
+            { num_takens = n.(1); num_not_takens = n.(0) }
+          ;;
+        end
+      end
+
+      let test_bench ~debug ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
+        let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+        let print_state () =
+          Stdio.print_s
+            [%message
+              (inputs : Bits.t ref I.t)
+                (outputs : Bits.t ref O.t)
+                ~internals:
+                  (if debug
+                   then
+                     Cyclesim.internal_ports sim
+                     |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
+                   else []
+                    : (string * Bits.t ref) list)];
+          Stdio.print_endline "";
+          ()
+        in
+        Cyclesim.reset sim;
+        f print_state sim;
+        ()
+      ;;
+
+      let sim ~debug ~f =
+        let module Simulator = Cyclesim.With_interface (I) (O) in
+        let scope = Scope.create ~flatten_design:true () in
+        let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
+        test_bench ~debug ~f sim;
+        ()
+      ;;
+
+      module Model = struct
+        type t =
+          { meta : int ref
+          ; cat : int ref
+          ; random1 : int ref
+          ; random2 : int ref
+          ; random3 : int ref
+          ; random4 : int ref
+          ; random5 : int ref
+          }
+        [@@deriving sexp_of]
+
+        let init () =
+          { meta = ref 0
+          ; cat = ref 0
+          ; random1 = ref 2463534242
+          ; random2 = ref 1850600128
+          ; random3 = ref 3837179466
+          ; random4 = ref 4290344314
+          ; random5 = ref 0614373416
+          }
+        ;;
+
+        let update
+          resolved_direction
+          entries
+          (bimodal_direction, bimodal_hysteresis)
+          { meta; cat; random1; random2; random3; random4; random5 }
+          =
+          let open Dual_counter.Model in
+          let hits, s, bp =
+            let hits =
+              List.filter_mapi entries ~f:(fun i (_, hit) -> if hit then Some i else None)
+            in
+            let s =
+              List.filter_map entries ~f:(fun (counters, hit) ->
+                if hit then Some counters else None)
+              |> Fn.flip
+                   List.append
+                   [ of_bimodal (if bimodal_direction then 1 else 0) bimodal_hysteresis ]
+            in
+            let bp = ref 0 in
+            for i = 1 to List.length s - 1 do
+              if confidence_level !meta (List.nth_exn s i)
+                 < confidence_level !meta (List.nth_exn s !bp)
+              then bp := i
+            done;
+            hits, s, !bp
+          in
+          let result_entries = List.map entries ~f:fst |> List.to_array in
+          let result_bimodal_direction = ref bimodal_direction in
+          let result_bimodal_hysteresis = ref bimodal_hysteresis in
+          let _update_meta =
+            if List.length s > 1
+               && sum (List.hd_exn s) = 1
+               && is_high_confidence (List.nth_exn s 1)
+               && prediction (List.hd_exn s) <> prediction (List.nth_exn s 1)
+            then
+              if prediction (List.hd_exn s) = if resolved_direction then 1 else 0
+              then
+                if !meta < 15
+                then meta := !meta + 1
+                else if !meta > -16
+                then meta := !meta - 1;
+            ()
+          in
+          let _update =
+            for i = 0 to bp - 1 do
+              if !meta >= 0
+                 || is_low_confidence (List.nth_exn s i)
+                 || prediction (List.nth_exn s i) <> prediction (List.nth_exn s bp)
+                 || !random1 % 8 = 0
+              then
+                Array.set
+                  result_entries
+                  (List.nth_exn hits i)
+                  (update resolved_direction result_entries.(List.nth_exn hits i))
+            done;
+            let update_entry i =
+              let update_bimodal () =
+                if Bool.equal bimodal_direction resolved_direction
+                then (
+                  if bimodal_hysteresis < (1 lsl Params.bimodal_hysteresis_width) - 1
+                  then result_bimodal_hysteresis := bimodal_hysteresis + 1)
+                else if bimodal_hysteresis > 0
+                then result_bimodal_hysteresis := bimodal_hysteresis - 1
+                else result_bimodal_direction := resolved_direction
+              in
+              if i < List.length hits
+              then
+                Array.set
+                  result_entries
+                  (List.nth_exn hits i)
+                  (update resolved_direction result_entries.(List.nth_exn hits i))
+              else update_bimodal ()
+            in
+            if bp < List.length hits
+               && is_high_confidence (List.nth_exn s bp)
+               && is_high_confidence (List.nth_exn s (bp + 1))
+               && (prediction (List.nth_exn s (bp + 1))
+                   = if resolved_direction then 1 else 0)
+               && ((prediction (List.nth_exn s bp) = if resolved_direction then 1 else 0)
+                   || !cat >= Params.controlled_allocation_throtter_max / 2)
+            then (
+              if (not (is_saturated (List.nth_exn s bp)))
+                 || (!meta < 0 && !random2 % 8 = 0)
+              then
+                Array.set
+                  result_entries
+                  (List.nth_exn hits bp)
+                  (decay result_entries.(List.nth_exn hits bp)))
+            else update_entry bp;
+            if (not (is_high_confidence (List.nth_exn s bp))) && bp < List.length hits
+            then update_entry (bp + 1);
+            ()
+          in
+          let _allocate =
+            let allocate =
+              prediction (List.nth_exn s bp) <> if resolved_direction then 1 else 0
+            in
+            if allocate
+               && !random3 % 16
+                  >= !cat * 16 / (Params.controlled_allocation_throtter_max + 1)
+            then (
+              let i =
+                if List.length hits > 0 then List.hd_exn hits else Params.num_banks
+              in
+              let i =
+                ref
+                  (i
+                   - (!random4
+                      % (1
+                         + (diff (List.hd_exn s)
+                            * Params.max_banks_skipped_on_allocation
+                            / Params.max_counter_value))))
+              in
+              let mhc = ref 0 in
+              i := !i - 1;
+              while !i >= 0 do
+                if is_high_confidence result_entries.(!i)
+                then (
+                  if !random5 % 4 = 0
+                  then Array.set result_entries !i (decay result_entries.(!i));
+                  if not (is_very_high_confidence result_entries.(!i))
+                  then mhc := !mhc + 1;
+                  i := !i - 1;
+                  ())
+                else (
+                  Array.set
+                    result_entries
+                    !i
+                    (update resolved_direction { num_takens = 0; num_not_takens = 0 });
+                  cat := !cat + 2 - (!mhc * 3);
+                  cat := min Params.controlled_allocation_throtter_max (max 0 !cat);
+                  i := -1;
+                  ())
+              done;
+              ());
+            ()
+          in
+          let _update_randoms =
+            let random x =
+              let x = x lxor ((x lsl 13) land ((1 lsl 32) - 1)) in
+              let x = x lxor (x lsr 17) in
+              let x = x lxor ((x lsl 5) land ((1 lsl 32) - 1)) in
+              x
+            in
+            random1 := random !random1;
+            random2 := random !random2;
+            random3 := random !random3;
+            random4 := random !random4;
+            random5 := random !random5;
+            ()
+          in
+          ( Array.to_list result_entries
+          , (!result_bimodal_direction, !result_bimodal_hysteresis) )
+        ;;
+      end
+
+      let%expect_test "Model" =
+        let open Bits in
+        let open Quickcheck in
+        sim ~debug:true ~f:(fun _print_state sim ->
+          let inputs = Cyclesim.inputs sim in
+          let outputs = Cyclesim.outputs sim in
+          Cyclesim.reset sim;
+          inputs.clear := vdd;
+          Cyclesim.cycle sim;
+          inputs.clear := gnd;
+          Cyclesim.cycle sim;
+          let model = Model.init () in
+          Quickcheck.test
+            (List.quickcheck_generator
+               (Generator.tuple6
+                  Bool.quickcheck_generator
+                  Bool.quickcheck_generator
+                  Int.quickcheck_generator
+                  Bool.quickcheck_generator
+                  (Int.gen_incl 0 (Int.shift_left 1 Params.bimodal_hysteresis_width - 1))
+                  (List.gen_with_length
+                     Params.num_banks
+                     (Generator.tuple3
+                        (Int.gen_incl 0 Params.max_counter_value)
+                        (Int.gen_incl 0 Params.max_counter_value)
+                        Bool.quickcheck_generator))))
+            ~sexp_of:
+              [%sexp_of: (bool * bool * int * bool * int * (int * int * bool) list) list]
+            ~f:(fun updates ->
+              List.iter
+                updates
+                ~f:(fun
+                     ( valid
+                     , resolved_direction
+                     , branch_target
+                     , bimodal_direction
+                     , bimodal_hysteresis
+                     , entries )
+                   ->
+                inputs.update.valid := of_bool valid;
+                inputs.update.resolved_direction := of_bool resolved_direction;
+                inputs.update.branch_target
+                  := of_int ~width:(width !(inputs.update.branch_target)) branch_target;
+                inputs.bimodal_entry.direction := of_bool bimodal_direction;
+                inputs.bimodal_entry.hysteresis
+                  := of_int
+                       ~width:(width !(inputs.bimodal_entry.hysteresis))
+                       bimodal_hysteresis;
+                List.iter2_exn
+                  entries
+                  inputs.read_entries
+                  ~f:(fun (num_takens, num_not_takens, hit) entry ->
+                  entry.tag
+                    := if hit
+                       then of_int ~width:Params.tag_width 0
+                       else of_int ~width:Params.tag_width 1;
+                  entry.counters.num_takens
+                    := of_int ~width:Params.counter_width num_takens;
+                  entry.counters.num_not_takens
+                    := of_int ~width:Params.counter_width num_not_takens;
+                  ());
+                Cyclesim.cycle sim;
+                inputs.update.valid := gnd;
+                Cyclesim.cycle sim;
+                inputs.update.valid := of_bool valid;
+                if valid
+                then (
+                  let expected_entries, expected_bimodal =
+                    Model.update
+                      resolved_direction
+                      (List.map entries ~f:(fun (num_takens, num_not_takens, hit) ->
+                         { Dual_counter.Model.num_takens; num_not_takens }, hit))
+                      (bimodal_direction, bimodal_hysteresis)
+                      model
+                  in
+                  let { O.next_entries; next_bimodal_entry; meta } =
+                    O.map outputs ~f:(( ! ) |> Fn.compose to_int)
+                  in
+                  [%test_result: Dual_counter.Model.t list * (bool * int) * int]
+                    ~message:([%message "" (model : Model.t)] |> Sexp.to_string_hum)
+                    ~expect:(expected_entries, expected_bimodal, meta)
+                    ( List.map
+                        next_entries
+                        ~f:(fun
+                             { Entry.tag = _; counters = { num_takens; num_not_takens } }
+                           -> { Dual_counter.Model.num_takens; num_not_takens })
+                    , (next_bimodal_entry.direction = 1, next_bimodal_entry.hysteresis)
+                    , meta );
+                  ());
+                ());
+              ());
+          ())
+      ;;
+
+      let%expect_test "Human" =
+        sim ~debug:false ~f:(fun print_state sim ->
+          let open Bits in
+          let inputs = Cyclesim.inputs sim in
+          let next () =
+            Cyclesim.cycle sim;
+            print_state ();
+            ()
+          in
+          List.iter inputs.tags ~f:(fun tag -> tag := one Params.tag_width);
+          inputs.update.valid := vdd;
+          next ();
+          List.iter inputs.tags ~f:(fun tag -> tag := zero Params.tag_width);
+          next ();
+          ());
+        [%expect
+          {|
+          ((inputs
+            ((clock 0) (clear 0)
+             (update
+              ((valid 1) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (read_entries
+              (((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+             (tags (0000001 0000001 0000001))
+             (bimodal_entry ((direction 0) (hysteresis 0)))))
+           (outputs
+            ((next_entries
+              (((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+             (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (update
+              ((valid 1) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (read_entries
+              (((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+             (tags (0000000 0000000 0000000))
+             (bimodal_entry ((direction 0) (hysteresis 0)))))
+           (outputs
+            ((next_entries
+              (((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+               ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))))
+             (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
            (internals ())) |}]
       ;;
     end
