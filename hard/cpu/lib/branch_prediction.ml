@@ -376,7 +376,7 @@ module BayesianTage = struct
     val num_entries_per_bank : int
     val counter_width : int
     val tag_width : int
-    val controlled_allocation_throtter_max : int
+    val controlled_allocation_throttler_max : int
     val max_banks_skipped_on_allocation : int
     val meta_width : int
     val num_bimodal_direction_entries : int
@@ -1278,7 +1278,7 @@ module BayesianTage = struct
           ()
         in
         let next_controlled_allocation_throttler =
-          wire (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1))
+          wire (Int.floor_log2 (Params.controlled_allocation_throttler_max + 1))
         in
         let controlled_allocation_throttler =
           (next_controlled_allocation_throttler
@@ -1350,7 +1350,7 @@ module BayesianTage = struct
              uresize (sel_bottom random3 min_ap) (width controlled_allocation_throttler)
              >=: srl
                    controlled_allocation_throttler
-                   (Int.floor_log2 (Params.controlled_allocation_throtter_max + 1)
+                   (Int.floor_log2 (Params.controlled_allocation_throttler_max + 1)
                     - min_ap))
           ]
           |> tree ~arity:2 ~f:(reduce ~f:( &: ))
@@ -1387,8 +1387,8 @@ module BayesianTage = struct
          in
          let next =
            mux2
-             (result >+. Params.controlled_allocation_throtter_max)
-             (of_int ~width Params.controlled_allocation_throtter_max)
+             (result >+. Params.controlled_allocation_throttler_max)
+             (of_int ~width Params.controlled_allocation_throttler_max)
              (mux2 (result <+. 0) (zero width) (uresize result width))
          in
          mux2 allocate next controlled_allocation_throttler);
@@ -1422,7 +1422,7 @@ module BayesianTage = struct
                              ; prediction counters
                                ==: resolved_direction
                                |: (controlled_allocation_throttler
-                                   >=:. Params.controlled_allocation_throtter_max / 2)
+                                   >=:. Params.controlled_allocation_throttler_max / 2)
                              ]
                              |> tree ~arity:2 ~f:(reduce ~f:( &: )))
                             [ when_
@@ -1569,7 +1569,7 @@ module BayesianTage = struct
       ; num_entries_per_bank : int
       ; counter_width : int
       ; tag_width : int
-      ; controlled_allocation_throtter_max : int
+      ; controlled_allocation_throttler_max : int
       ; max_banks_skipped_on_allocation : int
       ; meta_width : int
       ; num_bimodal_direction_entries : int
@@ -1658,7 +1658,7 @@ module BayesianTage = struct
       ; num_entries_per_bank
       ; counter_width
       ; tag_width
-      ; controlled_allocation_throtter_max
+      ; controlled_allocation_throttler_max
       ; max_banks_skipped_on_allocation
       ; meta_width
       ; num_bimodal_direction_entries
@@ -1687,7 +1687,7 @@ module BayesianTage = struct
       let num_entries_per_bank = num_entries_per_bank
       let counter_width = counter_width
       let tag_width = tag_width
-      let controlled_allocation_throtter_max = controlled_allocation_throtter_max
+      let controlled_allocation_throttler_max = controlled_allocation_throttler_max
       let max_banks_skipped_on_allocation = max_banks_skipped_on_allocation
       let meta_width = meta_width
       let num_bimodal_direction_entries = num_bimodal_direction_entries
@@ -1897,7 +1897,7 @@ module BayesianTage = struct
       let num_entries_per_bank = 128
       let counter_width = 2
       let tag_width = 7
-      let controlled_allocation_throtter_max = 128
+      let controlled_allocation_throttler_max = 128
       let max_banks_skipped_on_allocation = 1
       let meta_width = 4
       let num_bimodal_direction_entries = 128
@@ -2995,7 +2995,7 @@ module BayesianTage = struct
                && (prediction (List.nth_exn s (bp + 1))
                    = if resolved_direction then 1 else 0)
                && ((prediction (List.nth_exn s bp) = if resolved_direction then 1 else 0)
-                   || !cat >= Params.controlled_allocation_throtter_max / 2)
+                   || !cat >= Params.controlled_allocation_throttler_max / 2)
             then (
               if (not (is_saturated (List.nth_exn s bp)))
                  || (!meta < 0 && !random2 % 8 = 0)
@@ -3015,7 +3015,7 @@ module BayesianTage = struct
             in
             if allocate
                && !random3 % 16
-                  >= !cat * 16 / (Params.controlled_allocation_throtter_max + 1)
+                  >= !cat * 16 / (Params.controlled_allocation_throttler_max + 1)
             then (
               let i =
                 if List.length hits > 0 then List.hd_exn hits else Params.num_banks
@@ -3046,7 +3046,7 @@ module BayesianTage = struct
                     !i
                     (update resolved_direction { num_takens = 0; num_not_takens = 0 });
                   cat := !cat + 2 - (!mhc * 3);
-                  cat := min Params.controlled_allocation_throtter_max (max 0 !cat);
+                  cat := min Params.controlled_allocation_throttler_max (max 0 !cat);
                   i := -1;
                   ())
               done;
@@ -3068,7 +3068,9 @@ module BayesianTage = struct
             ()
           in
           ( Array.to_list result_entries
-          , (!result_bimodal_direction, !result_bimodal_hysteresis) )
+          , (!result_bimodal_direction, !result_bimodal_hysteresis)
+          , !meta
+          , !cat )
         ;;
       end
 
@@ -3139,7 +3141,7 @@ module BayesianTage = struct
                 inputs.update.valid := of_bool valid;
                 if valid
                 then (
-                  let expected_entries, expected_bimodal =
+                  let expected_entries, expected_bimodal, expected_meta, expected_cat =
                     Model.update
                       resolved_direction
                       (List.map entries ~f:(fun (num_takens, num_not_takens, hit) ->
@@ -3150,16 +3152,22 @@ module BayesianTage = struct
                   let { O.next_entries; next_bimodal_entry; meta } =
                     O.map outputs ~f:(( ! ) |> Fn.compose to_int)
                   in
-                  [%test_result: Dual_counter.Model.t list * (bool * int) * int]
+                  [%test_result: Dual_counter.Model.t list * (bool * int) * int * int]
                     ~message:([%message "" (model : Model.t)] |> Sexp.to_string_hum)
-                    ~expect:(expected_entries, expected_bimodal, meta)
+                    ~expect:
+                      (expected_entries, expected_bimodal, expected_meta, expected_cat)
                     ( List.map
                         next_entries
                         ~f:(fun
                              { Entry.tag = _; counters = { num_takens; num_not_takens } }
                            -> { Dual_counter.Model.num_takens; num_not_takens })
                     , (next_bimodal_entry.direction = 1, next_bimodal_entry.hysteresis)
-                    , meta );
+                    , meta
+                    , Cyclesim.internal_ports sim
+                      |> List.find_map_exn ~f:(fun (name, s) ->
+                           if String.equal name "controlled_allocation_throttler"
+                           then Some (to_int !s)
+                           else None) );
                   ());
                 ());
               ());
@@ -3236,7 +3244,7 @@ module Branch_direction_predictor = struct
         ; num_entries_per_bank = Int.shift_left 1 7
         ; counter_width = 3
         ; tag_width = 12
-        ; controlled_allocation_throtter_max = Int.shift_left 1 16 - 1
+        ; controlled_allocation_throttler_max = Int.shift_left 1 16 - 1
         ; max_banks_skipped_on_allocation = 5
         ; meta_width = 5
         ; num_bimodal_direction_entries = Int.shift_left 1 12
