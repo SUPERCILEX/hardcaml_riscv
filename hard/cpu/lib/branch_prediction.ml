@@ -666,15 +666,19 @@ module BayesianTage = struct
           |> List.rev
         in
         List.map history_lengths ~f:(fun history_length ->
-          let init = Folded_history_metadata.init ~original_length:history_length in
           { Indices_and_tags.branch =
-              (let init = init ~injected_bits:1 in
+              (let init =
+                 Folded_history_metadata.init
+                   ~original_length:history_length
+                   ~injected_bits:1
+               in
                { index = init ~compressed_length:Params.bank_address_width
                ; tag = init ~compressed_length:Params.tag_width
                })
           ; jump =
               (let init =
-                 init
+                 Folded_history_metadata.init
+                   ~original_length:(Int.min history_length Params.jump_history_length)
                    ~injected_bits:
                      (if history_length < Params.jump_history_length
                       then Params.jump_history_entry_width
@@ -704,6 +708,7 @@ module BayesianTage = struct
 
       let create
         scope
+        ~hash
         { I.clock
         ; clear
         ; next_fetch_program_counter
@@ -731,11 +736,11 @@ module BayesianTage = struct
         let ( -- ) = Scope.naming scope in
         let next_fetch_tag, retirement_tag =
           (next_fetch_program_counter, retirement_program_counter)
-          |> Tuple2.map ~f:(hash_program_counter ~bits:Params.tag_width)
+          |> Tuple2.map ~f:(hash ~bits:Params.tag_width)
         in
         let next_fetch_program_counter, retirement_program_counter =
           (next_fetch_program_counter, retirement_program_counter)
-          |> Tuple2.map ~f:(hash_program_counter ~bits:Params.bank_address_width)
+          |> Tuple2.map ~f:(hash ~bits:Params.bank_address_width)
         in
         let ( speculative_fetch_branch_target
             , speculative_decode_branch_target
@@ -744,7 +749,7 @@ module BayesianTage = struct
           ( speculative_fetch_branch_target
           , speculative_decode_branch_target
           , retirement_branch_target )
-          |> Tuple3.map ~f:(hash_program_counter ~bits:Params.jump_history_entry_width)
+          |> Tuple3.map ~f:(hash ~bits:Params.jump_history_entry_width)
         in
         let () =
           next_fetch_tag -- "next_fetch_tag" |> ignore;
@@ -1031,10 +1036,10 @@ module BayesianTage = struct
                       } )
                   ->
                let indices ~pc ~branch ~jump =
-                 pc ^: branch ^: uresize jump (width branch) ^:. i
+                 pc ^: branch ^: (jump @: zero (width branch - width jump)) ^:. i
                in
                let tags ~pc ~branch ~jump =
-                 (pc +:. i) ^: reverse branch ^: uresize jump (width branch)
+                 (pc +:. i) ^: reverse branch ^: jump @: zero (width branch - width jump)
                in
                ( ( indices
                      ~pc:next_fetch_program_counter
@@ -1058,7 +1063,7 @@ module BayesianTage = struct
 
       let hierarchical scope =
         let module H = Hierarchy.In_scope (I) (O) in
-        H.hierarchical ~scope ~name:"update_history" create
+        H.hierarchical ~scope ~name:"update_history" (create ~hash:hash_program_counter)
       ;;
     end
 
@@ -1186,9 +1191,7 @@ module BayesianTage = struct
             first_hitter_mask &: concat_msb hit_vector |> bits_msb |> select_oldest_hitter
           in
           let next_meta = wire Params.meta_width in
-          let meta =
-            (next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ())) -- "meta"
-          in
+          let meta = next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()) in
           let () =
             let next_meta_var = Always.Variable.wire ~default:meta in
             Always.(
@@ -2183,7 +2186,7 @@ module BayesianTage = struct
     module Update_history : sig end = struct
       open Update_history
 
-      let test_bench ~f ?(debug = false) (sim : (_ I.t, _ O.t) Cyclesim.t) =
+      let test_bench ~debug ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
         let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
         let print_state () =
           Stdio.print_s
@@ -2205,20 +2208,258 @@ module BayesianTage = struct
         ()
       ;;
 
-      let sim ~f =
+      let sim ~debug ~f =
         let module Simulator = Cyclesim.With_interface (I) (O) in
         let scope = Scope.create ~flatten_design:true () in
-        let sim = Simulator.create ~config:Cyclesim.Config.trace_all (create scope) in
-        test_bench ~f sim;
+        let sim =
+          Simulator.create
+            ~config:Cyclesim.Config.trace_all
+            (create ~hash:(fun ~bits address -> Signal.sel_bottom address bits) scope)
+        in
+        test_bench ~debug ~f sim;
         ()
       ;;
 
-      let%expect_test "All" =
+      module Model = struct
+        type t =
+          { branch_history_pointer : int ref
+          ; jump_history_pointer : int ref
+          ; branch_history : int array
+          ; jump_history : int array
+          ; branch_index_fold : int array
+          ; jump_index_fold : int array
+          ; branch_tag_fold : int array
+          ; jump_tag_fold : int array
+          }
+        [@@deriving sexp_of]
+
+        let init () =
+          { branch_history_pointer = ref 0
+          ; jump_history_pointer = ref 0
+          ; branch_history = Array.create ~len:Params.largest_branch_history_length 0
+          ; jump_history = Array.create ~len:Params.jump_history_length 0
+          ; branch_index_fold = Array.create ~len:Params.num_banks 0
+          ; jump_index_fold = Array.create ~len:Params.num_banks 0
+          ; branch_tag_fold = Array.create ~len:Params.num_banks 0
+          ; jump_tag_fold = Array.create ~len:Params.num_banks 0
+          }
+        ;;
+
+        let update
+          (retirement_program_counter, valid, resolved_direction, branch_target)
+          { branch_history_pointer
+          ; jump_history_pointer
+          ; branch_history
+          ; jump_history
+          ; branch_index_fold
+          ; jump_index_fold
+          ; branch_tag_fold
+          ; jump_tag_fold
+          }
+          =
+          if valid
+          then (
+            let _insert =
+              Array.set
+                branch_history
+                !branch_history_pointer
+                (if resolved_direction then 1 else 0);
+              Array.set jump_history !jump_history_pointer branch_target;
+              ()
+            in
+            let _update_folds =
+              for i = 0 to Params.num_banks - 1 do
+                let update
+                  ~history
+                  ~ptr
+                  ~fold
+                  ~original_length
+                  ~compressed_length
+                  ~injected_bits
+                  ~outpoint
+                  =
+                  let rotate_left x m =
+                    let y = Int.shift_right_logical x (compressed_length - m) in
+                    let x = Int.shift_left x m |> Int.bit_or y in
+                    Int.bit_and x (Int.shift_left 1 compressed_length - 1)
+                  in
+                  let get offset =
+                    let k = ptr + offset in
+                    let k =
+                      if k >= Array.length history then k - Array.length history else k
+                    in
+                    Array.get history k
+                  in
+                  let new_fold = rotate_left (Array.get fold i) 1 in
+                  let inbits =
+                    get 0 |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
+                  in
+                  let outbits =
+                    get (original_length - 1)
+                    |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
+                  in
+                  let outbits = rotate_left outbits outpoint in
+                  Array.set fold i (Int.bit_xor new_fold inbits |> Int.bit_xor outbits);
+                  ()
+                in
+                update
+                  ~history:branch_history
+                  ~ptr:!branch_history_pointer
+                  ~fold:branch_index_fold
+                  ~original_length:
+                    (List.nth_exn folded_histories i).branch.index.original_length
+                  ~compressed_length:
+                    (List.nth_exn folded_histories i).branch.index.compressed_length
+                  ~injected_bits:
+                    (List.nth_exn folded_histories i).branch.index.injected_bits
+                  ~outpoint:(List.nth_exn folded_histories i).branch.index.out_point;
+                update
+                  ~history:branch_history
+                  ~ptr:!branch_history_pointer
+                  ~fold:branch_tag_fold
+                  ~original_length:
+                    (List.nth_exn folded_histories i).branch.tag.original_length
+                  ~compressed_length:
+                    (List.nth_exn folded_histories i).branch.tag.compressed_length
+                  ~injected_bits:
+                    (List.nth_exn folded_histories i).branch.tag.injected_bits
+                  ~outpoint:(List.nth_exn folded_histories i).branch.tag.out_point;
+                update
+                  ~history:jump_history
+                  ~ptr:!jump_history_pointer
+                  ~fold:jump_index_fold
+                  ~original_length:
+                    (List.nth_exn folded_histories i).jump.index.original_length
+                  ~compressed_length:
+                    (List.nth_exn folded_histories i).jump.index.compressed_length
+                  ~injected_bits:
+                    (List.nth_exn folded_histories i).jump.index.injected_bits
+                  ~outpoint:(List.nth_exn folded_histories i).jump.index.out_point;
+                update
+                  ~history:jump_history
+                  ~ptr:!jump_history_pointer
+                  ~fold:jump_tag_fold
+                  ~original_length:
+                    (List.nth_exn folded_histories i).jump.tag.original_length
+                  ~compressed_length:
+                    (List.nth_exn folded_histories i).jump.tag.compressed_length
+                  ~injected_bits:(List.nth_exn folded_histories i).jump.tag.injected_bits
+                  ~outpoint:(List.nth_exn folded_histories i).jump.tag.out_point;
+                ()
+              done;
+              ()
+            in
+            let _update_pointers =
+              let update_pointer ~ptr ~max =
+                ptr := !ptr - 1;
+                if !ptr < 0 then ptr := max - 1;
+                ()
+              in
+              update_pointer
+                ~ptr:branch_history_pointer
+                ~max:Params.largest_branch_history_length;
+              update_pointer ~ptr:jump_history_pointer ~max:Params.jump_history_length;
+              ()
+            in
+            ())
+          else ();
+          ( List.init Params.num_banks ~f:(fun i ->
+              Int.bit_xor retirement_program_counter i
+              |> Int.bit_and (Int.shift_left 1 Params.bank_address_width - 1)
+              |> Int.bit_xor branch_index_fold.(i)
+              |> Int.bit_xor
+                   (Int.shift_left
+                      jump_index_fold.(i)
+                      ((List.nth_exn folded_histories i).branch.index.compressed_length
+                       - (List.nth_exn folded_histories i).jump.index.compressed_length)))
+          , List.init Params.num_banks ~f:(fun i ->
+              let reverse x nbits =
+                (* reverse the 16 rightmost bits (Strachey's method) *)
+                assert (nbits <= 16);
+                let x = x land 0xFFFF in
+                let x = x lor ((x land 0x000000FF) lsl 16) in
+                let x = x land 0xF0F0F0F0 lor ((x land 0x0F0F0F0F) lsl 8) in
+                let x = x land 0xCCCCCCCC lor ((x land 0x33333333) lsl 4) in
+                let x = x land 0xAAAAAAAA lor ((x land 0x55555555) lsl 2) in
+                x lsr (31 - nbits)
+              in
+              retirement_program_counter + i
+              |> Int.bit_and (Int.shift_left 1 Params.tag_width - 1)
+              |> Int.bit_xor
+                   (reverse
+                      branch_tag_fold.(i)
+                      (List.nth_exn folded_histories i).branch.tag.compressed_length)
+              |> Int.bit_xor
+                   (Int.shift_left
+                      jump_tag_fold.(i)
+                      ((List.nth_exn folded_histories i).branch.tag.compressed_length
+                       - (List.nth_exn folded_histories i).jump.tag.compressed_length))) )
+        ;;
+      end
+
+      let%expect_test "Model" =
+        let open Bits in
+        let open Quickcheck in
+        sim ~debug:true ~f:(fun _print_state sim ->
+          let inputs = Cyclesim.inputs sim in
+          let outputs = Cyclesim.outputs sim in
+          let model = Model.init () in
+          Quickcheck.test
+            (List.quickcheck_generator
+               (Generator.tuple4
+                  Int.quickcheck_generator
+                  Bool.quickcheck_generator
+                  Bool.quickcheck_generator
+                  Int.quickcheck_generator))
+            ~sexp_of:[%sexp_of: (int * bool * bool * int) list]
+            ~f:(fun updates ->
+              List.iter
+                updates
+                ~f:(fun
+                     (( retirement_program_counter
+                      , valid
+                      , resolved_direction
+                      , branch_target ) as model_inputs)
+                   ->
+                inputs.retirement_program_counter
+                  := of_int
+                       ~width:(width !(inputs.retirement_program_counter))
+                       retirement_program_counter;
+                inputs.retirement_update.valid := of_bool valid;
+                inputs.retirement_update.resolved_direction := of_bool resolved_direction;
+                inputs.retirement_update.branch_target
+                  := of_int
+                       ~width:(width !(inputs.retirement_update.branch_target))
+                       branch_target;
+                Cyclesim.cycle sim;
+                inputs.retirement_update.valid := gnd;
+                Cyclesim.cycle sim;
+                inputs.retirement_update.valid := of_bool valid;
+                let expected_indices, expected_tags = Model.update model_inputs model in
+                let { O.prediction_indices = _
+                    ; prediction_tags = _
+                    ; retirement_indices = indices
+                    ; retirement_tags = tags
+                    }
+                  =
+                  O.map outputs ~f:(( ! ) |> Fn.compose to_int)
+                in
+                [%test_result: int list * int list]
+                  ~message:([%message "" (model : Model.t)] |> Sexp.to_string_hum)
+                  ~expect:(expected_indices, expected_tags)
+                  (indices, tags);
+                ());
+              ());
+          ());
+        ()
+      ;;
+
+      let%expect_test "Human" =
         Stdio.print_s
           [%message
             (folded_histories : Folded_history_metadata.t Indices_and_tags.t list)];
         Stdio.print_endline "";
-        sim ~f:(fun print_state sim ->
+        sim ~debug:false ~f:(fun print_state sim ->
           let open Bits in
           let inputs = Cyclesim.inputs sim in
           let next () =
@@ -2257,10 +2498,10 @@ module BayesianTage = struct
                  (injected_bits 1)))))
              (jump
               ((index
-                ((original_length 17) (compressed_length 5) (out_point 2)
+                ((original_length 3) (compressed_length 5) (out_point 3)
                  (injected_bits 1)))
                (tag
-                ((original_length 17) (compressed_length 6) (out_point 5)
+                ((original_length 3) (compressed_length 6) (out_point 3)
                  (injected_bits 1))))))
             ((branch
               ((index
