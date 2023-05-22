@@ -1463,17 +1463,24 @@ module BayesianTage = struct
                                   [ maybe_update_younger_hitter ]
                               ]
                           ; when_
-                              allocate
+                              (allocate -- "zzreallyallocate")
                               [ when_
                                   (allocation_bank
                                    <:. bank
                                    &: (end_allocation_bank >:. bank))
                                   [ maybe_decay_on_allocation ]
                               ; when_
-                                  (allocation_bank ==:. bank)
-                                  [ Of_signal.of_int 0
-                                    |> update ~resolved_direction
-                                    |> Of_always.assign next_counters
+                                  ((allocation_bank ==:. bank)
+                                   -- Printf.sprintf "zzbank-eq%d" bank)
+                                  [ (let result =
+                                       Of_signal.of_int 0 |> update ~resolved_direction
+                                     in
+                                     result.num_takens -- Printf.sprintf "zztakens%d" bank
+                                     |> ignore;
+                                     result.num_not_takens
+                                     -- Printf.sprintf "zznottakens%d" bank
+                                     |> ignore;
+                                     result |> Of_always.assign next_counters)
                                   ]
                               ]
                           ]);
@@ -2973,6 +2980,7 @@ module BayesianTage = struct
                   (update resolved_direction result_entries.(List.nth_exn hits i))
             done;
             let update_entry i =
+              Stdio.print_s [%message "update_entry" (i : int)];
               let update_bimodal () =
                 if Bool.equal bimodal_direction resolved_direction
                 then (
@@ -2990,6 +2998,12 @@ module BayesianTage = struct
                   (update resolved_direction result_entries.(List.nth_exn hits i))
               else update_bimodal ()
             in
+            Stdio.print_s
+              [%message
+                (bp : int)
+                  (List.nth hits bp : int option)
+                  (List.length hits : int)
+                  (entries : (t * bool) list)];
             if bp < List.length hits
                && is_high_confidence (List.nth_exn s bp)
                && is_high_confidence (List.nth_exn s (bp + 1))
@@ -2998,6 +3012,7 @@ module BayesianTage = struct
                && ((prediction (List.nth_exn s bp) = if resolved_direction then 1 else 0)
                    || !cat >= Params.controlled_allocation_throttler_max / 2)
             then (
+              Stdio.print_endline "inside";
               if (not (is_saturated (List.nth_exn s bp)))
                  || (!meta < 0 && !random2 % 8 = 0)
               then
@@ -3018,9 +3033,11 @@ module BayesianTage = struct
                && !random3 % 16
                   >= !cat * 16 / (Params.controlled_allocation_throttler_max + 1)
             then (
+              Stdio.print_endline "allocate";
               let i =
                 if List.length hits > 0 then List.hd_exn hits else Params.num_banks
               in
+              Stdio.print_s [%message (i : int)];
               let i =
                 ref
                   (i
@@ -3030,6 +3047,7 @@ module BayesianTage = struct
                             * Params.max_banks_skipped_on_allocation
                             / Params.max_counter_value))))
               in
+              Stdio.print_s [%message (!i : int) (diff (List.hd_exn s) : int)];
               let mhc = ref 0 in
               i := !i - 1;
               while !i >= 0 do
@@ -3039,9 +3057,11 @@ module BayesianTage = struct
                   then Array.set result_entries !i (decay result_entries.(!i));
                   if not (is_very_high_confidence result_entries.(!i))
                   then mhc := !mhc + 1;
+                  Stdio.print_s [%message "" ~decay_bank:(!i : int) (!mhc : int)];
                   i := !i - 1;
                   ())
                 else (
+                  Stdio.print_s [%message "" ~allocation_bank:(!i : int)];
                   Array.set
                     result_entries
                     !i
@@ -3137,6 +3157,7 @@ module BayesianTage = struct
                     := of_int ~width:Params.counter_width num_not_takens;
                   ());
                 Cyclesim.cycle sim;
+                _print_state ();
                 if valid
                 then (
                   let expected_entries, expected_bimodal, expected_meta, expected_cat =
@@ -3147,6 +3168,7 @@ module BayesianTage = struct
                       (bimodal_direction, bimodal_hysteresis)
                       model
                   in
+                  Stdio.print_s [%message "" (model : Model.t)];
                   let { O.next_entries; next_bimodal_entry; meta = _ } =
                     O.map outputs ~f:(( ! ) |> Fn.compose to_int)
                   in
@@ -3174,6 +3196,2066 @@ module BayesianTage = struct
                 ());
               ());
           ())
+        [@@expect.uncaught_exn
+          {|
+        (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+           This is strongly discouraged as backtraces are fragile.
+           Please change this test to not include a backtrace. *)
+
+        ("Base_quickcheck.Test.run: test failed"
+          (input
+            ((false true 220437019726214 true 0 ((0 3 false) (2 2 false) (0 0 true)))
+              (true true 1831639 true 0 ((0 1 false) (3 3 true) (3 0 false)))
+              (false true -20566534102334245 true 0
+                ((1 2 false) (2 2 true) (0 3 true)))
+              (true false 284 true 1 ((3 1 false) (1 3 true) (1 2 false)))
+              (false true 635453435 false 0 ((1 2 false) (0 1 true) (0 2 false)))
+              (false false 4611686018427387903 true 0
+                ((2 3 false) (0 3 false) (1 3 true)))
+              (false true 172942876512299687 true 0
+                ((1 3 false) (2 0 false) (0 1 true)))))
+          (error
+            ((runtime-lib/runtime.ml.E
+                "(model\
+               \n ((meta 0) (cat 14) (random1 2452260707) (random2 997089766)\
+               \n  (random3 3864866912) (random4 584905139) (random5 3261080446))): got unexpected result"
+               ((expected
+                  ((((num_takens 0) (num_not_takens 1))
+                     ((num_takens 0) (num_not_takens 3))
+                     ((num_takens 1) (num_not_takens 2)))
+                    (true 0) 0 14))
+                 (got
+                   ((((num_takens 3) (num_not_takens 1))
+                      ((num_takens 0) (num_not_takens 3))
+                      ((num_takens 1) (num_not_takens 2)))
+                     (true 0) 0 14))
+                 (Loc hard/cpu/lib/branch_prediction.ml:3175:33)))
+               "Raised at Ppx_assert_lib__Runtime.test_result in file \"runtime-lib/runtime.ml\", line 106, characters 27-83\
+              \nCalled from Cpu__Branch_prediction.BayesianTage.Tests.Update_counters.(fun) in file \"hard/cpu/lib/branch_prediction.ml\", line 3175, characters 33-85\
+              \nCalled from Stdlib__List.iter in file \"list.ml\", line 110, characters 12-15\
+              \nCalled from Base__List0.iter in file \"src/list0.ml\" (inlined), line 25, characters 16-35\
+              \nCalled from Cpu__Branch_prediction.BayesianTage.Tests.Update_counters.(fun) in file \"hard/cpu/lib/branch_prediction.ml\", line 3127, characters 14-1023\
+              \nCalled from Base__Or_error.try_with in file \"src/or_error.ml\", line 84, characters 9-15\
+              \n")))
+        Raised at Base__Error.raise in file "src/error.ml" (inlined), line 9, characters 14-30
+        Called from Base__Or_error.ok_exn in file "src/or_error.ml", line 92, characters 17-32
+        Called from Core__Quickcheck.Configure.test in file "core/src/quickcheck.ml" (inlined), line 263, characters 4-44
+        Called from Cpu__Branch_prediction.BayesianTage.Tests.Update_counters.(fun) in file "hard/cpu/lib/branch_prediction.ml", line 3110, characters 10-1023
+        Called from Cpu__Branch_prediction.BayesianTage.Tests.Update_counters.test_bench in file "hard/cpu/lib/branch_prediction.ml", line 2892, characters 8-25
+        Called from Cpu__Branch_prediction.BayesianTage.Tests.Update_counters.sim in file "hard/cpu/lib/branch_prediction.ml", line 2900, characters 8-32
+        Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 262, characters 12-19
+
+        Trailing output
+        ---------------
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000000011010110001001011)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 10) (mhc 0)
+           (next_controlled_allocation_throttler 0000000) (next_meta 0000)
+           (randoms$1 10010010110101101000110010100010)
+           (randoms$2 01101110010011011110101011000000)
+           (randoms$3 11100100101101101011011001001010)
+           (randoms$4 11111111101110010111010101111010)
+           (randoms$5 00100100100111101001100000101000) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" (1)) ("List.length hits" 3)
+         (entries
+          ((((num_takens 3) (num_not_takens 1)) true)
+           (((num_takens 1) (num_not_takens 0)) true)
+           (((num_takens 1) (num_not_takens 0)) true))))
+        (update_entry (i 1))
+        (update_entry (i 2))
+        (model
+         ((meta 0) (cat 0) (random1 723471715) (random2 2980440586)
+          (random3 2105672149) (random4 4091405265) (random5 82288453)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00001011010000001001001100001110)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000000) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 00101011000111110100110101100011)
+           (randoms$2 10110001101001011110101000001010)
+           (randoms$3 01111101100000100000000111010101)
+           (randoms$4 11110011110111011110001111010001)
+           (randoms$5 00000100111001111001111101000101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 0) (num_not_takens 1)) false)
+           (((num_takens 2) (num_not_takens 3)) false)
+           (((num_takens 2) (num_not_takens 1)) true))))
+        (update_entry (i 1))
+        allocate
+        (i 2)
+        ((!i 2) ("diff (List.hd_exn s)" 1))
+        (allocation_bank 1)
+        (model
+         ((meta 0) (cat 2) (random1 2497366906) (random2 2423333752)
+          (random3 2326748713) (random4 3143328834) (random5 384294018)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00000000000000000000000000000000)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 10010100110110101100101101111010)
+           (randoms$2 10010000011100010010001101111000)
+           (randoms$3 10001010101011110101111000101001)
+           (randoms$4 10111011010110110110010001000010)
+           (randoms$5 00010110111001111101110010000010) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 0) (num_not_takens 0)) false)
+           (((num_takens 1) (num_not_takens 2)) false)
+           (((num_takens 2) (num_not_takens 2)) true))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 2) (random1 2064144800) (random2 936466327)
+          (random3 1277402396) (random4 767212235) (random5 1133161753)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11111110000001111100100000010001)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 01111011000010000101100110100000)
+           (randoms$2 00110111110100010101011110010111)
+           (randoms$3 01001100001000111001110100011100)
+           (randoms$4 00101101101110101011101011001011)
+           (randoms$5 01000011100010101010110100011001) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 0) (num_not_takens 3)) false)
+           (((num_takens 1) (num_not_takens 1)) true)
+           (((num_takens 0) (num_not_takens 3)) false))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 2) (random1 2008045182) (random2 3109329350)
+          (random3 3481295196) (random4 647958778) (random5 3541649325)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 01101111100010111111001100001001)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 01110111101100000101011001111110)
+           (randoms$2 10111001010101001001100111000110)
+           (randoms$3 11001111100000000101100101011100)
+           (randoms$4 00100110100111110001000011111010)
+           (randoms$5 11010011000110010100011110101101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 0) ("List.nth hits bp" ()) ("List.length hits" 0)
+         (entries
+          ((((num_takens 3) (num_not_takens 0)) false)
+           (((num_takens 2) (num_not_takens 1)) false)
+           (((num_takens 2) (num_not_takens 3)) false))))
+        (update_entry (i 0))
+        (model
+         ((meta 0) (cat 2) (random1 3532304609) (random2 1743114992)
+          (random3 1373428265) (random4 1418094074) (random5 2256523579)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 11111111000010110111101011000010)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 11010010100010101011000011100001)
+           (randoms$2 01100111111001011101001011110000)
+           (randoms$3 01010001110111001101101000101001)
+           (randoms$4 01010100100001100110010111111010)
+           (randoms$5 10000110011111111101000100111011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11111111111111111111111000000011)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 11010010100010101011000011100001)
+           (randoms$2 01100111111001011101001011110000)
+           (randoms$3 01010001110111001101101000101001)
+           (randoms$4 01010100100001100110010111111010)
+           (randoms$5 10000110011111111101000100111011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 3) ("List.nth hits bp" ()) ("List.length hits" 3)
+         (entries
+          ((((num_takens 1) (num_not_takens 3)) true)
+           (((num_takens 0) (num_not_takens 0)) true)
+           (((num_takens 2) (num_not_takens 1)) true))))
+        (update_entry (i 3))
+        allocate
+        (i 0)
+        ((!i 0) ("diff (List.hd_exn s)" 2))
+        (model
+         ((meta 0) (cat 2) (random1 374114282) (random2 1791768973)
+          (random3 2578084805) (random4 2668909862) (random5 4148784631)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00111100010101111111000001000000)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 10)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 00010110010011001000011111101010)
+           (randoms$2 01101010110011000011100110001101)
+           (randoms$3 10011001101010100111001111000101)
+           (randoms$4 10011111000101000101010100100110)
+           (randoms$5 11110111010010010110110111110111) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 0) ("List.nth hits bp" (2)) ("List.length hits" 1)
+         (entries
+          ((((num_takens 2) (num_not_takens 0)) false)
+           (((num_takens 1) (num_not_takens 1)) false)
+           (((num_takens 0) (num_not_takens 3)) true))))
+        inside
+        (model
+         ((meta 0) (cat 2) (random1 1350636274) (random2 1379926291)
+          (random3 763739564) (random4 2745393214) (random5 2215375116)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00000011101100001011001011001000)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 01010000100000010001001011110010)
+           (randoms$2 01010010010000000000000100010011)
+           (randoms$3 00101101100001011011110110101100)
+           (randoms$4 10100011101000110110000000111110)
+           (randoms$5 10000100000010111111000100001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00000000000000000000000000001001)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 01010000100000010001001011110010)
+           (randoms$2 01010010010000000000000100010011)
+           (randoms$3 00101101100001011011110110101100)
+           (randoms$4 10100011101000110110000000111110)
+           (randoms$5 10000100000010111111000100001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 11111111111111111111111111110101)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 00)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 01) (mhc 0)
+           (next_controlled_allocation_throttler 0000010) (next_meta 0000)
+           (randoms$1 01010000100000010001001011110010)
+           (randoms$2 01010010010000000000000100010011)
+           (randoms$3 00101101100001011011110110101100)
+           (randoms$4 10100011101000110110000000111110)
+           (randoms$5 10000100000010111111000100001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11111111111111111100000111000011)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000010) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000100) (next_meta 0000)
+           (randoms$1 01010000100000010001001011110010)
+           (randoms$2 01010010010000000000000100010011)
+           (randoms$3 00101101100001011011110110101100)
+           (randoms$4 10100011101000110110000000111110)
+           (randoms$5 10000100000010111111000100001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 0) ("List.nth hits bp" ()) ("List.length hits" 0)
+         (entries
+          ((((num_takens 2) (num_not_takens 1)) false)
+           (((num_takens 3) (num_not_takens 0)) false)
+           (((num_takens 3) (num_not_takens 3)) false))))
+        (update_entry (i 0))
+        allocate
+        (i 3)
+        ((!i 3) ("diff (List.hd_exn s)" 2))
+        (allocation_bank 2)
+        (model
+         ((meta 0) (cat 4) (random1 691148861) (random2 506154082)
+          (random3 3695076916) (random4 993802860) (random5 3211497273)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000000000011001001011011)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000100) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000100) (next_meta 0000)
+           (randoms$1 00101001001100100001100000111101)
+           (randoms$2 00011110001010110100110001100010)
+           (randoms$3 11011100001111100110011000110100)
+           (randoms$4 00111011001111000011101001101100)
+           (randoms$5 10111111011010111000111100111001) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" (1)) ("List.length hits" 2)
+         (entries
+          ((((num_takens 1) (num_not_takens 3)) true)
+           (((num_takens 1) (num_not_takens 0)) true)
+           (((num_takens 1) (num_not_takens 1)) false))))
+        (update_entry (i 1))
+        (update_entry (i 2))
+        (model
+         ((meta 0) (cat 4) (random1 746858951) (random2 2202124689)
+          (random3 266676040) (random4 843935444) (random5 521521055)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11101011110000110011010110000111)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 10)
+           (controlled_allocation_throttler 0000100) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 00101100100001000010100111000111)
+           (randoms$2 10000011010000011100000110010001)
+           (randoms$3 00001111111001010010011101001000)
+           (randoms$4 00110010010011010110111011010100)
+           (randoms$5 00011111000101011100011110011111) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" (2)) ("List.length hits" 2)
+         (entries
+          ((((num_takens 1) (num_not_takens 3)) false)
+           (((num_takens 3) (num_not_takens 2)) true)
+           (((num_takens 0) (num_not_takens 2)) true))))
+        (update_entry (i 1))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 1))
+        (allocation_bank 0)
+        (model
+         ((meta 0) (cat 6) (random1 2653896249) (random2 3573823784)
+          (random3 3397528334) (random4 1835238143) (random5 1529412076)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00010110011101101100010000110001)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 10011110001011110011111000111001)
+           (randoms$2 11010101000001000011100100101000)
+           (randoms$3 11001010100000100010101100001110)
+           (randoms$4 01101101011000111000001011111111)
+           (randoms$5 01011011001010001111100111101100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 11111111111111111111111111111011)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 10011110001011110011111000111001)
+           (randoms$2 11010101000001000011100100101000)
+           (randoms$3 11001010100000100010101100001110)
+           (randoms$4 01101101011000111000001011111111)
+           (randoms$5 01011011001010001111100111101100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 10111000001111110100001101000110)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 00)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 01) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 10011110001011110011111000111001)
+           (randoms$2 11010101000001000011100100101000)
+           (randoms$3 11001010100000100010101100001110)
+           (randoms$4 01101101011000111000001011111111)
+           (randoms$5 01011011001010001111100111101100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000000000000000000001000)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 10) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 10011110001011110011111000111001)
+           (randoms$2 11010101000001000011100100101000)
+           (randoms$3 11001010100000100010101100001110)
+           (randoms$4 01101101011000111000001011111111)
+           (randoms$5 01011011001010001111100111101100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" (1)) ("List.length hits" 3)
+         (entries
+          ((((num_takens 2) (num_not_takens 2)) true)
+           (((num_takens 0) (num_not_takens 3)) true)
+           (((num_takens 1) (num_not_takens 2)) true))))
+        (update_entry (i 1))
+        allocate
+        (i 0)
+        ((!i 0) ("diff (List.hd_exn s)" 0))
+        (model
+         ((meta 0) (cat 6) (random1 1156348781) (random2 369301304)
+          (random3 1939223327) (random4 3132219457) (random5 3334350630)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 11111111111111111111111111111001)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 10) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 01000100111011000111101101101101)
+           (randoms$2 00010110000000110001011100111000)
+           (randoms$3 01110011100101100011001100011111)
+           (randoms$4 10111010101100011110000001000001)
+           (randoms$5 11000110101111100010011100100110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 11111111111111111111111110001101)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0000110) (next_meta 0000)
+           (randoms$1 01000100111011000111101101101101)
+           (randoms$2 00010110000000110001011100111000)
+           (randoms$3 01110011100101100011001100011111)
+           (randoms$4 10111010101100011110000001000001)
+           (randoms$5 11000110101111100010011100100110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 10000011110111101100011001111000)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01000100111011000111101101101101)
+           (randoms$2 00010110000000110001011100111000)
+           (randoms$3 01110011100101100011001100011111)
+           (randoms$4 10111010101100011110000001000001)
+           (randoms$5 11000110101111100010011100100110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 11111111011100010001011000110110)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0000110) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01000100111011000111101101101101)
+           (randoms$2 00010110000000110001011100111000)
+           (randoms$3 01110011100101100011001100011111)
+           (randoms$4 10111010101100011110000001000001)
+           (randoms$5 11000110101111100010011100100110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 2) ("List.nth hits bp" ()) ("List.length hits" 2)
+         (entries
+          ((((num_takens 1) (num_not_takens 1)) false)
+           (((num_takens 2) (num_not_takens 2)) true)
+           (((num_takens 3) (num_not_takens 3)) true))))
+        (update_entry (i 2))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 0))
+        (allocation_bank 0)
+        (model
+         ((meta 0) (cat 8) (random1 3149294349) (random2 3898704906)
+          (random3 189052229) (random4 1367990461) (random5 1225140075)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 11111111111111111111110110111101)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 00)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 01) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 10111011101101100110101100001101)
+           (randoms$2 11101000011000011000010000001010)
+           (randoms$3 00001011010001001011010101000101)
+           (randoms$4 01010001100010011110000010111101)
+           (randoms$5 01001001000001100010011101101011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 0) ("List.nth hits bp" (0)) ("List.length hits" 3)
+         (entries
+          ((((num_takens 0) (num_not_takens 1)) true)
+           (((num_takens 0) (num_not_takens 1)) true)
+           (((num_takens 2) (num_not_takens 1)) true))))
+        (update_entry (i 0))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 8) (random1 2888432806) (random2 3304433466)
+          (random3 543632851) (random4 3729831986) (random5 814428766)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 11111111111111001111110111000011)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 110) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 10101100001010011111110010100110)
+           (randoms$2 11000100111101011010011100111010)
+           (randoms$3 00100000011001110010110111010011)
+           (randoms$4 11011110010100001011100000110010)
+           (randoms$5 00110000100010110011001001011110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00000000001101111011100011010100)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 10101100001010011111110010100110)
+           (randoms$2 11000100111101011010011100111010)
+           (randoms$3 00100000011001110010110111010011)
+           (randoms$4 11011110010100001011100000110010)
+           (randoms$5 00110000100010110011001001011110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 3) (num_not_takens 3)) true)
+           (((num_takens 0) (num_not_takens 3)) false)
+           (((num_takens 1) (num_not_takens 1)) false))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 8) (random1 3826506360) (random2 1917401427)
+          (random3 2121844893) (random4 3817148345) (random5 2396782334)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00111000010110000100110101011011)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 00)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 01) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11100100000100111101101001111000)
+           (randoms$2 01110010010010010011100101010011)
+           (randoms$3 01111110011110001100100010011101)
+           (randoms$4 11100011100001010000111110111001)
+           (randoms$5 10001110110110111111111011111110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 00000000000000000001111110011111)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11100100000100111101101001111000)
+           (randoms$2 01110010010010010011100101010011)
+           (randoms$3 01111110011110001100100010011101)
+           (randoms$4 11100011100001010000111110111001)
+           (randoms$5 10001110110110111111111011111110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 11111111111111111111110001001011)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 10)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11100100000100111101101001111000)
+           (randoms$2 01110010010010010011100101010011)
+           (randoms$3 01111110011110001100100010011101)
+           (randoms$4 11100011100001010000111110111001)
+           (randoms$5 10001110110110111111111011111110) (skipped_allocation_banks 01)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00011101001011011000101111001100)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 00)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 01) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11100100000100111101101001111000)
+           (randoms$2 01110010010010010011100101010011)
+           (randoms$3 01111110011110001100100010011101)
+           (randoms$4 11100011100001010000111110111001)
+           (randoms$5 10001110110110111111111011111110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11111111111111111111110111000011)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11100100000100111101101001111000)
+           (randoms$2 01110010010010010011100101010011)
+           (randoms$3 01111110011110001100100010011101)
+           (randoms$4 11100011100001010000111110111001)
+           (randoms$5 10001110110110111111111011111110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 0) ("List.nth hits bp" ()) ("List.length hits" 0)
+         (entries
+          ((((num_takens 3) (num_not_takens 0)) false)
+           (((num_takens 0) (num_not_takens 3)) false)
+           (((num_takens 3) (num_not_takens 3)) false))))
+        (update_entry (i 0))
+        (model
+         ((meta 0) (cat 8) (random1 1959669526) (random2 4178382754)
+          (random3 2315271720) (random4 204725888) (random5 3515648508)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 00000000000000000000010100000010)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01110100110011100010111100010110)
+           (randoms$2 11111001000011010000111110100010)
+           (randoms$3 10001010000000000011111000101000)
+           (randoms$4 00001100001100111101111010000000)
+           (randoms$5 11010001100011001000100111111100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000000000000000000000000)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01110100110011100010111100010110)
+           (randoms$2 11111001000011010000111110100010)
+           (randoms$3 10001010000000000011111000101000)
+           (randoms$4 00001100001100111101111010000000)
+           (randoms$5 11010001100011001000100111111100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 2) (num_not_takens 1)) true)
+           (((num_takens 3) (num_not_takens 2)) false)
+           (((num_takens 2) (num_not_takens 1)) false))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 8) (random1 2495235968) (random2 1205147678)
+          (random3 896164234) (random4 2342472529) (random5 1456872709)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000000000000000000110111)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 10010100101110100100011110000000)
+           (randoms$2 01000111110101010001100000011110)
+           (randoms$3 00110101011010100110000110001010)
+           (randoms$4 10001011100111110100101101010001)
+           (randoms$5 01010110110101100001110100000101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 2) (num_not_takens 0)) false)
+           (((num_takens 3) (num_not_takens 2)) true)
+           (((num_takens 2) (num_not_takens 1)) false))))
+        (update_entry (i 1))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 1))
+        ((decay_bank 0) (!mhc 1))
+        (model
+         ((meta 0) (cat 8) (random1 1427053829) (random2 2114184405)
+          (random3 1379449287) (random4 1012801355) (random5 1000865918)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00110100111110010000011110101110)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01010101000011110001110100000101)
+           (randoms$2 01111110000000111110010011010101)
+           (randoms$3 01010010001110001011100111000111)
+           (randoms$4 00111100010111100001111101001011)
+           (randoms$5 00111011101010000000000001111110) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 0) ("List.nth hits bp" ()) ("List.length hits" 0)
+         (entries
+          ((((num_takens 3) (num_not_takens 2)) false)
+           (((num_takens 2) (num_not_takens 3)) false)
+           (((num_takens 3) (num_not_takens 1)) false))))
+        (update_entry (i 0))
+        (model
+         ((meta 0) (cat 8) (random1 1666395154) (random2 1370617529)
+          (random3 3842970535) (random4 156701328) (random5 1331456013)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 01110001000010101111000101111010)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 01100011010100110010110000010010)
+           (randoms$2 01010001101100011111011010111001)
+           (randoms$3 11100101000011110001001110100111)
+           (randoms$4 00001001010101110001001010010000)
+           (randoms$5 01001111010111000110100000001101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" (1)) ("List.length hits" 2)
+         (entries
+          ((((num_takens 2) (num_not_takens 3)) true)
+           (((num_takens 3) (num_not_takens 0)) true)
+           (((num_takens 1) (num_not_takens 0)) false))))
+        (update_entry (i 1))
+        allocate
+        (i 0)
+        ((!i 0) ("diff (List.hd_exn s)" 1))
+        (model
+         ((meta 0) (cat 8) (random1 3707535418) (random2 2210054218)
+          (random3 3892704090) (random4 2343142738) (random5 2313719107)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 11111111111111111000010110101000)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 110) (bank_used_for_prediction 10)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11011100111111001000000000111010)
+           (randoms$2 10000011101110101100000001001010)
+           (randoms$3 11101000000001011111001101011010)
+           (randoms$4 10001011101010011000010101010010)
+           (randoms$5 10001001111010001000110101000011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000011011010111110101110100)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 010) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001000) (next_meta 0000)
+           (randoms$1 11011100111111001000000000111010)
+           (randoms$2 10000011101110101100000001001010)
+           (randoms$3 11101000000001011111001101011010)
+           (randoms$4 10001011101010011000010101010010)
+           (randoms$5 10001001111010001000110101000011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 3) (num_not_takens 2)) false)
+           (((num_takens 3) (num_not_takens 0)) false)
+           (((num_takens 1) (num_not_takens 3)) true))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 8) (random1 3548851879) (random2 2915983347)
+          (random3 2612893133) (random4 3681583795) (random5 2421460227)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000110111110101011101001101)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001000) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001010) (next_meta 0000)
+           (randoms$1 11010011100001110010111010100111)
+           (randoms$2 10101101110011100101111111110011)
+           (randoms$3 10011011101111011001010111001101)
+           (randoms$4 11011011011100001000001010110011)
+           (randoms$5 10010000010101001000110100000011) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 0) (num_not_takens 2)) false)
+           (((num_takens 2) (num_not_takens 1)) false)
+           (((num_takens 1) (num_not_takens 2)) true))))
+        (update_entry (i 1))
+        allocate
+        (i 2)
+        ((!i 2) ("diff (List.hd_exn s)" 1))
+        (allocation_bank 1)
+        (model
+         ((meta 0) (cat 10) (random1 4230571086) (random2 2687603083)
+          (random3 159385775) (random4 2952160032) (random5 1063867097)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00100010010110000100010011100010)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 100) (bank_used_for_prediction 01)
+           (controlled_allocation_throttler 0001010) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001010) (next_meta 0000)
+           (randoms$1 11111100001010010110010001001110)
+           (randoms$2 10100000001100011001000110001011)
+           (randoms$3 00001001100000000000100010101111)
+           (randoms$4 10101111111101100110001100100000)
+           (randoms$5 00111111011010010101001011011001) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 0) ("List.nth hits bp" (1)) ("List.length hits" 1)
+         (entries
+          ((((num_takens 2) (num_not_takens 0)) false)
+           (((num_takens 0) (num_not_takens 3)) true)
+           (((num_takens 0) (num_not_takens 1)) false))))
+        (update_entry (i 0))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 3))
+        ((decay_bank 0) (!mhc 1))
+        (model
+         ((meta 0) (cat 10) (random1 3300478942) (random2 3524766187)
+          (random3 438857797) (random4 299372489) (random5 3011342400)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00010001010001011000101100100111)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 10) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001010) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001010) (next_meta 0000)
+           (randoms$1 11000100101110010100111111011110)
+           (randoms$2 11010010000101111010100111101011)
+           (randoms$3 00011010001010000111000001000101)
+           (randoms$4 00010001110110000000111111001001)
+           (randoms$5 10110011011111010111000001000000) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 3) (num_not_takens 3)) true)
+           (((num_takens 2) (num_not_takens 1)) false)
+           (((num_takens 0) (num_not_takens 2)) false))))
+        (update_entry (i 1))
+        allocate
+        (i 0)
+        ((!i 0) ("diff (List.hd_exn s)" 0))
+        (model
+         ((meta 0) (cat 10) (random1 1159583391) (random2 3262223806)
+          (random3 2419822837) (random4 335928569) (random5 3017449914)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 11111101000000111111100010010101)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001010) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001100) (next_meta 0000)
+           (randoms$1 01000101000111011101011010011111)
+           (randoms$2 11000010011100011001010110111110)
+           (randoms$3 10010000001110111001000011110101)
+           (randoms$4 00010100000001011101110011111001)
+           (randoms$5 10110011110110101010000110111010) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 3) (num_not_takens 2)) false)
+           (((num_takens 3) (num_not_takens 1)) true)
+           (((num_takens 0) (num_not_takens 3)) false))))
+        (update_entry (i 1))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 2))
+        (allocation_bank 0)
+        (model
+         ((meta 0) (cat 12) (random1 101148280) (random2 3892549245)
+          (random3 2794290439) (random4 1557122484) (random5 442489804)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 11111111111111111111111111111111)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 0) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 10) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001100) (next_meta 0000)
+           (randoms$1 00000110000001110110011001111000)
+           (randoms$2 11101000000000111001011001111101)
+           (randoms$3 10100110100011010111110100000111)
+           (randoms$4 01011100110011111100110110110100)
+           (randoms$5 00011010010111111101101111001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 10100001111101011010110100100001)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 00))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 0) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001110) (next_meta 0000)
+           (randoms$1 00000110000001110110011001111000)
+           (randoms$2 11101000000000111001011001111101)
+           (randoms$3 10100110100011010111110100000111)
+           (randoms$4 01011100110011111100110110110100)
+           (randoms$5 00011010010111111101101111001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 10000111011111010100001110000000)))
+           (read_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 11) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 11) (allocation_bank_mask 111)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 00)
+           (end_allocation_bank_mask 000) (end_allocation_bank_valid 0)
+           (first_hitter_bank 00) (first_hitter_mask 011) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001100) (next_meta 0000)
+           (randoms$1 00000110000001110110011001111000)
+           (randoms$2 11101000000000111001011001111101)
+           (randoms$3 10100110100011010111110100000111)
+           (randoms$4 01011100110011111100110110110100)
+           (randoms$5 00011010010111111101101111001100) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 3) ("List.nth hits bp" ()) ("List.length hits" 3)
+         (entries
+          ((((num_takens 3) (num_not_takens 1)) true)
+           (((num_takens 2) (num_not_takens 1)) true)
+           (((num_takens 1) (num_not_takens 1)) true))))
+        (update_entry (i 3))
+        (model
+         ((meta 0) (cat 12) (random1 3016388764) (random2 3275954299)
+          (random3 748596145) (random4 173735432) (random5 3320004799)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 0)
+             (branch_target 00100110111111100110111001010111)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 01))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 01))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 10) (allocation_bank_mask 000)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 11)
+           (end_allocation_bank_mask 111) (end_allocation_bank_valid 1)
+           (first_hitter_bank 11) (first_hitter_mask 111) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001110) (next_meta 0000)
+           (randoms$1 10110011110010100111000010011100)
+           (randoms$2 11000011010000110001100001111011)
+           (randoms$3 00101100100111101010101110110001)
+           (randoms$4 00001010010110101111111000001000)
+           (randoms$5 11000101111000110100000010111111) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 0) (zzbank-eq2 1) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 01111110010000011001000110000110)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 01) (allocation_bank_mask 001)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 10)
+           (end_allocation_bank_mask 110) (end_allocation_bank_valid 1)
+           (first_hitter_bank 10) (first_hitter_mask 110) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001100) (next_meta 0000)
+           (randoms$1 10110011110010100111000010011100)
+           (randoms$2 11000011010000110001100001111011)
+           (randoms$3 00101100100111101010101110110001)
+           (randoms$4 00001010010110101111111000001000)
+           (randoms$5 11000101111000110100000010111111) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 0) (zzbank-eq1 1) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 1)
+             (branch_target 00000000000110111111001011010111)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 00) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000001) (counters ((num_takens 11) (num_not_takens 00))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 1))) (meta 0000)))
+         (internals
+          ((allocate 0) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001100) (next_meta 0000)
+           (randoms$1 10110011110010100111000010011100)
+           (randoms$2 11000011010000110001100001111011)
+           (randoms$3 00101100100111101010101110110001)
+           (randoms$4 00001010010110101111111000001000)
+           (randoms$5 11000101111000110100000010111111) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 0)
+           (zzreallyallocate_0 0) (zzreallyallocate_1 0) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 0) (num_not_takens 1)) false)
+           (((num_takens 3) (num_not_takens 3)) true)
+           (((num_takens 3) (num_not_takens 0)) false))))
+        (update_entry (i 1))
+        (model
+         ((meta 0) (cat 12) (random1 1189625968) (random2 2848531453)
+          (random3 3304464357) (random4 3873524837) (random5 325730021)))
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 0) (resolved_direction 1)
+             (branch_target 10100000100100011100010011011011)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 10) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 0)))))
+         (outputs
+          ((next_entries
+            (((tag 0000000) (counters ((num_takens 01) (num_not_takens 00))))
+             ((tag 0000000) (counters ((num_takens 11) (num_not_takens 10))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 10)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001110) (next_meta 0000)
+           (randoms$1 01000110111010000100000001110000)
+           (randoms$2 10101001110010010010001111111101)
+           (randoms$3 11000100111101100001111111100101)
+           (randoms$4 11100110111000010100110001100101)
+           (randoms$5 00010011011010100011111011100101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 00)
+           (zznottakens1 00) (zznottakens2 00) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 01)
+           (zztakens1 01) (zztakens2 01))))
+
+        ((inputs
+          ((clock 0) (clear 0)
+           (update
+            ((valid 1) (resolved_direction 0)
+             (branch_target 00000000000000000000000100011100)))
+           (read_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 01) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))))
+           (tags (0000000 0000000 0000000))
+           (bimodal_entry ((direction 1) (hysteresis 1)))))
+         (outputs
+          ((next_entries
+            (((tag 0000001) (counters ((num_takens 11) (num_not_takens 01))))
+             ((tag 0000000) (counters ((num_takens 00) (num_not_takens 11))))
+             ((tag 0000001) (counters ((num_takens 01) (num_not_takens 10))))))
+           (next_bimodal_entry ((direction 1) (hysteresis 0))) (meta 0000)))
+         (internals
+          ((allocate 1) (allocation_bank 00) (allocation_bank_mask 011)
+           (allocation_decay_range 000) (bank_used_for_prediction 11)
+           (controlled_allocation_throttler 0001100) (end_allocation_bank 01)
+           (end_allocation_bank_mask 100) (end_allocation_bank_valid 1)
+           (first_hitter_bank 01) (first_hitter_mask 101) (gnd 0)
+           (hitter_after_prediction_bank 11) (mhc 0)
+           (next_controlled_allocation_throttler 0001110) (next_meta 0000)
+           (randoms$1 01000110111010000100000001110000)
+           (randoms$2 10101001110010010010001111111101)
+           (randoms$3 11000100111101100001111111100101)
+           (randoms$4 11100110111000010100110001100101)
+           (randoms$5 00010011011010100011111011100101) (skipped_allocation_banks 00)
+           (vdd 1) (zzbank-eq0 1) (zzbank-eq1 0) (zzbank-eq2 0) (zznottakens0 01)
+           (zznottakens1 01) (zznottakens2 01) (zzreallyallocate 1)
+           (zzreallyallocate_0 1) (zzreallyallocate_1 1) (zztakens0 00)
+           (zztakens1 00) (zztakens2 00))))
+
+        ((bp 1) ("List.nth hits bp" ()) ("List.length hits" 1)
+         (entries
+          ((((num_takens 3) (num_not_takens 1)) false)
+           (((num_takens 1) (num_not_takens 3)) true)
+           (((num_takens 1) (num_not_takens 2)) false))))
+        (update_entry (i 1))
+        allocate
+        (i 1)
+        ((!i 1) ("diff (List.hd_exn s)" 2))
+        (allocation_bank 0)
+        (model
+         ((meta 0) (cat 14) (random1 2452260707) (random2 997089766)
+          (random3 3864866912) (random4 584905139) (random5 3261080446))) |}]
       ;;
 
       let%expect_test "Human" =
