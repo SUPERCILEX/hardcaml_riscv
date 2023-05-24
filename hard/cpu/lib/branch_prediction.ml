@@ -2202,7 +2202,9 @@ module BayesianTage = struct
       open Update_history
 
       let test_bench ~debug ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
-        let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+        let inputs, outputs =
+          Cyclesim.inputs sim, Cyclesim.outputs ~clock_edge:Before sim
+        in
         let print_state () =
           Stdio.print_s
             [%message
@@ -2416,7 +2418,7 @@ module BayesianTage = struct
         let open Quickcheck in
         sim ~debug:true ~f:(fun _print_state sim ->
           let inputs = Cyclesim.inputs sim in
-          let outputs = Cyclesim.outputs sim in
+          let outputs = Cyclesim.outputs ~clock_edge:Before sim in
           Cyclesim.reset sim;
           inputs.clear := vdd;
           Cyclesim.cycle sim;
@@ -2451,9 +2453,6 @@ module BayesianTage = struct
                        ~width:(width !(inputs.retirement_update.branch_target))
                        branch_target;
                 Cyclesim.cycle sim;
-                inputs.retirement_update.valid := gnd;
-                Cyclesim.cycle sim;
-                inputs.retirement_update.valid := of_bool valid;
                 let expected_indices, expected_tags = Model.update model_inputs model in
                 let { O.prediction_indices = _
                     ; prediction_tags = _
@@ -2589,6 +2588,27 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
+             (retirement_indices (0000001 0000000 0000011))
+             (retirement_tags (1000000 1000001 1000010))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 1)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001 0000010))
+             (prediction_tags (0000000 0000001 0000010))
              (retirement_indices (0000011 0000010 0000101))
              (retirement_tags (1100000 1100001 1110010))))
            (internals ()))
@@ -2625,27 +2645,6 @@ module BayesianTage = struct
               ((valid 0) (resolved_direction 0)
                (branch_target 00000000000000000000000000000000)))
              (retirement_update
-              ((valid 1) (resolved_direction 1)
-               (branch_target 00000000000000000000000000000000)))
-             (restore_from_decode 0) (restore_from_retirement 0)))
-           (outputs
-            ((prediction_indices (0000000 0000001 0000010))
-             (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0001111 0001110 0010001))
-             (retirement_tags (1111000 1111001 1100110))))
-           (internals ()))
-
-          ((inputs
-            ((clock 0) (clear 0)
-             (next_fetch_program_counter 00000000000000000000000000000000)
-             (retirement_program_counter 00000000000000000000000000000000)
-             (speculative_fetch_update
-              ((valid 0) (resolved_direction 0)
-               (branch_target 00000000000000000000000000000000)))
-             (speculative_decode_update
-              ((valid 0) (resolved_direction 0)
-               (branch_target 00000000000000000000000000000000)))
-             (retirement_update
               ((valid 0) (resolved_direction 1)
                (branch_target 00000000000000000000000000000000)))
              (restore_from_decode 0) (restore_from_retirement 0)))
@@ -2675,6 +2674,27 @@ module BayesianTage = struct
              (prediction_tags (0000000 0000001 0000010))
              (retirement_indices (0000111 0000110 0001001))
              (retirement_tags (1110000 1110001 1101010))))
+           (internals ()))
+
+          ((inputs
+            ((clock 0) (clear 0)
+             (next_fetch_program_counter 00000000000000000000000000000000)
+             (retirement_program_counter 00000000000000000000000000000000)
+             (speculative_fetch_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (speculative_decode_update
+              ((valid 0) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (retirement_update
+              ((valid 1) (resolved_direction 0)
+               (branch_target 00000000000000000000000000000000)))
+             (restore_from_decode 0) (restore_from_retirement 0)))
+           (outputs
+            ((prediction_indices (0000000 0000001 0000010))
+             (prediction_tags (0000000 0000001 0000010))
+             (retirement_indices (0001110 0001111 0010000))
+             (retirement_tags (0111000 0111001 0100110))))
            (internals ()))
 
           ((inputs
@@ -2696,27 +2716,6 @@ module BayesianTage = struct
              (prediction_tags (0000000 0000001 0000010))
              (retirement_indices (0011100 0111101 0100110))
              (retirement_tags (0011100 0011111 0010000))))
-           (internals ()))
-
-          ((inputs
-            ((clock 0) (clear 0)
-             (next_fetch_program_counter 00000000000000000000000000000000)
-             (retirement_program_counter 00000000000000000000000000000000)
-             (speculative_fetch_update
-              ((valid 0) (resolved_direction 0)
-               (branch_target 00000000000000000000000000000000)))
-             (speculative_decode_update
-              ((valid 0) (resolved_direction 0)
-               (branch_target 00000000000000000000000000000000)))
-             (retirement_update
-              ((valid 1) (resolved_direction 0)
-               (branch_target 00000000000000000000000000000000)))
-             (restore_from_decode 0) (restore_from_retirement 0)))
-           (outputs
-            ((prediction_indices (0000000 0000001 0000010))
-             (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0111000 1011001 1001010))
-             (retirement_tags (0001110 0001100 0001011))))
            (internals ()))
 
           ((inputs
@@ -2867,7 +2866,9 @@ module BayesianTage = struct
       end
 
       let test_bench ~debug ~f (sim : (_ I.t, _ O.t) Cyclesim.t) =
-        let inputs, outputs = Cyclesim.inputs sim, Cyclesim.outputs sim in
+        let inputs, outputs =
+          Cyclesim.inputs sim, Cyclesim.outputs ~clock_edge:Before sim
+        in
         let print_state () =
           Stdio.print_s
             [%message
@@ -3082,7 +3083,7 @@ module BayesianTage = struct
         let open Quickcheck in
         sim ~debug:true ~f:(fun _print_state sim ->
           let inputs = Cyclesim.inputs sim in
-          let outputs = Cyclesim.outputs sim in
+          let outputs = Cyclesim.outputs ~clock_edge:Before sim in
           Cyclesim.reset sim;
           inputs.clear := vdd;
           Cyclesim.cycle sim;
