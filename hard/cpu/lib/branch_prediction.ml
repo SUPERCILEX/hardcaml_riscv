@@ -428,6 +428,12 @@ module BayesianTage = struct
         { num_takens = f direction; num_not_takens = f ~:direction }
       ;;
 
+      let of_direction taken =
+        let open Signal in
+        let f direction = uresize direction Params.counter_width in
+        { num_takens = f taken; num_not_takens = f ~:taken }
+      ;;
+
       (* Increments the target counter to max if possible, or decrements the opposing counter to zero. *)
       let update ~resolved_direction { num_takens; num_not_takens } =
         let open Signal in
@@ -1400,84 +1406,80 @@ module BayesianTage = struct
                  { Entry.tag = mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
                  ; counters =
                      (let open Dual_counter in
-                      let next_counters = Of_always.wire zero in
-                      Always.(
-                        let maybe_update_oldest_hitters =
-                          when_
-                            ([ next_meta >=+. 0
-                             ; is_low_confidence counters
-                             ; prediction counters <>: prediction prediction_counters
-                             ; sel_bottom random1 3 ==:. 0
-                             ]
-                             |> tree ~arity:2 ~f:(reduce ~f:( |: )))
-                            [ update ~resolved_direction counters
-                              |> Of_always.assign next_counters
-                            ]
-                        in
-                        let maybe_update_hitter =
-                          if_
-                            ([ is_high_confidence counters
-                             ; is_high_confidence hitter_after_prediction_counters
-                             ; prediction hitter_after_prediction_counters
-                               ==: resolved_direction
-                             ; prediction counters
-                               ==: resolved_direction
-                               |: (controlled_allocation_throttler
-                                   >=:. Params.controlled_allocation_throttler_max / 2)
-                             ]
-                             |> tree ~arity:2 ~f:(reduce ~f:( &: )))
-                            [ when_
-                                (~:(is_saturated counters)
-                                 |: (next_meta <+. 0 &: (sel_bottom random2 8 ==:. 0)))
-                                [ decay counters |> Of_always.assign next_counters ]
-                            ]
-                            [ update ~resolved_direction counters
-                              |> Of_always.assign next_counters
-                            ]
-                        in
-                        let maybe_update_younger_hitter =
-                          when_
-                            ~:(is_high_confidence prediction_counters)
-                            [ update ~resolved_direction counters
-                              |> Of_always.assign next_counters
-                            ]
-                        in
-                        let maybe_decay_on_allocation =
-                          when_
-                            (is_high_confidence prediction_counters
-                             &: (sel_bottom random5 2 ==:. 0))
-                            [ decay counters |> Of_always.assign next_counters ]
-                        in
-                        compile
-                          [ Of_always.assign next_counters counters
-                          ; when_
+                      let maybe_update_oldest_hitters =
+                        [ next_meta >=+. 0
+                        ; is_low_confidence counters
+                        ; prediction counters <>: prediction prediction_counters
+                        ; sel_bottom random1 3 ==:. 0
+                        ]
+                        |> tree ~arity:2 ~f:(reduce ~f:( |: ))
+                      in
+                      let update_at_prediction_bank =
+                        [ is_high_confidence counters
+                        ; is_high_confidence hitter_after_prediction_counters
+                        ; prediction hitter_after_prediction_counters
+                          ==: resolved_direction
+                        ; prediction counters
+                          ==: resolved_direction
+                          |: (controlled_allocation_throttler
+                              >=:. Params.controlled_allocation_throttler_max / 2)
+                        ]
+                        |> tree ~arity:2 ~f:(reduce ~f:( &: ))
+                      in
+                      let maybe_decay_hitter =
+                        update_at_prediction_bank
+                        &: (~:(is_saturated counters)
+                            |: (next_meta <+. 0 &: (sel_bottom random2 8 ==:. 0)))
+                      in
+                      let maybe_update_hitter = ~:update_at_prediction_bank in
+                      let maybe_update_younger_hitter =
+                        ~:(is_high_confidence prediction_counters)
+                      in
+                      let maybe_decay_on_allocation =
+                        is_high_confidence prediction_counters
+                        &: (sel_bottom random5 2 ==:. 0)
+                      in
+                      let hots =
+                        [ { With_valid.valid =
                               hit
-                              [ when_
-                                  (bank_used_for_prediction >:. bank)
-                                  [ maybe_update_oldest_hitters ]
-                              ; when_
-                                  (bank_used_for_prediction ==:. bank)
-                                  [ maybe_update_hitter ]
-                              ; when_
-                                  (hitter_after_prediction_bank ==:. bank)
-                                  [ maybe_update_younger_hitter ]
-                              ]
-                          ; when_
-                              allocate
-                              [ when_
-                                  (allocation_bank
-                                   <:. bank
-                                   &: (end_allocation_bank >:. bank))
-                                  [ maybe_decay_on_allocation ]
-                              ; when_
-                                  (allocation_bank ==:. bank)
-                                  [ Of_signal.of_int 0
-                                    |> update ~resolved_direction
-                                    |> Of_always.assign next_counters
+                              &: ([ bank_used_for_prediction
+                                    >:. bank
+                                    &: maybe_update_oldest_hitters
+                                  ; bank_used_for_prediction
+                                    ==:. bank
+                                    &: maybe_update_hitter
+                                  ; hitter_after_prediction_bank
+                                    ==:. bank
+                                    &: maybe_update_younger_hitter
                                   ]
-                              ]
-                          ]);
-                      Of_always.value next_counters)
+                                  |> tree ~arity:2 ~f:(reduce ~f:( |: )))
+                          ; value = update ~resolved_direction counters
+                          }
+                        ; { With_valid.valid =
+                              hit
+                              &: (bank_used_for_prediction ==:. bank &: maybe_decay_hitter)
+                              |: (allocate
+                                  &: (allocation_bank
+                                      <:. bank
+                                      &: (end_allocation_bank >:. bank)
+                                      &: maybe_decay_on_allocation))
+                          ; value = decay counters
+                          }
+                        ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
+                          ; value = of_direction resolved_direction
+                          }
+                        ]
+                      in
+                      List.append
+                        hots
+                        [ { With_valid.valid =
+                              ~:(List.map hots ~f:(fun { With_valid.valid; value = _ } ->
+                                   valid)
+                                 |> tree ~arity:2 ~f:(reduce ~f:( |: )))
+                          ; value = counters
+                          }
+                        ]
+                      |> Dual_counter.Of_signal.onehot_select)
                  })
         ; next_bimodal_entry =
             (let ({ Bimodal_entry.direction = next_direction
