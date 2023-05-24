@@ -1242,7 +1242,7 @@ module BayesianTage = struct
                    (reduce
                       ~f:
                         (Dual_counter.select_best
-                           ~meta:next_meta
+                           ~meta
                            ~mux:Counters_and_metadata.Of_signal.mux
                            ~f:(fun cm -> cm.counters)))
           in
@@ -2956,11 +2956,9 @@ module BayesianTage = struct
                && prediction (List.hd_exn s) <> prediction (List.nth_exn s 1)
             then
               if prediction (List.hd_exn s) = if resolved_direction then 1 else 0
-              then
-                if !meta < 15
-                then meta := !meta + 1
-                else if !meta > -16
-                then meta := !meta - 1;
+              then (if !meta < 15 then meta := !meta + 1)
+              else if !meta > -16
+              then meta := !meta - 1;
             ()
           in
           let _update =
@@ -3166,7 +3164,7 @@ module BayesianTage = struct
                     , Cyclesim.internal_ports sim
                       |> List.find_map_exn ~f:(fun (name, s) ->
                            if String.equal name "next_meta"
-                           then Some (to_int !s)
+                           then Some (to_sint !s)
                            else None)
                     , Cyclesim.internal_ports sim
                       |> List.find_map_exn ~f:(fun (name, s) ->
