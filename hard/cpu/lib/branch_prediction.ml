@@ -1121,7 +1121,6 @@ module BayesianTage = struct
         , rng ~start:0614373416 )
       ;;
 
-      (* TODO optimize out bank comparators *)
       let create
         scope
         { I.clock
@@ -1159,7 +1158,11 @@ module BayesianTage = struct
             }
           ;;
 
-          let for_hitters bank =
+          let for_positive_hitters bank =
+            of_bank_and_counters bank ~f:(fun i -> if i = bank then '1' else '0')
+          ;;
+
+          let for_negative_hitters bank =
             of_bank_and_counters bank ~f:(fun i -> if i = bank then '0' else '1')
           ;;
 
@@ -1168,7 +1171,7 @@ module BayesianTage = struct
           ;;
         end
         in
-        let select_oldest_hitter ?(f = Counters_and_metadata.for_hitters) hit_vector =
+        let select_oldest_hitter ~f hit_vector =
           List.zip_exn hit_vector read_entries
           |> List.mapi ~f:(fun bank (hit, { Entry.tag = _; counters }) ->
                { With_valid.valid = hit
@@ -1185,7 +1188,7 @@ module BayesianTage = struct
             ; mask = first_hitter_mask
             }
           =
-          select_oldest_hitter hit_vector
+          select_oldest_hitter ~f:Counters_and_metadata.for_negative_hitters hit_vector
         in
         first_hitter_bank -- "first_hitter_bank" |> ignore;
         first_hitter_mask -- "first_hitter_mask" |> ignore;
@@ -1195,7 +1198,10 @@ module BayesianTage = struct
               ; mask = _
               }
             =
-            first_hitter_mask &: concat_msb hit_vector |> bits_msb |> select_oldest_hitter
+            first_hitter_mask
+            &: concat_msb hit_vector
+            |> bits_msb
+            |> select_oldest_hitter ~f:Counters_and_metadata.for_negative_hitters
           in
           let next_meta = wire Params.meta_width -- "next_meta" in
           let meta = next_meta |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()) in
@@ -1260,14 +1266,18 @@ module BayesianTage = struct
             .value
         in
         bank_used_for_prediction -- "bank_used_for_prediction" |> ignore;
+        prediction_mask -- "prediction_mask" |> ignore;
         let { Counters_and_metadata.counters = hitter_after_prediction_counters
-            ; bank = hitter_after_prediction_bank
-            ; mask = _
+            ; bank = _
+            ; mask = hitter_after_prediction_bank_mask
             }
           =
-          prediction_mask &: concat_msb hit_vector |> bits_msb |> select_oldest_hitter
+          prediction_mask
+          &: concat_msb hit_vector
+          |> bits_msb
+          |> select_oldest_hitter ~f:Counters_and_metadata.for_positive_hitters
         in
-        hitter_after_prediction_bank -- "hitter_after_prediction_bank" |> ignore;
+        hitter_after_prediction_bank_mask -- "hitter_after_prediction_bank_mask" |> ignore;
         let random1, random2, random3, random4, random5 =
           randoms ~clock ~clear ~enable:valid
         in
@@ -1334,7 +1344,7 @@ module BayesianTage = struct
             active &: ~:(Dual_counter.is_high_confidence counters))
           |> List.rev
           |> select_oldest_hitter ~f:(fun bank ->
-               Counters_and_metadata.for_hitters (Params.num_banks - (bank + 1)))
+               Counters_and_metadata.for_positive_hitters (Params.num_banks - (bank + 1)))
         in
         let allocation_bank_mask =
           List.init (Params.num_banks + 1) ~f:(fun banks ->
@@ -1348,9 +1358,8 @@ module BayesianTage = struct
         allocation_bank_mask -- "allocation_bank_mask" |> ignore;
         let allocation_decay_range = allocation_bank_mask &: end_allocation_bank_mask in
         allocation_decay_range -- "allocation_decay_range" |> ignore;
-        let allocate =
-          [ allocation_bank <>:. Params.num_banks
-          ; end_allocation_bank_valid
+        let allocation_decay =
+          [ end_allocation_bank_valid
           ; Dual_counter.prediction prediction_counters <>: resolved_direction
           ; ((* TODO I don't know what this stands for. A is probably allocation. *)
              let min_ap = 4 in
@@ -1362,6 +1371,8 @@ module BayesianTage = struct
           ]
           |> tree ~arity:2 ~f:(reduce ~f:( &: ))
         in
+        let allocate = allocation_decay &: (allocation_bank <>:. Params.num_banks) in
+        allocation_decay -- "allocation_decay" |> ignore;
         allocate -- "allocate" |> ignore;
         (* TODO implement cd *)
         (next_controlled_allocation_throttler
@@ -1402,7 +1413,16 @@ module BayesianTage = struct
         { O.next_entries =
             List.zip_exn hit_vector read_entries
             |> List.zip_exn tags
-            |> List.mapi ~f:(fun bank (next_tag, (hit, { tag; counters })) ->
+            |> List.zip_exn
+                 (List.zip_exn
+                    (bits_msb hitter_after_prediction_bank_mask)
+                    (bits_msb allocation_decay_range))
+            |> List.mapi
+                 ~f:(fun
+                      bank
+                      ( (is_hitter_after_prediction_bank, is_allocation_decay_bank)
+                      , (next_tag, (hit, { tag; counters })) )
+                    ->
                  { Entry.tag = mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
                  ; counters =
                      (let open Dual_counter in
@@ -1448,8 +1468,7 @@ module BayesianTage = struct
                                   ; bank_used_for_prediction
                                     ==:. bank
                                     &: maybe_update_hitter
-                                  ; hitter_after_prediction_bank
-                                    ==:. bank
+                                  ; is_hitter_after_prediction_bank
                                     &: maybe_update_younger_hitter
                                   ]
                                   |> tree ~arity:2 ~f:(reduce ~f:( |: )))
@@ -1458,11 +1477,9 @@ module BayesianTage = struct
                         ; { With_valid.valid =
                               hit
                               &: (bank_used_for_prediction ==:. bank &: maybe_decay_hitter)
-                              |: (allocate
-                                  &: (allocation_bank
-                                      <:. bank
-                                      &: (end_allocation_bank >:. bank)
-                                      &: maybe_decay_on_allocation))
+                              |: (allocation_decay
+                                  &: is_allocation_decay_bank
+                                  &: maybe_decay_on_allocation)
                           ; value = decay counters
                           }
                         ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
@@ -1510,8 +1527,8 @@ module BayesianTage = struct
                  ; when_
                      (bank_used_for_prediction
                       ==:. Params.num_banks
-                      |: (hitter_after_prediction_bank
-                          ==:. Params.num_banks
+                      |: (hitter_after_prediction_bank_mask
+                          ==:. 0
                           &: ~:(Dual_counter.is_high_confidence prediction_counters)))
                      [ maybe_update_bimodal ]
                  ]);
