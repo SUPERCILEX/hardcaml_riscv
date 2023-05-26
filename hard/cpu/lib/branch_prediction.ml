@@ -1375,7 +1375,10 @@ module BayesianTage = struct
             active &: ~:(Dual_counter.is_high_confidence counters))
           |> List.rev
           |> select_oldest_hitter ~f:(fun bank ->
-               Counters_and_metadata.for_positive_hitters (Params.num_banks - (bank + 1)))
+               Counters_and_metadata.for_positive_hitters
+                 (if bank = Params.num_banks
+                  then Params.num_banks
+                  else Params.num_banks - (bank + 1)))
         in
         let allocation_bank_mask =
           List.init (Params.num_banks + 1) ~f:(fun banks ->
