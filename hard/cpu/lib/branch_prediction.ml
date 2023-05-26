@@ -377,6 +377,7 @@ module BayesianTage = struct
     val counter_width : int
     val tag_width : int
     val controlled_allocation_throttler_max : int
+    val controlled_allocation_decay_max : int
     val max_banks_skipped_on_allocation : int
     val meta_width : int
     val num_bimodal_direction_entries : int
@@ -1303,6 +1304,15 @@ module BayesianTage = struct
            |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()))
           -- "controlled_allocation_throttler"
         in
+        let next_controlled_allocation_decay =
+          wire (Int.floor_log2 (Params.controlled_allocation_decay_max + 1))
+          -- "next_controlled_allocation_decay"
+        in
+        let controlled_allocation_decay =
+          (next_controlled_allocation_decay
+           |> reg ~enable:valid (Reg_spec.create ~clock ~clear ()))
+          -- "controlled_allocation_decay"
+        in
         let { With_valid.valid = end_allocation_bank_valid; value = end_allocation_bank } =
           let skip =
             List.init (Params.max_counter_value + 1) ~f:(fun diff ->
@@ -1410,7 +1420,13 @@ module BayesianTage = struct
         allocate -- "allocate" |> ignore;
         let decay_vector =
           let maybe_decay_on_allocation =
-            allocation_decay &: (sel_bottom random5 2 ==:. 0)
+            allocation_decay
+            &:
+            let min_dp = 3 in
+            uresize (sel_bottom random5 min_dp) (width controlled_allocation_decay)
+            >=: srl
+                  controlled_allocation_decay
+                  (Int.floor_log2 (Params.controlled_allocation_decay_max + 1) - min_dp)
           in
           List.map2_exn
             (bits_msb allocation_decay_range)
@@ -1420,48 +1436,59 @@ module BayesianTage = struct
             &: is_allocation_decay_bank
             &: Dual_counter.is_high_confidence counters)
         in
-        (* TODO implement cd *)
-        (next_controlled_allocation_throttler
-         <==
-         let mhc =
-           List.map2_exn
-             (List.zip_exn (bits_msb allocation_decay_range) decay_vector)
-             read_entries
-             ~f:(fun (active, decay) { Entry.tag = _; counters } ->
-               mux2
-                 (active
-                  &: ~:(Dual_counter.Of_signal.mux2
-                          decay
-                          (Dual_counter.decay counters)
-                          counters
-                        |> Dual_counter.is_very_high_confidence))
-                 vdd
-                 gnd)
-           |> concat_msb
-           |> popcount
-         in
-         mhc -- "mhc" |> ignore;
-         (* TODO don't know what the R or DEN stands for.
-            CATR_NUM - mhc * CATR_DEN
-          *)
-         let catr_num, _catr_den = 2, 3 in
-         let width = width controlled_allocation_throttler in
-         let diff =
-           let max_range = Int.ceil_log2 (Params.max_banks_skipped_on_allocation + 1) in
-           of_int ~width:(max_range + 2) catr_num
-           -: (uresize (mhc @: gnd) (max_range + 2) +: uresize mhc (max_range + 2))
-           |> Fn.flip sresize width
-         in
-         let result =
-           uresize controlled_allocation_throttler (width + 2) +: sresize diff (width + 2)
-         in
-         let next =
-           mux2
-             (result >+. Params.controlled_allocation_throttler_max)
-             (of_int ~width Params.controlled_allocation_throttler_max)
-             (mux2 (result <+. 0) (zero width) (uresize result width))
-         in
-         mux2 allocate next controlled_allocation_throttler);
+        let next_controlled_rate =
+          let mhc =
+            List.map2_exn
+              (List.zip_exn (bits_msb allocation_decay_range) decay_vector)
+              read_entries
+              ~f:(fun (active, decay) { Entry.tag = _; counters } ->
+                mux2
+                  (active
+                   &: ~:(Dual_counter.Of_signal.mux2
+                           decay
+                           (Dual_counter.decay counters)
+                           counters
+                         |> Dual_counter.is_very_high_confidence))
+                  vdd
+                  gnd)
+            |> concat_msb
+            |> popcount
+          in
+          mhc -- "mhc" |> ignore;
+          (* TODO don't know what the R or DEN stands for.
+             CATR_NUM - mhc * CATR_DEN
+           *)
+          fun ~rate ~den ~max s ->
+            let width = width s in
+            let diff =
+              let max_range =
+                Int.ceil_log2 (Params.max_banks_skipped_on_allocation * den) + 1
+              in
+              let mhc = uresize mhc max_range in
+              of_int ~width:max_range rate -: (sll mhc (Int.floor_log2 den) +: mhc)
+              |> Fn.flip sresize width
+            in
+            let result = uresize s (width + 2) +: sresize diff (width + 2) in
+            let next =
+              mux2
+                (result >+. max)
+                (of_int ~width max)
+                (mux2 (result <+. 0) (zero width) (uresize result width))
+            in
+            mux2 allocate next s
+        in
+        next_controlled_allocation_throttler
+        <== next_controlled_rate
+              ~rate:2
+              ~den:3
+              ~max:Params.controlled_allocation_throttler_max
+              controlled_allocation_throttler;
+        next_controlled_allocation_decay
+        <== next_controlled_rate
+              ~rate:6
+              ~den:5
+              ~max:Params.controlled_allocation_decay_max
+              controlled_allocation_decay;
         { O.next_entries =
             (let open Dual_counter in
              let update_at_prediction_bank =
@@ -1636,6 +1663,7 @@ module BayesianTage = struct
       ; counter_width : int
       ; tag_width : int
       ; controlled_allocation_throttler_max : int
+      ; controlled_allocation_decay_max : int
       ; max_banks_skipped_on_allocation : int
       ; meta_width : int
       ; num_bimodal_direction_entries : int
@@ -1725,6 +1753,7 @@ module BayesianTage = struct
       ; counter_width
       ; tag_width
       ; controlled_allocation_throttler_max
+      ; controlled_allocation_decay_max
       ; max_banks_skipped_on_allocation
       ; meta_width
       ; num_bimodal_direction_entries
@@ -1754,6 +1783,7 @@ module BayesianTage = struct
       let counter_width = counter_width
       let tag_width = tag_width
       let controlled_allocation_throttler_max = controlled_allocation_throttler_max
+      let controlled_allocation_decay_max = controlled_allocation_decay_max
       let max_banks_skipped_on_allocation = max_banks_skipped_on_allocation
       let meta_width = meta_width
       let num_bimodal_direction_entries = num_bimodal_direction_entries
@@ -1964,6 +1994,7 @@ module BayesianTage = struct
       let counter_width = 2
       let tag_width = 7
       let controlled_allocation_throttler_max = 127
+      let controlled_allocation_decay_max = 63
       let max_banks_skipped_on_allocation = 1
       let meta_width = 4
       let num_bimodal_direction_entries = 128
@@ -2686,6 +2717,7 @@ module BayesianTage = struct
         type t =
           { meta : int ref
           ; cat : int ref
+          ; cd : int ref
           ; random1 : int ref
           ; random2 : int ref
           ; random3 : int ref
@@ -2697,6 +2729,7 @@ module BayesianTage = struct
         let init () =
           { meta = ref 0
           ; cat = ref 0
+          ; cd = ref 0
           ; random1 = ref 2463534242
           ; random2 = ref 1850600128
           ; random3 = ref 3837179466
@@ -2709,7 +2742,7 @@ module BayesianTage = struct
           resolved_direction
           entries
           (bimodal_direction, bimodal_hysteresis)
-          { meta; cat; random1; random2; random3; random4; random5 }
+          { meta; cat; cd; random1; random2; random3; random4; random5 }
           =
           let open Dual_counter.Model in
           let hits, s, bp =
@@ -2824,7 +2857,7 @@ module BayesianTage = struct
               while !i >= 0 do
                 if is_high_confidence result_entries.(!i)
                 then (
-                  if !random5 % 4 = 0
+                  if !random5 % 8 >= !cd * 8 / (Params.controlled_allocation_decay_max + 1)
                   then Array.set result_entries !i (decay result_entries.(!i));
                   if not (is_very_high_confidence result_entries.(!i))
                   then mhc := !mhc + 1;
@@ -2837,6 +2870,8 @@ module BayesianTage = struct
                     (update resolved_direction { num_takens = 0; num_not_takens = 0 });
                   cat := !cat + 2 - (!mhc * 3);
                   cat := min Params.controlled_allocation_throttler_max (max 0 !cat);
+                  cd := !cd + 6 - (!mhc * 5);
+                  cd := min Params.controlled_allocation_decay_max (max 0 !cd);
                   i := -1;
                   ())
               done;
@@ -2860,7 +2895,8 @@ module BayesianTage = struct
           ( Array.to_list result_entries
           , (!result_bimodal_direction, !result_bimodal_hysteresis)
           , !meta
-          , !cat )
+          , !cat
+          , !cd )
         ;;
       end
 
@@ -2928,7 +2964,12 @@ module BayesianTage = struct
                 Cyclesim.cycle sim;
                 if valid
                 then (
-                  let expected_entries, expected_bimodal, expected_meta, expected_cat =
+                  let ( expected_entries
+                      , expected_bimodal
+                      , expected_meta
+                      , expected_cat
+                      , expected_cd )
+                    =
                     Model.update
                       resolved_direction
                       (List.map entries ~f:(fun (num_takens, num_not_takens, hit) ->
@@ -2940,9 +2981,14 @@ module BayesianTage = struct
                     O.map outputs ~f:(( ! ) |> Fn.compose to_int)
                   in
                   (try
-                     [%test_result: Dual_counter.Model.t list * (bool * int) * int * int]
+                     [%test_result:
+                       Dual_counter.Model.t list * (bool * int) * int * int * int]
                        ~expect:
-                         (expected_entries, expected_bimodal, expected_meta, expected_cat)
+                         ( expected_entries
+                         , expected_bimodal
+                         , expected_meta
+                         , expected_cat
+                         , expected_cd )
                        ( List.map
                            next_entries
                            ~f:(fun
@@ -2959,6 +3005,11 @@ module BayesianTage = struct
                        , Cyclesim.internal_ports sim
                          |> List.find_map_exn ~f:(fun (name, s) ->
                               if String.equal name "next_controlled_allocation_throttler"
+                              then Some (to_int !s)
+                              else None)
+                       , Cyclesim.internal_ports sim
+                         |> List.find_map_exn ~f:(fun (name, s) ->
+                              if String.equal name "next_controlled_allocation_decay"
                               then Some (to_int !s)
                               else None) )
                    with
@@ -3043,6 +3094,7 @@ module Branch_direction_predictor = struct
         ; counter_width = 3
         ; tag_width = 12
         ; controlled_allocation_throttler_max = Int.shift_left 1 16 - 1
+        ; controlled_allocation_decay_max = Int.shift_left 1 12 - 1
         ; max_banks_skipped_on_allocation = 5
         ; meta_width = 5
         ; num_bimodal_direction_entries = Int.shift_left 1 12
