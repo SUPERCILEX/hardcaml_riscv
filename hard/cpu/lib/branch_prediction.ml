@@ -1686,6 +1686,7 @@ module BayesianTage = struct
       ; speculative_fetch_update : 'a Update.t [@rtlprefix "speculative_fetch_update$"]
       ; speculative_decode_update : 'a Update.t [@rtlprefix "speculative_decode_update$"]
       ; retirement_update : 'a Update.t [@rtlprefix "retirement_update$"]
+      ; retirement_is_branch : 'a
       ; restore_from_decode : 'a
       ; restore_from_retirement : 'a
       }
@@ -1772,6 +1773,7 @@ module BayesianTage = struct
     ; speculative_fetch_update
     ; speculative_decode_update
     ; retirement_update
+    ; retirement_is_branch
     ; restore_from_decode
     ; restore_from_retirement
     }
@@ -1796,7 +1798,7 @@ module BayesianTage = struct
       let jump_history_entry_width = jump_history_entry_width
     end) in
     let { Update.valid = retirement_update_valid; _ } = retirement_update in
-    let ({ Update.valid = write_enable; _ } as retirement_update) =
+    let retirement_update =
       { (retirement_update
          |> Update.Of_signal.reg
               ~enable:retirement_update_valid
@@ -1825,6 +1827,13 @@ module BayesianTage = struct
         ; restore_from_retirement =
             restore_from_retirement |> reg (Reg_spec.create ~clock ~clear ())
         }
+    in
+    let ({ Update.valid = write_enable; _ } as retirement_update) =
+      { retirement_update with
+        valid =
+          retirement_update.valid
+          &: (retirement_is_branch |> reg (Reg_spec.create ~clock ()))
+      }
     in
     let bimodal_entry = Bimodal_entry.Of_signal.wires () in
     let prediction_bimodal_entry, retirement_bimodal_entry =

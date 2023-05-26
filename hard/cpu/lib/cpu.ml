@@ -418,6 +418,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
             ; resolved_direction = control_flow_resolved_to_taken
             ; branch_target = control_flow_resolved_jump_target
             }
+        ; retirement_is_branch = control_flow_resolved_is_branch
         ; restore_from_decode =
             flush_pre_decode
             |: (decode_done &: ~:decode_did_fetch_have_prediction &: decoded_control_flow)
