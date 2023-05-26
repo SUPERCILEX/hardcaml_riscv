@@ -1429,85 +1429,87 @@ module BayesianTage = struct
          in
          mux2 allocate next controlled_allocation_throttler);
         { O.next_entries =
-            List.zip_exn hit_vector read_entries
-            |> List.zip_exn tags
-            |> List.zip_exn
-                 (List.zip_exn (bits_msb hitter_after_prediction_bank_mask) decay_vector)
-            |> List.mapi
-                 ~f:(fun
-                      bank
-                      ( (is_hitter_after_prediction_bank, is_allocation_decay_bank)
-                      , (next_tag, (hit, { tag; counters })) )
-                    ->
-                 { Entry.tag = mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
-                 ; counters =
-                     (let open Dual_counter in
-                      let maybe_update_oldest_hitters =
-                        [ next_meta >=+. 0
-                        ; is_low_confidence counters
-                        ; prediction counters <>: prediction prediction_counters
-                        ; sel_bottom random1 3 ==:. 0
-                        ]
-                        |> tree ~arity:2 ~f:(reduce ~f:( |: ))
-                      in
-                      let update_at_prediction_bank =
-                        [ is_high_confidence counters
-                        ; is_high_confidence hitter_after_prediction_counters
-                        ; prediction hitter_after_prediction_counters
-                          ==: resolved_direction
-                        ; prediction counters
-                          ==: resolved_direction
-                          |: (controlled_allocation_throttler
-                              >=:. Params.controlled_allocation_throttler_max / 2)
-                        ]
-                        |> tree ~arity:2 ~f:(reduce ~f:( &: ))
-                      in
-                      let maybe_decay_hitter =
-                        update_at_prediction_bank
-                        &: (~:(is_saturated counters)
-                            |: (next_meta <+. 0 &: (sel_bottom random2 8 ==:. 0)))
-                      in
-                      let maybe_update_hitter = ~:update_at_prediction_bank in
-                      let maybe_update_younger_hitter =
-                        ~:(is_high_confidence prediction_counters)
-                      in
-                      let hots =
-                        [ { With_valid.valid =
-                              hit
-                              &: ([ bank_used_for_prediction
-                                    >:. bank
-                                    &: maybe_update_oldest_hitters
-                                  ; bank_used_for_prediction
-                                    ==:. bank
-                                    &: maybe_update_hitter
-                                  ; is_hitter_after_prediction_bank
-                                    &: maybe_update_younger_hitter
-                                  ]
+            (let open Dual_counter in
+             let update_at_prediction_bank =
+               [ is_high_confidence prediction_counters
+               ; is_high_confidence hitter_after_prediction_counters
+               ; prediction hitter_after_prediction_counters ==: resolved_direction
+               ; prediction prediction_counters
+                 ==: resolved_direction
+                 |: (controlled_allocation_throttler
+                     >=:. Params.controlled_allocation_throttler_max / 2)
+               ]
+               |> tree ~arity:2 ~f:(reduce ~f:( &: ))
+             in
+             let maybe_decay_hitter =
+               update_at_prediction_bank
+               &: (~:(is_saturated prediction_counters)
+                   |: (next_meta <+. 0 &: (sel_bottom random2 3 ==:. 0)))
+             in
+             let maybe_update_hitter = ~:update_at_prediction_bank in
+             let maybe_update_younger_hitter =
+               ~:(is_high_confidence prediction_counters)
+             in
+             List.zip_exn hit_vector read_entries
+             |> List.zip_exn tags
+             |> List.zip_exn
+                  (List.zip_exn (bits_msb hitter_after_prediction_bank_mask) decay_vector)
+             |> List.mapi
+                  ~f:(fun
+                       bank
+                       ( (is_hitter_after_prediction_bank, is_allocation_decay_bank)
+                       , (next_tag, (hit, { tag; counters })) )
+                     ->
+                  { Entry.tag =
+                      mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
+                  ; counters =
+                      (let maybe_update_oldest_hitters =
+                         [ next_meta >=+. 0
+                         ; is_low_confidence counters
+                         ; prediction counters <>: prediction prediction_counters
+                         ; sel_bottom random1 3 ==:. 0
+                         ]
+                         |> tree ~arity:2 ~f:(reduce ~f:( |: ))
+                       in
+                       let hots =
+                         [ { With_valid.valid =
+                               hit
+                               &: ([ bank_used_for_prediction
+                                     >:. bank
+                                     &: maybe_update_oldest_hitters
+                                   ; bank_used_for_prediction
+                                     ==:. bank
+                                     &: maybe_update_hitter
+                                   ; is_hitter_after_prediction_bank
+                                     &: maybe_update_younger_hitter
+                                   ]
+                                   |> tree ~arity:2 ~f:(reduce ~f:( |: )))
+                           ; value = update ~resolved_direction counters
+                           }
+                         ; { With_valid.valid =
+                               hit
+                               &: (bank_used_for_prediction
+                                   ==:. bank
+                                   &: maybe_decay_hitter)
+                               |: is_allocation_decay_bank
+                           ; value = decay counters
+                           }
+                         ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
+                           ; value = of_direction resolved_direction
+                           }
+                         ]
+                       in
+                       List.append
+                         hots
+                         [ { With_valid.valid =
+                               ~:(List.map hots ~f:(fun { With_valid.valid; value = _ } ->
+                                    valid)
                                   |> tree ~arity:2 ~f:(reduce ~f:( |: )))
-                          ; value = update ~resolved_direction counters
-                          }
-                        ; { With_valid.valid =
-                              hit
-                              &: (bank_used_for_prediction ==:. bank &: maybe_decay_hitter)
-                              |: is_allocation_decay_bank
-                          ; value = decay counters
-                          }
-                        ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
-                          ; value = of_direction resolved_direction
-                          }
-                        ]
-                      in
-                      List.append
-                        hots
-                        [ { With_valid.valid =
-                              ~:(List.map hots ~f:(fun { With_valid.valid; value = _ } ->
-                                   valid)
-                                 |> tree ~arity:2 ~f:(reduce ~f:( |: )))
-                          ; value = counters
-                          }
-                        ]
-                      |> Dual_counter.Of_signal.onehot_select)
-                 })
+                           ; value = counters
+                           }
+                         ]
+                       |> Dual_counter.Of_signal.onehot_select)
+                  }))
         ; next_bimodal_entry =
             (let ({ Bimodal_entry.direction = next_direction
                   ; hysteresis = next_hysteresis
@@ -3033,11 +3035,12 @@ module BayesianTage = struct
             then (
               if (not (is_saturated (List.nth_exn s bp)))
                  || (!meta < 0 && !random2 % 8 = 0)
-              then
+              then (
                 Array.set
                   result_entries
                   (List.nth_exn hits bp)
-                  (decay result_entries.(List.nth_exn hits bp)))
+                  (decay result_entries.(List.nth_exn hits bp));
+                ()))
             else update_entry bp;
             if (not (is_high_confidence (List.nth_exn s bp))) && bp < List.length hits
             then update_entry (bp + 1);
