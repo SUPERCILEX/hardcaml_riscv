@@ -9,6 +9,7 @@ type t =
   | Uart_echo
   | Instruction_tests
   | Dependencies
+  | Branch_prediction
 [@@deriving sexp_of, compare, enumerate]
 
 let program_bytes = function
@@ -20,4 +21,5 @@ let program_bytes = function
   | Uart_echo -> [%blob "hard/cpu/test_binaries/uart_echo.bin"]
   | Instruction_tests -> [%blob "hard/cpu/test_binaries/instruction_tests.bin"]
   | Dependencies -> [%blob "hard/cpu/test_binaries/dependencies.bin"]
+  | Branch_prediction -> [%blob "hard/cpu/test_binaries/branch_prediction.bin"]
 ;;

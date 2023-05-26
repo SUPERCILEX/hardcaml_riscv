@@ -6,9 +6,10 @@ Hardware dev tools
 
   execute                    . Simulate execution
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Dependencies), (Sample Fibonacci),
-                               (Sample Instruction_tests), (Sample Invalid),
-                               (Sample Simple), (Sample String_search), (Sample
+                               (Sample Branch_prediction), (Sample
+                               Dependencies), (Sample Fibonacci), (Sample
+                               Instruction_tests), (Sample Invalid), (Sample
+                               Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-cycles N], -n          . Number of cycles to simulate
@@ -23,9 +24,10 @@ Hardware dev tools
                              . Name of the circuit/module
   simulate                   . Simulate execution with cycle state dump
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Dependencies), (Sample Fibonacci),
-                               (Sample Instruction_tests), (Sample Invalid),
-                               (Sample Simple), (Sample String_search), (Sample
+                               (Sample Branch_prediction), (Sample
+                               Dependencies), (Sample Fibonacci), (Sample
+                               Instruction_tests), (Sample Invalid), (Sample
+                               Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-cycles N], -n          . Number of cycles to simulate
@@ -37,9 +39,10 @@ Hardware dev tools
   . [-verilator]             . <flag> Use the verilator backend
   waves                      . Open waveform viewer
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
-                               (Sample Dependencies), (Sample Fibonacci),
-                               (Sample Instruction_tests), (Sample Invalid),
-                               (Sample Simple), (Sample String_search), (Sample
+                               (Sample Branch_prediction), (Sample
+                               Dependencies), (Sample Fibonacci), (Sample
+                               Instruction_tests), (Sample Invalid), (Sample
+                               Simple), (Sample String_search), (Sample
                                Uart_echo), Custom)
   . [-binary FILE]           . Binary program file
   . [-cycles N], -n          . Number of cycles to simulate

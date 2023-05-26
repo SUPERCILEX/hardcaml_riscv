@@ -264,3 +264,37 @@
   (with-outputs-to
    %{target}
    (run %{exe} sim -program "(sample dependencies)"))))
+
+(rule
+ (target branch_prediction.bin)
+ (deps
+  (:src branch_prediction.s)
+  sample.lds)
+ (mode
+  (promote (until-clean)))
+ (alias bin)
+ (action
+  (progn
+   (run
+    riscv64-linux-gnu-gcc
+    -march=rv32im
+    -mabi=ilp32
+    -nostdlib
+    -static
+    -fno-pie
+    -Tsample.lds
+    %{src}
+    -o
+    branch_prediction)
+   (run riscv64-linux-gnu-objcopy -O binary branch_prediction %{target}))))
+
+(rule
+ (target branch_prediction.signals)
+ (deps
+  (:exe ../bin/cli.exe))
+ (mode promote)
+ (alias runtest)
+ (action
+  (with-outputs-to
+   %{target}
+   (run %{exe} sim -program "(sample branch_prediction)"))))
