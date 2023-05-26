@@ -394,6 +394,7 @@ module BayesianTage = struct
 
       let max_counter_value = Int.shift_left 1 counter_width - 1
       let bank_address_width = Signal.address_bits_for Params.num_entries_per_bank
+      let () = assert (max_banks_skipped_on_allocation <= num_banks)
     end
 
     module Bimodal_entry = struct
@@ -1304,19 +1305,49 @@ module BayesianTage = struct
         in
         let { With_valid.valid = end_allocation_bank_valid; value = end_allocation_bank } =
           let skip =
-            let mods =
-              List.init (Params.max_counter_value + 1) ~f:(fun diff ->
-                1
-                + (diff
-                   * Params.max_banks_skipped_on_allocation
-                   / Params.max_counter_value))
-            in
-            List.map mods ~f:(fun mod_ ->
-              let skip =
-                if mod_ = 1 then zero 1 else sel_bottom random4 (Int.ceil_log2 mod_)
-              in
-              mux2 (skip >=:. mod_) (skip -:. mod_) skip
-              |> Fn.flip uresize Params.counter_width)
+            List.init (Params.max_counter_value + 1) ~f:(fun diff ->
+              1
+              + (diff * Params.max_banks_skipped_on_allocation / Params.max_counter_value))
+            |> List.map ~f:(fun mod_ ->
+                 (if mod_ = 1
+                  then gnd
+                  else if Int.is_pow2 mod_
+                  then sel_bottom random4 (Int.floor_log2 mod_)
+                  else (
+                    let rec non_pow2_const_mod ?(min_reduction = 8) s =
+                      let max_value =
+                        List.init (width s) ~f:(fun i -> Int.shift_left 1 i % mod_)
+                        |> List.sum (module Int) ~f:Fn.id
+                      in
+                      let width = Int.ceil_log2 max_value in
+                      let compressed =
+                        bits_lsb s
+                        |> List.mapi ~f:(fun i bit ->
+                             mux2
+                               bit
+                               (of_int ~width (Int.shift_left 1 i % mod_))
+                               (zero width))
+                        |> tree ~arity:2 ~f:(reduce ~f:( +: ))
+                      in
+                      if max_value / mod_ <= min_reduction
+                      then
+                        List.init
+                          ((max_value / mod_) + if max_value % mod_ = 0 then 0 else 1)
+                          ~f:(fun i ->
+                            { With_valid.valid =
+                                (compressed
+                                 >=:. i * mod_
+                                 &:
+                                 if (i + 1) * mod_ > max_value
+                                 then vdd
+                                 else compressed <:. (i + 1) * mod_)
+                            ; value = compressed -:. (i * mod_)
+                            })
+                        |> onehot_select
+                      else non_pow2_const_mod compressed
+                    in
+                    non_pow2_const_mod random4))
+                 |> Fn.flip uresize Params.counter_width)
             |> mux (Dual_counter.diff first_hitter_counters)
             |> Fn.flip uresize bank_num_width
           in
