@@ -1929,7 +1929,7 @@ module BayesianTage = struct
       let num_entries_per_bank = 128
       let counter_width = 2
       let tag_width = 7
-      let controlled_allocation_throttler_max = 128
+      let controlled_allocation_throttler_max = 127
       let max_banks_skipped_on_allocation = 1
       let meta_width = 4
       let num_bimodal_direction_entries = 128
@@ -2990,8 +2990,10 @@ module BayesianTage = struct
                && prediction (List.hd_exn s) <> prediction (List.nth_exn s 1)
             then
               if prediction (List.hd_exn s) = if resolved_direction then 1 else 0
-              then (if !meta < 15 then meta := !meta + 1)
-              else if !meta > -16
+              then (
+                if !meta < Int.shift_left 1 (Params.meta_width - 1) - 1
+                then meta := !meta + 1)
+              else if !meta > -Int.shift_left 1 (Params.meta_width - 1)
               then meta := !meta - 1;
             ()
           in
