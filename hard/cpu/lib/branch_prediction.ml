@@ -396,6 +396,7 @@ module BayesianTage = struct
       let max_counter_value = Int.shift_left 1 counter_width - 1
       let bank_address_width = Signal.address_bits_for Params.num_entries_per_bank
       let () = assert (max_banks_skipped_on_allocation <= num_banks)
+      let () = assert (instruction_window_size > 0)
     end
 
     module Bimodal_entry = struct
@@ -902,7 +903,7 @@ module BayesianTage = struct
                    |> Fn.flip uresize compressed_length
                  in
                  let tail_entry =
-                   let tail = ue pointer +:. (original_length - 1) in
+                   let tail = ue pointer +:. original_length in
                    let tail =
                      mux2
                        (tail >=:. List.length history)
@@ -2017,7 +2018,7 @@ module BayesianTage = struct
       let bimodal_hysteresis_width = 1
       let smallest_branch_history_length = 2
       let largest_branch_history_length = 17
-      let instruction_window_size = 0
+      let instruction_window_size = 1
       let jump_history_length = 3
       let jump_history_entry_width = 6
     end
@@ -2079,8 +2080,12 @@ module BayesianTage = struct
         let init () =
           { branch_history_pointer = ref 0
           ; jump_history_pointer = ref 0
-          ; branch_history = Array.create ~len:Params.largest_branch_history_length 0
-          ; jump_history = Array.create ~len:Params.jump_history_length 0
+          ; branch_history =
+              Array.create
+                ~len:Params.(largest_branch_history_length + instruction_window_size)
+                0
+          ; jump_history =
+              Array.create ~len:Params.(jump_history_length + instruction_window_size) 0
           ; branch_index_fold = Array.create ~len:Params.num_banks 0
           ; jump_index_fold = Array.create ~len:Params.num_banks 0
           ; branch_tag_fold = Array.create ~len:Params.num_banks 0
@@ -2102,6 +2107,18 @@ module BayesianTage = struct
           =
           if valid
           then (
+            let _update_pointers =
+              let update_pointer ~ptr ~max =
+                ptr := !ptr - 1;
+                if !ptr < 0 then ptr := max - 1;
+                ()
+              in
+              update_pointer
+                ~ptr:branch_history_pointer
+                ~max:(Array.length branch_history);
+              update_pointer ~ptr:jump_history_pointer ~max:(Array.length jump_history);
+              ()
+            in
             let _insert =
               Array.set
                 branch_history
@@ -2138,8 +2155,7 @@ module BayesianTage = struct
                     get 0 |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
                   in
                   let outbits =
-                    get (original_length - 1)
-                    |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
+                    get original_length |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
                   in
                   let outbits = rotate_left outbits outpoint in
                   Array.set fold i (Int.bit_xor new_fold inbits |> Int.bit_xor outbits);
@@ -2190,18 +2206,6 @@ module BayesianTage = struct
                   ~outpoint:(List.nth_exn folded_histories i).jump.tag.out_point;
                 ()
               done;
-              ()
-            in
-            let _update_pointers =
-              let update_pointer ~ptr ~max =
-                ptr := !ptr - 1;
-                if !ptr < 0 then ptr := max - 1;
-                ()
-              in
-              update_pointer
-                ~ptr:branch_history_pointer
-                ~max:Params.largest_branch_history_length;
-              update_pointer ~ptr:jump_history_pointer ~max:Params.jump_history_length;
               ()
             in
             ());
@@ -2439,8 +2443,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000011 0000010 0000101))
-             (retirement_tags (1100000 1100001 1110010))))
+             (retirement_indices (0000011 0000010 0000001))
+             (retirement_tags (1100000 1100001 1100010))))
            (internals ()))
 
           ((inputs
@@ -2460,8 +2464,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0001001))
-             (retirement_tags (1110000 1110001 1101010))))
+             (retirement_indices (0000111 0000110 0000001))
+             (retirement_tags (1110000 1110001 1100010))))
            (internals ()))
 
           ((inputs
@@ -2481,8 +2485,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0001001))
-             (retirement_tags (1110000 1110001 1101010))))
+             (retirement_indices (0000111 0000110 0000001))
+             (retirement_tags (1110000 1110001 1100010))))
            (internals ()))
 
           ((inputs
@@ -2502,8 +2506,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0001001))
-             (retirement_tags (1110000 1110001 1101010))))
+             (retirement_indices (0000111 0000110 0000001))
+             (retirement_tags (1110000 1110001 1100010))))
            (internals ()))
 
           ((inputs
@@ -2523,8 +2527,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0001110 0001111 0010000))
-             (retirement_tags (0111000 0111001 0100110))))
+             (retirement_indices (0001110 0001111 0000000))
+             (retirement_tags (0111000 0111001 0100010))))
            (internals ()))
 
           ((inputs
@@ -2544,8 +2548,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0111101 0100110))
-             (retirement_tags (0011100 0011111 0010000))))
+             (retirement_indices (0011100 0011101 0000010))
+             (retirement_tags (0011100 0011101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2565,8 +2569,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0111101 0100110))
-             (retirement_tags (0011100 0011111 0010000))))
+             (retirement_indices (0011100 0011101 0000010))
+             (retirement_tags (0011100 0011101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2586,8 +2590,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0111101 0100110))
-             (retirement_tags (0011100 0011111 0010000))))
+             (retirement_indices (0011100 0011101 0000010))
+             (retirement_tags (0011100 0011101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2605,10 +2609,10 @@ module BayesianTage = struct
                (branch_target 00000000000000000000000000000000)))
              (restore_from_decode 0) (restore_from_retirement 1)))
            (outputs
-            ((prediction_indices (0011100 0111101 0100110))
-             (prediction_tags (0011100 0011111 0010000))
-             (retirement_indices (0011100 0111101 0100110))
-             (retirement_tags (0011100 0011111 0010000))))
+            ((prediction_indices (0011100 0011101 0000010))
+             (prediction_tags (0011100 0011101 0000010))
+             (retirement_indices (0011100 0011101 0000010))
+             (retirement_tags (0011100 0011101 0000010))))
            (internals ())) |}]
       ;;
     end
