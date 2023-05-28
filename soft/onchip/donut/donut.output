@@ -24,10 +24,11 @@
 
 ============================================================
 
-((error 0) (uart ((write_data 116) (write_ready 0) (read_ready 0)))
+((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 500000000) (instructions_retired 442935117)
-   (empty_alu_cycles 36869463) (fetch_branch_target_buffer_hits 72594978)
-   (decode_branch_mispredictions 92745) (decode_jump_mispredictions 9590722)
-   (execute_branch_mispredictions 10040050)
-   (execute_jump_mispredictions 576662))))
+  ((cycles_since_boot 500000000) (instructions_retired 464732001)
+   (empty_alu_cycles 17033597) (instruction_load_stalls 12719)
+   (data_load_stalls 0) (data_store_stalls 7053)
+   (fetch_branch_target_buffer_hits 72125348)
+   (decode_branch_mispredictions 25276) (decode_jump_mispredictions 1840752)
+   (execute_branch_mispredictions 7665421) (execute_jump_mispredictions 3))))

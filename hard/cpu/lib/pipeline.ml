@@ -30,6 +30,7 @@ module Fetch_instruction = struct
       ; program_counter : 'a [@bits Parameters.word_width]
       ; has_prediction : 'a
       ; predicted_direction : 'a
+      ; predicted_branch_target : 'a [@bits Parameters.word_width]
       ; error : 'a
       }
     [@@deriving sexp_of, hardcaml]
@@ -100,6 +101,7 @@ module Fetch_instruction = struct
     ; program_counter = next_pc
     ; has_prediction
     ; predicted_direction = is_branch &: predicted_branch_direction |: ~:is_branch
+    ; predicted_branch_target = predicted_next_pc
     ; error = mem_error &: load
     }
   ;;

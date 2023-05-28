@@ -115,6 +115,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; program_counter = next_fetch_program_counter
       ; has_prediction = has_fetch_prediction
       ; predicted_direction = fetch_predicted_direction
+      ; predicted_branch_target = fetch_predicted_branch_target
       ; error = fetch_error
       }
     =
@@ -407,7 +408,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         ; speculative_fetch_update =
             { valid = fetch_done &: has_fetch_prediction
             ; resolved_direction = fetch_predicted_direction
-            ; branch_target = next_fetch_program_counter
+            ; branch_target = fetch_predicted_branch_target
             }
         ; speculative_decode_update =
             { valid = decode_done &: decoded_control_flow
