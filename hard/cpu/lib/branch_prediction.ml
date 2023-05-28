@@ -774,31 +774,37 @@ module BayesianTage = struct
           let pointers =
             let width = address_bits_for length in
             let gen_pointer ~enable ~restore ~restore_from =
-              reg_fb
-                ~width
-                ~f:(fun pointer ->
-                  let pointer = mux2 restore restore_from pointer in
-                  let next_pointer =
-                    mux2 (pointer ==:. 0) (of_int ~width (length - 1)) (pointer -:. 1)
-                  in
-                  mux2 enable next_pointer pointer)
-                (Reg_spec.create ~clock ~clear ())
+              let next = wire width in
+              ( reg_fb
+                  ~width
+                  ~f:(fun pointer ->
+                    let pointer = mux2 restore restore_from pointer in
+                    let next_pointer =
+                      mux2 (pointer ==:. 0) (of_int ~width (length - 1)) (pointer -:. 1)
+                    in
+                    next <== mux2 enable next_pointer pointer;
+                    next)
+                  (Reg_spec.create ~clock ~clear ())
+              , next )
             in
-            let retirement_pointer =
+            let retirement_pointer, retirement_pointer_next =
               gen_pointer ~enable:retirement_valid ~restore:gnd ~restore_from:(zero width)
             in
-            let decode_pointer =
+            let decode_pointer, decode_pointer_next =
               gen_pointer
                 ~enable:speculative_decode_valid
                 ~restore:restore_from_retirement
-                ~restore_from:retirement_pointer
+                ~restore_from:retirement_pointer_next
             in
-            let fetch_pointer =
+            let fetch_pointer, _ =
               gen_pointer
                 ~enable:speculative_fetch_valid
                 ~restore:(restore_from_decode |: restore_from_retirement)
                 ~restore_from:
-                  (mux2 restore_from_retirement retirement_pointer decode_pointer)
+                  (mux2
+                     restore_from_retirement
+                     retirement_pointer_next
+                     decode_pointer_next)
             in
             let () =
               fetch_pointer -- Printf.sprintf "fetch$%s_pointer" name |> ignore;
@@ -949,7 +955,7 @@ module BayesianTage = struct
                             branch_index
                       ; tag =
                           update
-                            ~type_name:"jump_index"
+                            ~type_name:"branch_tag"
                             ~restore_from:restore_branch_tag
                             branch_tag
                       })
@@ -1005,7 +1011,7 @@ module BayesianTage = struct
               ~enable:speculative_decode_valid
               ~restore:restore_from_retirement
               ~restore_from:
-                (List.map retirement_indices_and_tags ~f:(Indices_and_tags.map ~f:fst))
+                (List.map retirement_indices_and_tags ~f:(Indices_and_tags.map ~f:snd))
               ~head_entry:
                 (speculative_decode_resolved_direction, speculative_decode_branch_target)
               ~branch_pointer:branch_decode_pointer
@@ -1018,7 +1024,7 @@ module BayesianTage = struct
               ~restore:(restore_from_decode |: restore_from_retirement)
               ~restore_from:
                 (List.zip_exn decode_indices_and_tags retirement_indices_and_tags
-                 |> List.map ~f:(Tuple2.map ~f:(Indices_and_tags.map ~f:fst))
+                 |> List.map ~f:(Tuple2.map ~f:(Indices_and_tags.map ~f:snd))
                  |> List.map ~f:Indices_and_tags.transpose
                  |> List.map
                       ~f:
