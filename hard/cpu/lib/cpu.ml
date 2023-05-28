@@ -138,7 +138,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         zero Parameters.word_width
     ; fetch_predicted_next_pc = zero Parameters.word_width
     ; has_fetch_prediction = gnd
-    ; fetch_predicted_direction
+    ; fetch_predicted_direction = gnd
     ; forward = { program_counter; error = fetch_error }
     }
   in
@@ -192,6 +192,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
                 raw_instruction
               ; fetch_predicted_next_pc = program_counter
               ; has_fetch_prediction
+              ; fetch_predicted_direction
               }
           }
       };
