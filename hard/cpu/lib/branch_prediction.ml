@@ -675,19 +675,15 @@ module BayesianTage = struct
           |> List.rev
         in
         List.map history_lengths ~f:(fun history_length ->
+          let init = Folded_history_metadata.init ~original_length:history_length in
           { Indices_and_tags.branch =
-              (let init =
-                 Folded_history_metadata.init
-                   ~original_length:history_length
-                   ~injected_bits:1
-               in
+              (let init = init ~injected_bits:1 in
                { index = init ~compressed_length:Params.bank_address_width
                ; tag = init ~compressed_length:Params.tag_width
                })
           ; jump =
               (let init =
-                 Folded_history_metadata.init
-                   ~original_length:(Int.min history_length Params.jump_history_length)
+                 init
                    ~injected_bits:
                      (if history_length < Params.jump_history_length
                       then Params.jump_history_entry_width
@@ -961,11 +957,23 @@ module BayesianTage = struct
                             branch_tag
                       })
                  ; jump =
-                     (let update =
-                        update
-                          ~head_entry:head_jump_entry
-                          ~history:jump_history
-                          ~pointer:jump_pointer
+                     (let update
+                        ({ Folded_history_metadata.original_length; _ } as metadata)
+                        =
+                        let update =
+                          if original_length <= Params.jump_history_length
+                          then
+                            update
+                              ~head_entry:head_jump_entry
+                              ~history:jump_history
+                              ~pointer:jump_pointer
+                          else
+                            update
+                              ~head_entry:head_branch_entry
+                              ~history:branch_history
+                              ~pointer:branch_pointer
+                        in
+                        update metadata
                       in
                       { index =
                           update
@@ -2136,7 +2144,7 @@ module BayesianTage = struct
                   ~original_length
                   ~compressed_length
                   ~injected_bits
-                  ~outpoint
+                  ~out_point
                   =
                   let rotate_left x m =
                     let y = Int.shift_right_logical x (compressed_length - m) in
@@ -2157,7 +2165,7 @@ module BayesianTage = struct
                   let outbits =
                     get original_length |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
                   in
-                  let outbits = rotate_left outbits outpoint in
+                  let outbits = rotate_left outbits out_point in
                   Array.set fold i (Int.bit_xor new_fold inbits |> Int.bit_xor outbits);
                   ()
                 in
@@ -2171,7 +2179,7 @@ module BayesianTage = struct
                     (List.nth_exn folded_histories i).branch.index.compressed_length
                   ~injected_bits:
                     (List.nth_exn folded_histories i).branch.index.injected_bits
-                  ~outpoint:(List.nth_exn folded_histories i).branch.index.out_point;
+                  ~out_point:(List.nth_exn folded_histories i).branch.index.out_point;
                 update
                   ~history:branch_history
                   ~ptr:!branch_history_pointer
@@ -2182,28 +2190,59 @@ module BayesianTage = struct
                     (List.nth_exn folded_histories i).branch.tag.compressed_length
                   ~injected_bits:
                     (List.nth_exn folded_histories i).branch.tag.injected_bits
-                  ~outpoint:(List.nth_exn folded_histories i).branch.tag.out_point;
-                update
-                  ~history:jump_history
-                  ~ptr:!jump_history_pointer
-                  ~fold:jump_index_fold
-                  ~original_length:
-                    (List.nth_exn folded_histories i).jump.index.original_length
-                  ~compressed_length:
-                    (List.nth_exn folded_histories i).jump.index.compressed_length
-                  ~injected_bits:
-                    (List.nth_exn folded_histories i).jump.index.injected_bits
-                  ~outpoint:(List.nth_exn folded_histories i).jump.index.out_point;
-                update
-                  ~history:jump_history
-                  ~ptr:!jump_history_pointer
-                  ~fold:jump_tag_fold
-                  ~original_length:
-                    (List.nth_exn folded_histories i).jump.tag.original_length
-                  ~compressed_length:
-                    (List.nth_exn folded_histories i).jump.tag.compressed_length
-                  ~injected_bits:(List.nth_exn folded_histories i).jump.tag.injected_bits
-                  ~outpoint:(List.nth_exn folded_histories i).jump.tag.out_point;
+                  ~out_point:(List.nth_exn folded_histories i).branch.tag.out_point;
+                if (List.nth_exn folded_histories i).jump.index.original_length
+                   <= Params.jump_history_length
+                then
+                  update
+                    ~history:jump_history
+                    ~ptr:!jump_history_pointer
+                    ~fold:jump_index_fold
+                    ~original_length:
+                      (List.nth_exn folded_histories i).jump.index.original_length
+                    ~compressed_length:
+                      (List.nth_exn folded_histories i).jump.index.compressed_length
+                    ~injected_bits:
+                      (List.nth_exn folded_histories i).jump.index.injected_bits
+                    ~out_point:(List.nth_exn folded_histories i).jump.index.out_point
+                else
+                  update
+                    ~history:branch_history
+                    ~ptr:!branch_history_pointer
+                    ~fold:jump_index_fold
+                    ~original_length:
+                      (List.nth_exn folded_histories i).jump.index.original_length
+                    ~compressed_length:
+                      (List.nth_exn folded_histories i).jump.index.compressed_length
+                    ~injected_bits:
+                      (List.nth_exn folded_histories i).jump.index.injected_bits
+                    ~out_point:(List.nth_exn folded_histories i).jump.index.out_point;
+                if (List.nth_exn folded_histories i).jump.tag.original_length
+                   <= Params.jump_history_length
+                then
+                  update
+                    ~history:jump_history
+                    ~ptr:!jump_history_pointer
+                    ~fold:jump_tag_fold
+                    ~original_length:
+                      (List.nth_exn folded_histories i).jump.tag.original_length
+                    ~compressed_length:
+                      (List.nth_exn folded_histories i).jump.tag.compressed_length
+                    ~injected_bits:
+                      (List.nth_exn folded_histories i).jump.tag.injected_bits
+                    ~out_point:(List.nth_exn folded_histories i).jump.tag.out_point
+                else
+                  update
+                    ~history:branch_history
+                    ~ptr:!branch_history_pointer
+                    ~fold:jump_tag_fold
+                    ~original_length:
+                      (List.nth_exn folded_histories i).jump.tag.original_length
+                    ~compressed_length:
+                      (List.nth_exn folded_histories i).jump.tag.compressed_length
+                    ~injected_bits:
+                      (List.nth_exn folded_histories i).jump.tag.injected_bits
+                    ~out_point:(List.nth_exn folded_histories i).jump.tag.out_point;
                 ()
               done;
               ()
@@ -2350,10 +2389,10 @@ module BayesianTage = struct
                  (injected_bits 1)))))
              (jump
               ((index
-                ((original_length 3) (compressed_length 5) (out_point 3)
+                ((original_length 17) (compressed_length 5) (out_point 2)
                  (injected_bits 1)))
                (tag
-                ((original_length 3) (compressed_length 6) (out_point 3)
+                ((original_length 17) (compressed_length 6) (out_point 5)
                  (injected_bits 1))))))
             ((branch
               ((index
@@ -2364,10 +2403,10 @@ module BayesianTage = struct
                  (injected_bits 1)))))
              (jump
               ((index
-                ((original_length 3) (compressed_length 5) (out_point 3)
+                ((original_length 5) (compressed_length 5) (out_point 0)
                  (injected_bits 1)))
                (tag
-                ((original_length 3) (compressed_length 6) (out_point 3)
+                ((original_length 5) (compressed_length 6) (out_point 5)
                  (injected_bits 1))))))
             ((branch
               ((index
@@ -2422,8 +2461,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000001 0000000 0000011))
-             (retirement_tags (1000000 1000001 1000010))))
+             (retirement_indices (0000101 0000100 0000011))
+             (retirement_tags (1000010 1000011 1000010))))
            (internals ()))
 
           ((inputs
@@ -2443,8 +2482,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000011 0000010 0000001))
-             (retirement_tags (1100000 1100001 1100010))))
+             (retirement_indices (0001111 0001110 0000001))
+             (retirement_tags (1100110 1100111 1100010))))
            (internals ()))
 
           ((inputs
@@ -2464,8 +2503,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0000001))
-             (retirement_tags (1110000 1110001 1100010))))
+             (retirement_indices (0011011 0011010 0000001))
+             (retirement_tags (1111110 1111111 1100010))))
            (internals ()))
 
           ((inputs
@@ -2485,8 +2524,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0000001))
-             (retirement_tags (1110000 1110001 1100010))))
+             (retirement_indices (0011011 0011010 0000001))
+             (retirement_tags (1111110 1111111 1100010))))
            (internals ()))
 
           ((inputs
@@ -2506,8 +2545,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0000111 0000110 0000001))
-             (retirement_tags (1110000 1110001 1100010))))
+             (retirement_indices (0011011 0011010 0000001))
+             (retirement_tags (1111110 1111111 1100010))))
            (internals ()))
 
           ((inputs
@@ -2527,8 +2566,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0001110 0001111 0000000))
-             (retirement_tags (0111000 0111001 0100010))))
+             (retirement_indices (0110110 0110111 0000000))
+             (retirement_tags (0100100 0100101 0100010))))
            (internals ()))
 
           ((inputs
@@ -2548,8 +2587,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0011101 0000010))
-             (retirement_tags (0011100 0011101 0000010))))
+             (retirement_indices (1101100 1101101 0000010))
+             (retirement_tags (0100100 0100101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2569,8 +2608,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0011101 0000010))
-             (retirement_tags (0011100 0011101 0000010))))
+             (retirement_indices (1101100 1101101 0000010))
+             (retirement_tags (0100100 0100101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2590,8 +2629,8 @@ module BayesianTage = struct
            (outputs
             ((prediction_indices (0000000 0000001 0000010))
              (prediction_tags (0000000 0000001 0000010))
-             (retirement_indices (0011100 0011101 0000010))
-             (retirement_tags (0011100 0011101 0000010))))
+             (retirement_indices (1101100 1101101 0000010))
+             (retirement_tags (0100100 0100101 0000010))))
            (internals ()))
 
           ((inputs
@@ -2609,10 +2648,10 @@ module BayesianTage = struct
                (branch_target 00000000000000000000000000000000)))
              (restore_from_decode 0) (restore_from_retirement 1)))
            (outputs
-            ((prediction_indices (0011100 0011101 0000010))
-             (prediction_tags (0011100 0011101 0000010))
-             (retirement_indices (0011100 0011101 0000010))
-             (retirement_tags (0011100 0011101 0000010))))
+            ((prediction_indices (1101100 1101101 0000010))
+             (prediction_tags (0100100 0100101 0000010))
+             (retirement_indices (1101100 1101101 0000010))
+             (retirement_tags (0100100 0100101 0000010))))
            (internals ())) |}]
       ;;
     end
