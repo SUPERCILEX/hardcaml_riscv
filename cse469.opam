@@ -14,6 +14,7 @@ depends: [
   "core_unix"
   "dune" {>= "3.6"}
   "hardcaml"
+  "hardcaml_circuits"
   "hardcaml_verilator"
   "hardcaml_waveterm"
   "ocaml"
