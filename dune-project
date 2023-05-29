@@ -27,6 +27,7 @@
   hardcaml_verilator
   hardcaml_waveterm
   ocaml
+  ocamlformat
   ppx_blob
   ppx_deriving_hardcaml
   ppx_expect
