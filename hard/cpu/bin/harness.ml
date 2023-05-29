@@ -13,6 +13,7 @@ let create ~program ~verilator =
     Simulator.create
       ~verbose:true
       ?cache_dir
+      ~threads:(`With_threads 4)
       ~clock_names:[ "clock" ]
       (create scope ~bootloader:program)
 ;;
