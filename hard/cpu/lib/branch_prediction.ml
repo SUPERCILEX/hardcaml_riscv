@@ -1420,13 +1420,14 @@ module BayesianTage = struct
         let allocation_decay =
           [ end_allocation_bank_valid
           ; Dual_counter.prediction prediction_counters <>: resolved_direction
-          ; ((* TODO I don't know what this stands for. A is probably allocation. *)
-             let min_ap = 4 in
-             uresize (sel_bottom random3 min_ap) (width controlled_allocation_throttler)
+          ; (let minimum_allocation_probability = 4 in
+             uresize
+               (sel_bottom random3 minimum_allocation_probability)
+               (width controlled_allocation_throttler)
              >=: srl
                    controlled_allocation_throttler
                    (Int.floor_log2 (Params.controlled_allocation_throttler_max + 1)
-                    - min_ap))
+                    - minimum_allocation_probability))
           ]
           |> tree ~arity:2 ~f:(reduce ~f:( &: ))
         in
@@ -1470,17 +1471,16 @@ module BayesianTage = struct
             |> popcount
           in
           mhc -- "mhc" |> ignore;
-          (* TODO don't know what the R or DEN stands for.
-             CATR_NUM - mhc * CATR_DEN
-           *)
-          fun ~rate ~den ~max s ->
+          fun ~rate_numerator ~rate_denominator ~max s ->
             let width = width s in
             let diff =
               let max_range =
-                Int.ceil_log2 (Params.max_banks_skipped_on_allocation * den) + 1
+                Int.ceil_log2 (Params.max_banks_skipped_on_allocation * rate_denominator)
+                + 1
               in
               let mhc = uresize mhc max_range in
-              of_int ~width:max_range rate -: (sll mhc (Int.floor_log2 den) +: mhc)
+              of_int ~width:max_range rate_numerator
+              -: (sll mhc (Int.floor_log2 rate_denominator) +: mhc)
               |> Fn.flip sresize width
             in
             let result = uresize s (width + 2) +: sresize diff (width + 2) in
@@ -1494,14 +1494,14 @@ module BayesianTage = struct
         in
         next_controlled_allocation_throttler
         <== next_controlled_rate
-              ~rate:2
-              ~den:3
+              ~rate_numerator:2
+              ~rate_denominator:3
               ~max:Params.controlled_allocation_throttler_max
               controlled_allocation_throttler;
         next_controlled_allocation_decay
         <== next_controlled_rate
-              ~rate:6
-              ~den:5
+              ~rate_numerator:6
+              ~rate_denominator:5
               ~max:Params.controlled_allocation_decay_max
               controlled_allocation_decay;
         { O.next_entries =
