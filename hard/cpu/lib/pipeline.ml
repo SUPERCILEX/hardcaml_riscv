@@ -230,27 +230,19 @@ module Decode_instruction_and_load_registers = struct
     in
     let jump = is_branch &: (immediate <+. 0) |: jal |: (jalr &: is_return) in
     let jump_target = program_counter +: immediate in
-    let trust_fetch_prediction =
-      has_fetch_prediction
-      &: (is_branch |: (jal &: (fetch_predicted_next_pc ==: jump_target)) |: jalr)
-    in
     let predicted_next_pc =
       mux2
-        trust_fetch_prediction
+        has_fetch_prediction
         fetch_predicted_next_pc
         (mux2 jump (mux2 is_return return_pc jump_target) (program_counter +:. 4))
     in
     { O.done_ = start
     ; decoded
     ; predicted_next_pc
-    ; jump =
-        ~:error
-        &: (~:has_fetch_prediction
-            &: jump
-            |: (has_fetch_prediction &: ~:trust_fetch_prediction))
+    ; jump = ~:error &: ~:has_fetch_prediction &: jump
     ; is_control_flow = is_branch |: jal |: jalr
     ; is_branch
-    ; predicted_direction = mux2 trust_fetch_prediction fetch_predicted_direction jump
+    ; predicted_direction = mux2 has_fetch_prediction fetch_predicted_direction jump
     ; did_fetch_have_prediction = has_fetch_prediction
     ; forward =
         { forward with
