@@ -148,6 +148,7 @@ module Decode_instruction_and_load_registers = struct
       ; fetch_predicted_next_pc : 'a [@bits Parameters.word_width]
       ; has_fetch_prediction : 'a
       ; fetch_predicted_direction : 'a
+      ; fetch_predicted_branch_target : 'a [@bits Parameters.word_width]
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
     [@@deriving sexp_of, hardcaml]
@@ -175,7 +176,7 @@ module Decode_instruction_and_load_registers = struct
       ; is_control_flow : 'a
       ; is_branch : 'a
       ; predicted_direction : 'a
-      ; did_fetch_have_prediction : 'a
+      ; predicted_branch_target : 'a [@bits Parameters.word_width]
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       ; pending_return_address : 'a [@bits Parameters.word_width]
       ; return_address_stack_entries : 'a
@@ -194,6 +195,7 @@ module Decode_instruction_and_load_registers = struct
     ; data =
         { raw_instruction
         ; fetch_predicted_next_pc
+        ; fetch_predicted_branch_target
         ; has_fetch_prediction
         ; fetch_predicted_direction
         ; forward = { program_counter; error } as forward
@@ -239,11 +241,12 @@ module Decode_instruction_and_load_registers = struct
     { O.done_ = start
     ; decoded
     ; predicted_next_pc
+    ; predicted_branch_target =
+        mux2 has_fetch_prediction fetch_predicted_branch_target jump_target
     ; jump = ~:error &: ~:has_fetch_prediction &: jump
     ; is_control_flow = is_branch |: jal |: jalr
     ; is_branch
     ; predicted_direction = mux2 has_fetch_prediction fetch_predicted_direction jump
-    ; did_fetch_have_prediction = has_fetch_prediction
     ; forward =
         { forward with
           error =

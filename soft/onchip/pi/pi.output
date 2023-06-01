@@ -6,8 +6,8 @@ pi(100) = 3.141592653589793
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 397014) (instructions_retired 372553)
-   (empty_alu_cycles 11091) (instruction_load_stalls 59) (data_load_stalls 0)
-   (data_store_stalls 98) (fetch_branch_target_buffer_hits 52331)
+  ((cycles_since_boot 394850) (instructions_retired 372553)
+   (empty_alu_cycles 9641) (instruction_load_stalls 60) (data_load_stalls 0)
+   (data_store_stalls 115) (fetch_branch_target_buffer_hits 52234)
    (decode_branch_mispredictions 342) (decode_jump_mispredictions 2073)
-   (execute_branch_mispredictions 4514) (execute_jump_mispredictions 8))))
+   (execute_branch_mispredictions 3789) (execute_jump_mispredictions 8))))

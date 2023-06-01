@@ -138,6 +138,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     { Decode_instruction_and_load_registers.Data_in.raw_instruction =
         zero Parameters.word_width
     ; fetch_predicted_next_pc = zero Parameters.word_width
+    ; fetch_predicted_branch_target = zero Parameters.word_width
     ; has_fetch_prediction = gnd
     ; fetch_predicted_direction = gnd
     ; forward = { program_counter; error = fetch_error }
@@ -172,7 +173,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; is_control_flow = decoded_control_flow
       ; is_branch = is_decode_branch_for_counters
       ; predicted_direction = decode_predicted_direction
-      ; did_fetch_have_prediction = decode_did_fetch_have_prediction
+      ; predicted_branch_target = decode_predicted_branch_target
       ; forward = decoder_forward
       ; pending_return_address = pending_return_address_
       ; return_address_stack_entries = return_address_stack_entries_
@@ -194,6 +195,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
               ; fetch_predicted_next_pc = program_counter
               ; has_fetch_prediction
               ; fetch_predicted_direction
+              ; fetch_predicted_branch_target
               }
           }
       };
@@ -413,7 +415,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         ; speculative_decode_update =
             { valid = decode_done &: decoded_control_flow
             ; resolved_direction = decode_predicted_direction
-            ; branch_target = decode_predicted_next_pc
+            ; branch_target = decode_predicted_branch_target
             }
         ; retirement_update =
             { valid
@@ -421,9 +423,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
             ; branch_target = control_flow_resolved_jump_target
             }
         ; retirement_is_branch = control_flow_resolved_is_branch
-        ; restore_from_decode =
-            flush_pre_decode
-            |: (decode_done &: ~:decode_did_fetch_have_prediction &: decoded_control_flow)
+        ; restore_from_decode = flush_pre_decode |: (decode_done &: decoded_control_flow)
         ; restore_from_retirement = flush_pre_writeback
         }
     in

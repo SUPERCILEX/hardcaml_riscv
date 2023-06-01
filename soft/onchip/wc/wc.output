@@ -5,9 +5,9 @@ WordsCount { words: 184, characters: 1132, whitespaces: 186, cjk: 0 }
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 369097) (instructions_retired 300054)
-   (empty_alu_cycles 837) (instruction_load_stalls 60336)
-   (data_load_stalls 4552) (data_store_stalls 95)
-   (fetch_branch_target_buffer_hits 69980) (decode_branch_mispredictions 26)
-   (decode_jump_mispredictions 41) (execute_branch_mispredictions 384)
+  ((cycles_since_boot 368957) (instructions_retired 300054)
+   (empty_alu_cycles 733) (instruction_load_stalls 60341)
+   (data_load_stalls 4552) (data_store_stalls 113)
+   (fetch_branch_target_buffer_hits 69983) (decode_branch_mispredictions 26)
+   (decode_jump_mispredictions 41) (execute_branch_mispredictions 332)
    (execute_jump_mispredictions 10))))
