@@ -17,7 +17,14 @@
 
 ## Dev workflow
 
-`dune build @runtest @fmt --auto-promote -w`
+`dune build @runtest @bin @fmt --auto-promote -w`
+
+### Running sample programs
+
+1. Run `soft/offchip/bootloader_client/real.sh`
+2. Inside the `soft/offchip/bootloader_client` directory, run (for example)
+   `cargo r -- -o /dev/ttyUSB1 -i /tmp/command.out load ../../onchip/donut/donut.bin`
+3. To start the program, run `cargo r -- -o /dev/ttyUSB1 -i /tmp/command.out start`
 
 ## Background
 
