@@ -104,9 +104,9 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 159879) (instructions_retired 114372)
-   (empty_alu_cycles 3355) (instruction_load_stalls 2514)
-   (data_load_stalls 0) (data_store_stalls 2262)
-   (fetch_branch_target_buffer_hits 17346) (decode_branch_mispredictions 111)
-   (decode_jump_mispredictions 242) (execute_branch_mispredictions 1553)
+  ((cycles_since_boot 160390) (instructions_retired 114372)
+   (empty_alu_cycles 3631) (instruction_load_stalls 2514)
+   (data_load_stalls 0) (data_store_stalls 2397)
+   (fetch_branch_target_buffer_hits 17344) (decode_branch_mispredictions 111)
+   (decode_jump_mispredictions 242) (execute_branch_mispredictions 1691)
    (execute_jump_mispredictions 3))))

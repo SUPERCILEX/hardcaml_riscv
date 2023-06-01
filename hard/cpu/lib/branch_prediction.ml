@@ -3147,13 +3147,13 @@ module Branch_direction_predictor = struct
     hierarchical
       ~name:"branch_direction_predictor"
       ~params:
-        { num_banks = 26
+        { num_banks = 4
         ; num_entries_per_bank = Int.shift_left 1 7
         ; counter_width = 3
         ; tag_width = 12
         ; controlled_allocation_throttler_max = Int.shift_left 1 16 - 1
         ; controlled_allocation_decay_max = Int.shift_left 1 12 - 1
-        ; max_banks_skipped_on_allocation = 5
+        ; max_banks_skipped_on_allocation = 1
         ; meta_width = 5
         ; num_bimodal_direction_entries = Int.shift_left 1 12
         ; num_bimodal_hysteresis_entries = Int.shift_left 1 10

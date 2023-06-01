@@ -412,18 +412,25 @@ let create scope ~bootloader { I.clock; clear; uart } =
             ; resolved_direction = fetch_predicted_direction
             ; branch_target = fetch_predicted_branch_target
             }
+            |> Branch_prediction.Branch_direction_predictor.Update.Of_signal.reg
+                 (Reg_spec.create ~clock ~clear ())
         ; speculative_decode_update =
             { valid = decode_done &: decoded_control_flow
             ; resolved_direction = decode_predicted_direction
             ; branch_target = decode_predicted_branch_target
             }
+            |> Branch_prediction.Branch_direction_predictor.Update.Of_signal.reg
+                 (Reg_spec.create ~clock ~clear ())
         ; retirement_update =
             { valid
             ; resolved_direction = control_flow_resolved_to_taken
             ; branch_target = control_flow_resolved_jump_target
             }
         ; retirement_is_branch = control_flow_resolved_is_branch
-        ; restore_from_decode = flush_pre_decode |: (decode_done &: decoded_control_flow)
+        ; restore_from_decode =
+            flush_pre_decode
+            |: (decode_done &: decoded_control_flow)
+            |> reg (Reg_spec.create ~clock ~clear ())
         ; restore_from_retirement = flush_pre_writeback
         }
     in
