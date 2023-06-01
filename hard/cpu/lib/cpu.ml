@@ -377,15 +377,13 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; program_counter
           ; taken
           ; resolved_jump_target
-          ; is_control_flow = _
+          ; is_control_flow
           ; is_branch
           ; is_return
           ; return_address_stack_entries
           } )
       =
-      ( reg
-          (Reg_spec.create ~clock ~clear ())
-          (execute_done &: resolved_control_flow.is_control_flow)
+      ( reg (Reg_spec.create ~clock ~clear ()) execute_done
       , Execute.Resolved_control_flow.Of_signal.reg
           ~enable:execute_done
           (Reg_spec.create ~clock ())
@@ -395,7 +393,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     flush_pre_decode <== (decode_jump &: decode_done);
     jump <== (flush_pre_writeback |: flush_pre_decode);
     jump_target <== mux2 flush_pre_writeback jump_target_ decode_predicted_next_pc;
-    control_flow_resolved <== valid;
+    control_flow_resolved <== (valid &: is_control_flow);
     control_flow_resolved_pc <== program_counter;
     control_flow_resolved_jump_target <== resolved_jump_target;
     control_flow_resolved_to_taken <== taken;
@@ -424,7 +422,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
             |> Branch_prediction.Branch_direction_predictor.Update.Of_signal.reg
                  (Reg_spec.create ~clock ~clear ())
         ; retirement_update =
-            { valid
+            { valid = control_flow_resolved
             ; resolved_direction = control_flow_resolved_to_taken
             ; branch_target = control_flow_resolved_jump_target
             }
