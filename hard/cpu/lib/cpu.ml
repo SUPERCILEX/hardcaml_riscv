@@ -22,6 +22,7 @@ module Counters = struct
     ; data_load_stalls : 'a [@bits 64]
     ; data_store_stalls : 'a [@bits 64]
     ; fetch_branch_target_buffer_hits : 'a [@bits 64]
+    ; fetch_branch_target_buffer_misses : 'a [@bits 64]
     ; decode_branch_mispredictions : 'a [@bits 64]
     ; decode_jump_mispredictions : 'a [@bits 64]
     ; execute_branch_mispredictions : 'a [@bits 64]
@@ -174,6 +175,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
       ; is_branch = is_decode_branch_for_counters
       ; predicted_direction = decode_predicted_direction
       ; predicted_branch_target = decode_predicted_branch_target
+      ; has_fetch_prediction = decode_has_fetch_prediction
       ; forward = decoder_forward
       ; pending_return_address = pending_return_address_
       ; return_address_stack_entries = return_address_stack_entries_
@@ -581,6 +583,8 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; data_load_stalls = counter (load_mem &: stall_mem_load)
        ; data_store_stalls = counter (store_mem &: stall_mem_store)
        ; fetch_branch_target_buffer_hits = counter (fetch_done &: has_fetch_prediction)
+       ; fetch_branch_target_buffer_misses =
+           counter (decode_done &: decoded_control_flow &: ~:decode_has_fetch_prediction)
        ; decode_branch_mispredictions =
            counter (is_decode_branch_for_counters &: flush_pre_decode)
        ; decode_jump_mispredictions =

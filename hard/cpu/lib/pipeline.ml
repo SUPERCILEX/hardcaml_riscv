@@ -177,6 +177,7 @@ module Decode_instruction_and_load_registers = struct
       ; is_branch : 'a
       ; predicted_direction : 'a
       ; predicted_branch_target : 'a [@bits Parameters.word_width]
+      ; has_fetch_prediction : 'a [@rtlsuffix "_forward"]
       ; forward : 'a Forward.t [@rtlprefix "fo$"]
       ; pending_return_address : 'a [@bits Parameters.word_width]
       ; return_address_stack_entries : 'a
@@ -247,6 +248,7 @@ module Decode_instruction_and_load_registers = struct
     ; is_control_flow = is_branch |: jal |: jalr
     ; is_branch
     ; predicted_direction = mux2 has_fetch_prediction fetch_predicted_direction jump
+    ; has_fetch_prediction
     ; forward =
         { forward with
           error =

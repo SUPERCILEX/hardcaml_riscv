@@ -8,6 +8,7 @@ WordsCount { words: 184, characters: 1132, whitespaces: 186, cjk: 0 }
   ((cycles_since_boot 371757) (instructions_retired 300054)
    (empty_alu_cycles 2599) (instruction_load_stalls 60338)
    (data_load_stalls 4552) (data_store_stalls 116)
-   (fetch_branch_target_buffer_hits 69976) (decode_branch_mispredictions 26)
+   (fetch_branch_target_buffer_hits 69976)
+   (fetch_branch_target_buffer_misses 2316) (decode_branch_mispredictions 26)
    (decode_jump_mispredictions 47) (execute_branch_mispredictions 1265)
    (execute_jump_mispredictions 10))))

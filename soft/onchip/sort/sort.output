@@ -8,5 +8,6 @@
   ((cycles_since_boot 7725) (instructions_retired 5697)
    (empty_alu_cycles 378) (instruction_load_stalls 88) (data_load_stalls 209)
    (data_store_stalls 144) (fetch_branch_target_buffer_hits 770)
-   (decode_branch_mispredictions 20) (decode_jump_mispredictions 62)
-   (execute_branch_mispredictions 150) (execute_jump_mispredictions 7))))
+   (fetch_branch_target_buffer_misses 490) (decode_branch_mispredictions 20)
+   (decode_jump_mispredictions 62) (execute_branch_mispredictions 150)
+   (execute_jump_mispredictions 7))))
