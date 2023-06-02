@@ -14,9 +14,18 @@ module I = struct
 end
 
 module Counters = struct
+  module Instructions_retired = struct
+    type 'a t =
+      { total : 'a [@bits 64]
+      ; jumps : 'a [@bits 64]
+      ; branches : 'a [@bits 64]
+      }
+    [@@deriving sexp_of, hardcaml]
+  end
+
   type 'a t =
     { cycles_since_boot : 'a [@bits 64]
-    ; instructions_retired : 'a [@bits 64]
+    ; instructions_retired : 'a Instructions_retired.t
     ; empty_alu_cycles : 'a [@bits 64]
     ; instruction_load_stalls : 'a [@bits 64]
     ; data_load_stalls : 'a [@bits 64]
@@ -571,7 +580,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
            (Reg_spec.create ~clock ~clear ())
        in
        { cycles_since_boot = counter vdd
-       ; instructions_retired = counter writeback_done
+       ; instructions_retired =
+           { total = counter writeback_done
+           ; jumps = counter (control_flow_resolved &: ~:control_flow_resolved_is_branch)
+           ; branches = counter (control_flow_resolved &: control_flow_resolved_is_branch)
+           }
        ; empty_alu_cycles =
            (let { Decode_instruction_and_load_registers_buffer.Entry.id = _
                 ; raw = { valid; ready; data = _ }
