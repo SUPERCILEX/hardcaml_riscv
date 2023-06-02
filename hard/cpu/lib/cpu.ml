@@ -97,6 +97,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
        ; control_flow_resolved
        ; control_flow_resolved_pc
        ; control_flow_resolved_jump_target
+       ; control_flow_resolved_branch_offset
        ; control_flow_resolved_to_taken
        ; control_flow_resolved_is_branch
        ; control_flow_resolved_is_return
@@ -377,6 +378,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
           ; program_counter
           ; taken
           ; resolved_jump_target
+          ; resolved_branch_offset
           ; is_control_flow
           ; is_branch
           ; is_return
@@ -396,6 +398,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
     control_flow_resolved <== (valid &: is_control_flow);
     control_flow_resolved_pc <== program_counter;
     control_flow_resolved_jump_target <== resolved_jump_target;
+    control_flow_resolved_branch_offset <== resolved_branch_offset;
     control_flow_resolved_to_taken <== taken;
     control_flow_resolved_is_branch <== is_branch;
     control_flow_resolved_is_return <== is_return;

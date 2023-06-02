@@ -29,14 +29,36 @@ let hash_program_counter ~bits address =
   |> tree ~arity:2 ~f:(reduce ~f:( ^: ))
 ;;
 
-module Branch_target_buffer = struct
+module Jump_target_buffer = struct
   module Entry = struct
     type 'a t =
       { target_pc : 'a [@bits Parameters.word_width]
-      ; is_branch : 'a
       ; is_return : 'a
       }
     [@@deriving sexp_of, hardcaml]
+  end
+
+  include
+    Cache.Make
+      (Entry)
+      (struct
+        let address_bits = Parameters.word_width
+      end)
+
+  let hierarchical =
+    let open Signal in
+    let size = 1024 in
+    hierarchical
+      ~name:"jump_target_buffer"
+      ~size
+      ~address_to_index:(hash_program_counter ~bits:(address_bits_for size))
+      ~address_to_tag:(hash_program_counter ~bits:13)
+  ;;
+end
+
+module Branch_target_buffer = struct
+  module Entry = struct
+    type 'a t = { pc_offset : 'a [@bits 12] } [@@deriving sexp_of, hardcaml]
   end
 
   include

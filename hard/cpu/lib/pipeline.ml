@@ -15,6 +15,7 @@ module Fetch_instruction = struct
       ; control_flow_resolved : 'a
       ; control_flow_resolved_pc : 'a [@bits Parameters.word_width]
       ; control_flow_resolved_jump_target : 'a [@bits Parameters.word_width]
+      ; control_flow_resolved_branch_offset : 'a [@bits 12]
       ; control_flow_resolved_to_taken : 'a
       ; control_flow_resolved_is_branch : 'a
       ; control_flow_resolved_is_return : 'a
@@ -49,6 +50,7 @@ module Fetch_instruction = struct
     ; control_flow_resolved
     ; control_flow_resolved_pc
     ; control_flow_resolved_jump_target
+    ; control_flow_resolved_branch_offset
     ; control_flow_resolved_to_taken
     ; control_flow_resolved_is_branch
     ; control_flow_resolved_is_return
@@ -58,9 +60,27 @@ module Fetch_instruction = struct
     let open Signal in
     let load = ~:pipeline_full &: ~:jump in
     let next_pc = wire Parameters.word_width in
+    let { Branch_prediction.Jump_target_buffer.O.data =
+            { target_pc = predicted_next_jump_pc; is_return }
+        ; hit = has_jump_prediction
+        }
+      =
+      Branch_prediction.Jump_target_buffer.hierarchical
+        scope
+        { clock
+        ; load
+        ; read_address = next_pc
+        ; store = control_flow_resolved &: ~:control_flow_resolved_is_branch
+        ; write_address = control_flow_resolved_pc
+        ; write_data =
+            { target_pc = control_flow_resolved_jump_target
+            ; is_return = control_flow_resolved_is_return
+            }
+        }
+    in
     let { Branch_prediction.Branch_target_buffer.O.data =
-            { target_pc = predicted_next_pc; is_branch; is_return }
-        ; hit = has_prediction
+            { pc_offset = predicted_branch_pc_offset }
+        ; hit = has_branch_prediction
         }
       =
       Branch_prediction.Branch_target_buffer.hierarchical
@@ -68,17 +88,21 @@ module Fetch_instruction = struct
         { clock
         ; load
         ; read_address = next_pc
-        ; store = control_flow_resolved &: control_flow_resolved_to_taken
+        ; store =
+            control_flow_resolved
+            &: control_flow_resolved_to_taken
+            &: control_flow_resolved_is_branch
         ; write_address = control_flow_resolved_pc
-        ; write_data =
-            { target_pc = control_flow_resolved_jump_target
-            ; is_branch = control_flow_resolved_is_branch
-            ; is_return = control_flow_resolved_is_return
-            }
+        ; write_data = { pc_offset = control_flow_resolved_branch_offset }
         }
     in
     let done_ = load &: ~:stall_load_instruction in
     let current_pc = wire (width next_pc) in
+    let has_prediction = has_jump_prediction |: has_branch_prediction in
+    let predicted_next_branch_pc =
+      (next_pc |> reg (Reg_spec.create ~clock ()))
+      +: (predicted_branch_pc_offset @: gnd |> Fn.flip sresize (width current_pc))
+    in
     next_pc
     <== mux2
           (has_prediction &: (done_ |> reg (Reg_spec.create ~clock ~clear ())))
@@ -86,9 +110,9 @@ module Fetch_instruction = struct
              is_return
              pending_return_address
              (mux2
-                is_branch
-                (mux2 predicted_branch_direction predicted_next_pc current_pc)
-                predicted_next_pc))
+                has_branch_prediction
+                (mux2 predicted_branch_direction predicted_next_branch_pc current_pc)
+                predicted_next_jump_pc))
           current_pc;
     current_pc
     <== (mux2 jump jump_target (mux2 done_ (next_pc +:. 4) next_pc)
@@ -100,8 +124,10 @@ module Fetch_instruction = struct
     ; load
     ; program_counter = next_pc
     ; has_prediction
-    ; predicted_direction = is_branch &: predicted_branch_direction |: ~:is_branch
-    ; predicted_branch_target = predicted_next_pc
+    ; predicted_direction =
+        has_branch_prediction &: predicted_branch_direction |: ~:has_branch_prediction
+    ; predicted_branch_target =
+        mux2 has_branch_prediction predicted_next_branch_pc predicted_next_jump_pc
     ; error = mem_error &: load
     }
   ;;
@@ -325,6 +351,7 @@ module Execute = struct
       ; program_counter : 'a [@bits Parameters.word_width] [@rtlsuffix "_out"]
       ; taken : 'a
       ; resolved_jump_target : 'a [@bits Parameters.word_width]
+      ; resolved_branch_offset : 'a [@bits 12]
       ; is_control_flow : 'a
       ; is_branch : 'a
       ; is_return : 'a
@@ -474,6 +501,7 @@ module Execute = struct
          ; program_counter
          ; taken = jump
          ; resolved_jump_target = jump_target
+         ; resolved_branch_offset = msbs immediate |> Fn.flip sel_bottom 12
          ; is_control_flow = is_branch |: is_jump instruction
          ; is_branch
          ; is_return =
