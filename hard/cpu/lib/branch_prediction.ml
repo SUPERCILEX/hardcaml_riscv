@@ -1665,25 +1665,46 @@ module BayesianTage = struct
       end
 
       module O = struct
-        type 'a t = { taken : 'a } [@@deriving sexp_of, hardcaml]
+        type 'a t =
+          { taken : 'a
+          ; is_low_confidence : 'a
+          }
+        [@@deriving sexp_of, hardcaml]
       end
 
       let create _scope { I.read_entries; tags; bimodal_entry; meta } =
         let open Signal in
-        let highest_confidence_counter =
+        let module Counters_and_metadata = struct
+          type 'a t =
+            { counters : 'a Dual_counter.t
+            ; is_tagged : 'a
+            }
+          [@@deriving sexp_of, hardcaml]
+        end
+        in
+        let { Counters_and_metadata.counters = highest_confidence_counter; is_tagged } =
           let older =
             List.zip_exn read_entries tags
             |> List.map ~f:(fun ({ Entry.tag = entry_tag; counters }, tag) ->
                  { With_valid.valid = tag ==: entry_tag; value = counters })
             |> tree ~arity:2 ~f:(reduce ~f:(Dual_counter.select_best_single ~meta))
           in
-          (Dual_counter.select_best_single
+          (Dual_counter.select_best
              ~meta
-             older
-             { With_valid.valid = vdd; value = Dual_counter.of_bimodal bimodal_entry })
+             ~mux:Counters_and_metadata.Of_signal.mux
+             ~f:(fun c -> c.counters)
+             { With_valid.valid = older.valid
+             ; value = { counters = older.value; is_tagged = vdd }
+             }
+             { With_valid.valid = vdd
+             ; value =
+                 { counters = Dual_counter.of_bimodal bimodal_entry; is_tagged = gnd }
+             })
             .value
         in
-        { O.taken = Dual_counter.prediction highest_confidence_counter }
+        { O.taken = Dual_counter.prediction highest_confidence_counter
+        ; is_low_confidence = ~:is_tagged
+        }
       ;;
 
       let hierarchical scope =
@@ -1731,7 +1752,11 @@ module BayesianTage = struct
   end
 
   module O = struct
-    type 'a t = { predicted_direction : 'a } [@@deriving sexp_of, hardcaml]
+    type 'a t =
+      { predicted_direction : 'a
+      ; is_low_confidence : 'a
+      }
+    [@@deriving sexp_of, hardcaml]
   end
 
   let forwarding_ram scope ~clock ~name ~collision_mode ~size ~write_ports ~read_ports () =
@@ -2016,7 +2041,7 @@ module BayesianTage = struct
     in
     Bimodal_entry.Of_signal.assign bimodal_entry next_bimodal_entry;
     List.iter2_exn write_entries next_entries ~f:Entry.Of_signal.assign;
-    let { Predict.O.taken = predicted_direction } =
+    let { Predict.O.taken = predicted_direction; is_low_confidence } =
       Predict.hierarchical
         scope
         { read_entries = prediction_read_entries
@@ -2025,7 +2050,7 @@ module BayesianTage = struct
         ; meta
         }
     in
-    { O.predicted_direction }
+    { O.predicted_direction; is_low_confidence }
   ;;
 
   let hierarchical ~name ~params scope =

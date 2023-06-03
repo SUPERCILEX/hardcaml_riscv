@@ -173,7 +173,9 @@ module Decode_instruction_and_load_registers = struct
       { raw_instruction : 'a [@bits Parameters.word_width]
       ; fetch_predicted_next_pc : 'a [@bits Parameters.word_width]
       ; has_fetch_prediction : 'a
+      ; is_fetch_prediction_low_confidence : 'a
       ; fetch_predicted_direction : 'a
+      ; raw_predicted_direction : 'a
       ; fetch_predicted_branch_target : 'a [@bits Parameters.word_width]
       ; forward : 'a Forward.t [@rtlprefix "fi$"]
       }
@@ -224,7 +226,9 @@ module Decode_instruction_and_load_registers = struct
         ; fetch_predicted_next_pc
         ; fetch_predicted_branch_target
         ; has_fetch_prediction
+        ; is_fetch_prediction_low_confidence
         ; fetch_predicted_direction
+        ; raw_predicted_direction
         ; forward = { program_counter; error } as forward
         }
     }
@@ -257,7 +261,12 @@ module Decode_instruction_and_load_registers = struct
         ; write_data = { return_pc = program_counter +:. 4 }
         }
     in
-    let jump = is_branch &: (immediate <+. 0) |: jal |: (jalr &: is_return) in
+    let jump =
+      is_branch
+      &: mux2 is_fetch_prediction_low_confidence (immediate <+. 0) raw_predicted_direction
+      |: jal
+      |: (jalr &: is_return)
+    in
     let jump_target = program_counter +: immediate in
     let predicted_next_pc =
       mux2

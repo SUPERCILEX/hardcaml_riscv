@@ -6,10 +6,10 @@ pi(100) = 3.141592653589793
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 397399)
+  ((cycles_since_boot 396587)
    (instructions_retired ((total 372553) (jumps 23518) (branches 53310)))
-   (empty_alu_cycles 11165) (instruction_load_stalls 59) (data_load_stalls 0)
-   (data_store_stalls 105) (fetch_branch_target_buffer_hits 54038)
+   (empty_alu_cycles 10657) (instruction_load_stalls 61) (data_load_stalls 0)
+   (data_store_stalls 100) (fetch_branch_target_buffer_hits 54037)
    (fetch_branch_target_buffer_misses 24771)
-   (decode_branch_mispredictions 234) (decode_jump_mispredictions 1642)
-   (execute_branch_mispredictions 4816) (execute_jump_mispredictions 8))))
+   (decode_branch_mispredictions 535) (decode_jump_mispredictions 1642)
+   (execute_branch_mispredictions 4517) (execute_jump_mispredictions 8))))

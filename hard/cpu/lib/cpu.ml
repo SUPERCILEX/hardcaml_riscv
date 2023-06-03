@@ -151,7 +151,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
     ; fetch_predicted_next_pc = zero Parameters.word_width
     ; fetch_predicted_branch_target = zero Parameters.word_width
     ; has_fetch_prediction = gnd
+    ; is_fetch_prediction_low_confidence = gnd
     ; fetch_predicted_direction = gnd
+    ; raw_predicted_direction = gnd
     ; forward = { program_counter; error = fetch_error }
     }
   in
@@ -177,6 +179,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
   let decode_return_address_stack_entries_restored =
     wire Branch_prediction.Return_address_stack.Params.address_bits
   in
+  let is_fetch_prediction_low_confidence = wire 1 in
   let { Decode_instruction_and_load_registers.O.done_ = decode_done
       ; decoded
       ; predicted_next_pc = decode_predicted_next_pc
@@ -206,7 +209,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
                 raw_instruction
               ; fetch_predicted_next_pc = program_counter
               ; has_fetch_prediction
+              ; is_fetch_prediction_low_confidence
               ; fetch_predicted_direction
+              ; raw_predicted_direction = predicted_branch_direction
               ; fetch_predicted_branch_target
               }
           }
@@ -412,7 +417,10 @@ let create scope ~bootloader { I.clock; clear; uart } =
     control_flow_resolved_is_branch <== is_branch;
     control_flow_resolved_is_return <== is_return;
     decode_return_address_stack_entries_restored <== return_address_stack_entries;
-    let { Branch_prediction.Branch_direction_predictor.O.predicted_direction } =
+    let { Branch_prediction.Branch_direction_predictor.O.predicted_direction
+        ; is_low_confidence
+        }
+      =
       Branch_prediction.Branch_direction_predictor.hierarchical
         scope
         { clock
@@ -447,6 +455,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
         }
     in
     predicted_branch_direction <== predicted_direction;
+    is_fetch_prediction_low_confidence <== is_low_confidence;
     ()
   in
   let module Execute_buffer = Fast_fifo.Make (Execute.Data_out) in
