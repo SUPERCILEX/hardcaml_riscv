@@ -164,7 +164,7 @@
    ((cycles_since_boot 23)
     (instructions_retired
      ((total 9) (jumps 0) (branches 0) (taken_branches 0)))
-    (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 10)
+    (empty_alu_cycles 13) (instruction_load_stalls 0) (data_load_stalls 10)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 0)
@@ -184,7 +184,7 @@
    ((cycles_since_boot 34)
     (instructions_retired
      ((total 10) (jumps 0) (branches 0) (taken_branches 0)))
-    (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 19)
+    (empty_alu_cycles 23) (instruction_load_stalls 0) (data_load_stalls 19)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 0)
@@ -204,7 +204,7 @@
    ((cycles_since_boot 35)
     (instructions_retired
      ((total 11) (jumps 0) (branches 0) (taken_branches 0)))
-    (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 19)
+    (empty_alu_cycles 24) (instruction_load_stalls 0) (data_load_stalls 19)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 0)
@@ -224,7 +224,7 @@
    ((cycles_since_boot 44)
     (instructions_retired
      ((total 12) (jumps 0) (branches 0) (taken_branches 0)))
-    (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 19)
+    (empty_alu_cycles 32) (instruction_load_stalls 0) (data_load_stalls 19)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 0)
@@ -244,7 +244,7 @@
    ((cycles_since_boot 53)
     (instructions_retired
      ((total 13) (jumps 0) (branches 0) (taken_branches 0)))
-    (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 19)
+    (empty_alu_cycles 39) (instruction_load_stalls 0) (data_load_stalls 19)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
     (decode_jump_mispredictions 0) (execute_branch_mispredictions 0)

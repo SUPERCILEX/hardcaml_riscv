@@ -600,14 +600,7 @@ let create scope ~bootloader { I.clock; clear; uart } =
                   &: control_flow_resolved_is_branch
                   &: control_flow_resolved_to_taken)
            }
-       ; empty_alu_cycles =
-           (let { Decode_instruction_and_load_registers_buffer.Entry.id = _
-                ; raw = { valid; ready; data = _ }
-                }
-              =
-              decode_instruction_and_load_registers_out
-            in
-            counter ~:(valid &: ready))
+       ; empty_alu_cycles = counter (~:execute_done |: flush_pre_writeback)
        ; instruction_load_stalls = counter (load_instruction &: stall_load_instruction)
        ; data_load_stalls = counter (load_mem &: stall_mem_load)
        ; data_store_stalls = counter (store_mem &: stall_mem_store)

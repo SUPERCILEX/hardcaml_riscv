@@ -28,8 +28,9 @@
  (counters
   ((cycles_since_boot 500000000)
    (instructions_retired
-    ((total 469587245) (jumps 32262824) (branches 55007579)))
-   (empty_alu_cycles 13409904) (instruction_load_stalls 12910)
+    ((total 469587245) (jumps 32262824) (branches 55007579)
+     (taken_branches 33556314)))
+   (empty_alu_cycles 30412754) (instruction_load_stalls 12910)
    (data_load_stalls 0) (data_store_stalls 4005)
    (fetch_branch_target_buffer_hits 75436092)
    (fetch_branch_target_buffer_misses 14095219)
