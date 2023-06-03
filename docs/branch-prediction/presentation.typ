@@ -211,6 +211,10 @@
   #image("branch-mispredictions.svg")
 ]
 
+#slide(title: [Sample program branch prediction accuracy])[
+  #image("branch-accuracy.svg")
+]
+
 #slide(title: [Sample program performance comparison])[
   #image("perf.svg")
 ]
