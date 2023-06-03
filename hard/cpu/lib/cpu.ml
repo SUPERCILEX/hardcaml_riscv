@@ -19,6 +19,7 @@ module Counters = struct
       { total : 'a [@bits 64]
       ; jumps : 'a [@bits 64]
       ; branches : 'a [@bits 64]
+      ; taken_branches : 'a [@bits 64]
       }
     [@@deriving sexp_of, hardcaml]
   end
@@ -593,6 +594,11 @@ let create scope ~bootloader { I.clock; clear; uart } =
            { total = counter writeback_done
            ; jumps = counter (control_flow_resolved &: ~:control_flow_resolved_is_branch)
            ; branches = counter (control_flow_resolved &: control_flow_resolved_is_branch)
+           ; taken_branches =
+               counter
+                 (control_flow_resolved
+                  &: control_flow_resolved_is_branch
+                  &: control_flow_resolved_to_taken)
            }
        ; empty_alu_cycles =
            (let { Decode_instruction_and_load_registers_buffer.Entry.id = _

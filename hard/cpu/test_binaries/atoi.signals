@@ -2,7 +2,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 4)
-    (instructions_retired ((total 1) (jumps 0) (branches 0)))
+    (instructions_retired
+     ((total 1) (jumps 0) (branches 0) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
@@ -21,7 +22,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 5)
-    (instructions_retired ((total 2) (jumps 0) (branches 0)))
+    (instructions_retired
+     ((total 2) (jumps 0) (branches 0) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 0) (decode_branch_mispredictions 0)
@@ -40,7 +42,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 6)
-    (instructions_retired ((total 3) (jumps 0) (branches 0)))
+    (instructions_retired
+     ((total 3) (jumps 0) (branches 0) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 1) (decode_branch_mispredictions 0)
@@ -59,7 +62,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 7)
-    (instructions_retired ((total 4) (jumps 0) (branches 0)))
+    (instructions_retired
+     ((total 4) (jumps 0) (branches 0) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 0) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 1) (decode_branch_mispredictions 0)
@@ -78,7 +82,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 10)
-    (instructions_retired ((total 6) (jumps 0) (branches 1)))
+    (instructions_retired
+     ((total 6) (jumps 0) (branches 1) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 1) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 2) (decode_branch_mispredictions 0)
@@ -97,7 +102,8 @@
  ((error 0) (uart ((write_data 43) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 11)
-    (instructions_retired ((total 7) (jumps 0) (branches 1)))
+    (instructions_retired
+     ((total 7) (jumps 0) (branches 1) (taken_branches 0)))
     (empty_alu_cycles 2) (instruction_load_stalls 1) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 2) (decode_branch_mispredictions 0)
@@ -116,7 +122,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 17)
-    (instructions_retired ((total 9) (jumps 0) (branches 2)))
+    (instructions_retired
+     ((total 9) (jumps 0) (branches 2) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 2) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 3) (decode_branch_mispredictions 0)
@@ -135,7 +142,8 @@
  ((error 0) (uart ((write_data 45) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 18)
-    (instructions_retired ((total 10) (jumps 0) (branches 2)))
+    (instructions_retired
+     ((total 10) (jumps 0) (branches 2) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 2) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 3) (decode_branch_mispredictions 0)
@@ -154,7 +162,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 20)
-    (instructions_retired ((total 12) (jumps 0) (branches 3)))
+    (instructions_retired
+     ((total 12) (jumps 0) (branches 3) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 2) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 3) (decode_branch_mispredictions 0)
@@ -173,7 +182,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 21)
-    (instructions_retired ((total 13) (jumps 0) (branches 3)))
+    (instructions_retired
+     ((total 13) (jumps 0) (branches 3) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 2) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -192,7 +202,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 23)
-    (instructions_retired ((total 14) (jumps 0) (branches 3)))
+    (instructions_retired
+     ((total 14) (jumps 0) (branches 3) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -211,7 +222,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 25)
-    (instructions_retired ((total 16) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 16) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -230,7 +242,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 26)
-    (instructions_retired ((total 17) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 17) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -249,7 +262,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 27)
-    (instructions_retired ((total 18) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 18) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -268,7 +282,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 28)
-    (instructions_retired ((total 19) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 19) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -287,7 +302,8 @@
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 29)
-    (instructions_retired ((total 20) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 20) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 4) (decode_branch_mispredictions 0)
@@ -306,7 +322,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 30)
-    (instructions_retired ((total 21) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 21) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 5) (decode_branch_mispredictions 0)
@@ -325,7 +342,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 31)
-    (instructions_retired ((total 22) (jumps 0) (branches 4)))
+    (instructions_retired
+     ((total 22) (jumps 0) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 4) (instruction_load_stalls 3) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 5) (decode_branch_mispredictions 0)
@@ -344,7 +362,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 35)
-    (instructions_retired ((total 24) (jumps 1) (branches 4)))
+    (instructions_retired
+     ((total 24) (jumps 1) (branches 4) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -363,7 +382,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 37)
-    (instructions_retired ((total 26) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 26) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -382,7 +402,8 @@
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 38)
-    (instructions_retired ((total 27) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 27) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -401,7 +422,8 @@
  ((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 39)
-    (instructions_retired ((total 28) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 28) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -420,7 +442,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 40)
-    (instructions_retired ((total 29) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 29) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -439,7 +462,8 @@
  ((error 0) (uart ((write_data 2) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 41)
-    (instructions_retired ((total 30) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 30) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 0)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -458,7 +482,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 42)
-    (instructions_retired ((total 31) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 31) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -477,7 +502,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 43)
-    (instructions_retired ((total 32) (jumps 1) (branches 5)))
+    (instructions_retired
+     ((total 32) (jumps 1) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 4) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 6) (decode_branch_mispredictions 0)
@@ -496,7 +522,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 46)
-    (instructions_retired ((total 34) (jumps 2) (branches 5)))
+    (instructions_retired
+     ((total 34) (jumps 2) (branches 5) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -515,7 +542,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 48)
-    (instructions_retired ((total 36) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 36) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -534,7 +562,8 @@
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 49)
-    (instructions_retired ((total 37) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 37) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -553,7 +582,8 @@
  ((error 0) (uart ((write_data 12) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 50)
-    (instructions_retired ((total 38) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 38) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -572,7 +602,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 51)
-    (instructions_retired ((total 39) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 39) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -591,7 +622,8 @@
  ((error 0) (uart ((write_data 3) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 52)
-    (instructions_retired ((total 40) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 40) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 1)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -610,7 +642,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 53)
-    (instructions_retired ((total 41) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 41) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -629,7 +662,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 54)
-    (instructions_retired ((total 42) (jumps 2) (branches 6)))
+    (instructions_retired
+     ((total 42) (jumps 2) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 5) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 7) (decode_branch_mispredictions 0)
@@ -648,7 +682,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 57)
-    (instructions_retired ((total 44) (jumps 3) (branches 6)))
+    (instructions_retired
+     ((total 44) (jumps 3) (branches 6) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -667,7 +702,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 59)
-    (instructions_retired ((total 46) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 46) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -686,7 +722,8 @@
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 60)
-    (instructions_retired ((total 47) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 47) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -705,7 +742,8 @@
  ((error 0) (uart ((write_data 123) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 61)
-    (instructions_retired ((total 48) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 48) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -724,7 +762,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 62)
-    (instructions_retired ((total 49) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 49) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -743,7 +782,8 @@
  ((error 0) (uart ((write_data 4) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 63)
-    (instructions_retired ((total 50) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 50) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 2)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -762,7 +802,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 64)
-    (instructions_retired ((total 51) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 51) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -781,7 +822,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 65)
-    (instructions_retired ((total 52) (jumps 3) (branches 7)))
+    (instructions_retired
+     ((total 52) (jumps 3) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 6) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 8) (decode_branch_mispredictions 0)
@@ -800,7 +842,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 68)
-    (instructions_retired ((total 54) (jumps 4) (branches 7)))
+    (instructions_retired
+     ((total 54) (jumps 4) (branches 7) (taken_branches 1)))
     (empty_alu_cycles 5) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -819,7 +862,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 73)
-    (instructions_retired ((total 56) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 56) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -838,7 +882,8 @@
  ((error 0) (uart ((write_data 255) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 74)
-    (instructions_retired ((total 57) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 57) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -857,7 +902,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 75)
-    (instructions_retired ((total 58) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 58) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -876,7 +922,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 76)
-    (instructions_retired ((total 59) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 59) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -895,7 +942,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 77)
-    (instructions_retired ((total 60) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 60) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 9) (decode_branch_mispredictions 0)
@@ -914,7 +962,8 @@
  ((error 0) (uart ((write_data 210) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 78)
-    (instructions_retired ((total 61) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 61) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 10) (decode_branch_mispredictions 0)
@@ -933,7 +982,8 @@
  ((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
   (counters
    ((cycles_since_boot 79)
-    (instructions_retired ((total 62) (jumps 4) (branches 8)))
+    (instructions_retired
+     ((total 62) (jumps 4) (branches 8) (taken_branches 2)))
     (empty_alu_cycles 7) (instruction_load_stalls 7) (data_load_stalls 0)
     (data_store_stalls 0) (fetch_branch_target_buffer_hits 3)
     (fetch_branch_target_buffer_misses 10) (decode_branch_mispredictions 0)
