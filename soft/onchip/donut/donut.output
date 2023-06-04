@@ -24,15 +24,15 @@
 
 ============================================================
 
-((error 0) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
+((error 0) (uart ((write_data 1) (write_ready 0) (read_ready 0)))
  (counters
   ((cycles_since_boot 500000000)
    (instructions_retired
-    ((total 469587245) (jumps 32262824) (branches 55007579)
-     (taken_branches 33556314)))
-   (empty_alu_cycles 30412754) (instruction_load_stalls 12910)
-   (data_load_stalls 0) (data_store_stalls 4005)
-   (fetch_branch_target_buffer_hits 75436092)
-   (fetch_branch_target_buffer_misses 14095219)
-   (decode_branch_mispredictions 208098) (decode_jump_mispredictions 698587)
-   (execute_branch_mispredictions 6273765) (execute_jump_mispredictions 3))))
+    ((total 470250277) (jumps 32306285) (branches 55082159)
+     (taken_branches 33601093)))
+   (empty_alu_cycles 29749722) (instruction_load_stalls 12938)
+   (data_load_stalls 0) (data_store_stalls 4004)
+   (fetch_branch_target_buffer_hits 77308583)
+   (fetch_branch_target_buffer_misses 12334563)
+   (decode_branch_mispredictions 31869) (decode_jump_mispredictions 752047)
+   (execute_branch_mispredictions 6095061) (execute_jump_mispredictions 3))))

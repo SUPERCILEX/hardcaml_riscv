@@ -70,7 +70,7 @@ module Branch_target_buffer = struct
 
   let hierarchical =
     let open Signal in
-    let size = 1024 in
+    let size = 2048 in
     hierarchical
       ~name:"branch_target_buffer"
       ~size
