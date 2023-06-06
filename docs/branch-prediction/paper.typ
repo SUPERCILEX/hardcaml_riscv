@@ -1,4 +1,6 @@
 #import "ieee.typ": *
+
+#set page(numbering: "1")
 #show: ieee.with(
   title: "Branch Prediction in Hardcaml for a RISC-V 32im CPU",
   abstract: [
@@ -33,7 +35,10 @@ To write hardware, the industry primarily uses Verilog or VHDL @cass2022top. Whi
 
 == Paper overview
 
-The paper is organized as follows: first, I very briefly introduce the processor, followed by an explanation of each implemented branch prediction technique, then I present an evaluation of each technique followed by future work to further improve the processor, and finally, I describe the key advantages offered by Hardcaml over the course of the processor's development.
+The paper is organized as follows.
+First, I very briefly introduce the processor, followed by an explanation of each implemented branch prediction technique.
+Then, I present an evaluation of each technique, followed by future work to further improve the processor.
+Finally, I describe the key advantages offered by Hardcaml over the course of the processor's development.
 
 = CPU overview
 
@@ -53,7 +58,7 @@ Overall, the goal of a processor's frontend is to keep the backend full with use
 
 When an instruction stream has never been encountered before, an informed prediction can be made at the earliest in the decode stage.
 After decoding an instruction, the processor knows what is about to be executed.
-For branch prediction purposes in RISC-V, there are three instructions types which can be acted upon:
+For branch prediction purposes in RISC-V, there are three instruction types which can be acted upon:
 
 - _Direct unconditional jumps._
   A 100% accurate prediction can be made for unconditional jump instructions in the decode stage as the processor has complete knowledge of both the current program counter and jump offset (since it is encoded in the instruction's immediate field).
@@ -139,7 +144,7 @@ Hardware can therefore stick to retirement-only BTB insertions.
 There is one final consideration: should non-taken branches be added to the BTB?
 If a branch is never taken, it is clearly unhelpful to store the branch in the BTB as the fetch stage will naturally continue straight-line execution.
 However, the decode stage may believe the branch will be taken and cannot know that the branch has been seen before to be not taken without an entry in the BTB.
-Experimentally, adding mispredicted non taken branches to the BTB decreases performance due to evicting useful BTB entries, which matches the results found by Bray et al. @bray1991strategies.
+Experimentally, adding mispredicted, non-taken branches to the BTB decreases performance due to evicting useful BTB entries, which matches the results found by Bray et al. @bray1991strategies.
 The Intel Pentium processor is also documented as only adding taken branches to the BTB @alpert1993architecture.
 
 Thus, only taken branches should be added to the BTB to augment the decode stage's knowledge of the instruction stream.
@@ -261,7 +266,7 @@ Finally, @branch-accuracy offers a different perspective on the branch mispredic
 
 As expected, static jump predictions always improve performance.
 Static branch predictions often, but don't always improve performance---with profile guided optimizations (PGO), I believe the compiler could significantly improve its predictions, or at the very least, not worsen performance.
-Thus, I believe almost all processors should implement static predictions as the hardware cost of doing so is basically free and the performance gains are non-trivial.
+Thus, I believe almost all processors should implement static predictions as the hardware cost of doing so is basically free and the performance gains are notable.
 
 @jump-mispredictions demonstrates the importance of including a RAS: once added, jump mispredictions are all but eliminated.
 Due to being ruthlessly effective, I also believe most processors should include a RAS (unless the expected programs make minimal use of function calls).
@@ -270,7 +275,7 @@ The BTB improves performance of jumps, especially in function call heavy program
 Once a dynamic predictor is introduced (i.e. bimodals), all lost performance is recovered and then further improved.
 
 Finally, BATAGE shows significant accuracy gains, but limited overall performance improvements due to approaching the limits of available performance improvement from more accurate branch prediction (see @ipc-no-misprediction).
-The authors would like to note that this paper's implementation of BATAGE does not match the expected \~4 mispredictions per kilo-instruction claimed in the paper.
+The author would like to note that this paper's implementation of BATAGE does not match the expected \~4 mispredictions per kilo-instruction claimed in the paper.
 Further investigation is needed to determine the cause: bugs in the implementation are a likely candidate, but it may be possible that this paper's evaluation programs are less predictable than those used to benchmark BATAGE.
 
 == Future work
@@ -353,7 +358,7 @@ Verilog has some arcane syntax that can be off-putting, but primarily suffers fr
 Hardware is fundamentally functional in nature which means expressing combinational transformations is much easier when written functionally.
 This does not mean hardware should never be described imperatively, but rather that there should always be an option to describe hardware functionally, which is the ability Verilog lacks.
 
-== Why Hardcaml instead of X?
+== Why Hardcaml instead of other HDLs?
 
 When I set out to find a new HDL, I considered a few other languages of note:
 
@@ -382,11 +387,11 @@ This means that producing combinational logic is as simple as writing a function
 Consider the real piece of code in @prng-hardcaml used to generate 5 PRNGs that match @prng-batage from the BATAGE model.
 The code is both clear and concise:
 
-+ We first define a combinational logic function `gen_random` which receives a signal `x` and randomizes it via xors and shifts before returning it.
++ We first define a combinational logic function `gen_random` which receives a signal `x` and randomizes it via XORs and shifts before returning it.
 + Next we define a function `rng` which produces a register with sequential logic that computes `gen_random` every cycle, parameterized by a starting value.
 + Finally, we instantiate 5 different PRNGs, each with different starting values.
 
-In Verilog, I might have written a test bench for this module as I would not be confident that no mistakes had been made.
+In Verilog, I would not be confident that no mistakes had been made, therefore I probably would have written a test bench for this module.
 In Hardcaml, I do not know how you could make a mistake in this RTL.
 
 #figure(
@@ -450,7 +455,7 @@ In Hardcaml, I do not know how you could make a mistake in this RTL.
 
 There are a number of other examples that showcase Hardcaml's power, but a full paper could be written on the subject so I will only further discuss a key benefit Hardcaml provided while implementing BATAGE: interactive model checking.
 
-The combinational logic portions of this paper's BATAGE implementation are model checked: the BATAGE model was re-implementation in Ocaml and used to validate the correctness of this paper's BATAGE implementation by generating random inputs to the circuit and validating them against the model.
+The combinational logic portions of this paper's BATAGE implementation are model checked: the BATAGE model was reimplemented in Ocaml and used to validate the correctness of this paper's BATAGE implementation by generating random inputs to the circuit and validating them against the model.
 Dozens and dozens of bugs were found through this process!
 While the same thing could have presumably been achieved using Verilator, having the model and implementation in the same language made it trivial to add print statements and use waveform debugging to quickly identify the source of the bugs.
 
