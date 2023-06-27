@@ -5,12 +5,12 @@
 
 ((error 1) (uart ((write_data 0) (write_ready 0) (read_ready 0)))
  (counters
-  ((cycles_since_boot 7697)
+  ((cycles_since_boot 7669)
    (instructions_retired
-    ((total 5697) (jumps 339) (branches 867) (taken_branches 339)))
-   (empty_alu_cycles 1999) (instruction_load_stalls 88)
-   (data_load_stalls 209) (data_store_stalls 164)
-   (fetch_branch_target_buffer_hits 792)
-   (fetch_branch_target_buffer_misses 468) (decode_branch_mispredictions 20)
-   (decode_jump_mispredictions 51) (execute_branch_mispredictions 139)
+    ((total 5661) (jumps 339) (branches 867) (taken_branches 351)))
+   (empty_alu_cycles 2007) (instruction_load_stalls 96)
+   (data_load_stalls 209) (data_store_stalls 178)
+   (fetch_branch_target_buffer_hits 814)
+   (fetch_branch_target_buffer_misses 459) (decode_branch_mispredictions 20)
+   (decode_jump_mispredictions 51) (execute_branch_mispredictions 137)
    (execute_jump_mispredictions 7))))
