@@ -1527,8 +1527,8 @@ module BayesianTage = struct
               ~max:Params.controlled_allocation_decay_max
               controlled_allocation_decay;
         { O.next_entries =
-            (let open Dual_counter in
-             let update_at_prediction_bank =
+            (let update_at_prediction_bank =
+               let open Dual_counter in
                [ is_high_confidence prediction_counters
                ; is_high_confidence hitter_after_prediction_counters
                ; prediction hitter_after_prediction_counters ==: resolved_direction
@@ -1541,12 +1541,12 @@ module BayesianTage = struct
              in
              let maybe_decay_hitter =
                update_at_prediction_bank
-               &: (~:(is_saturated prediction_counters)
+               &: (~:(Dual_counter.is_saturated prediction_counters)
                    |: (next_meta <+. 0 &: (sel_bottom random2 3 ==:. 0)))
              in
              let maybe_update_hitter = ~:update_at_prediction_bank in
              let maybe_update_younger_hitter =
-               ~:(is_high_confidence prediction_counters)
+               ~:(Dual_counter.is_high_confidence prediction_counters)
              in
              List.zip_exn hit_vector read_entries
              |> List.zip_exn tags
@@ -1562,6 +1562,7 @@ module BayesianTage = struct
                       mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
                   ; counters =
                       (let maybe_update_oldest_hitters =
+                         let open Dual_counter in
                          [ next_meta >=+. 0
                          ; is_low_confidence counters
                          ; prediction counters <>: prediction prediction_counters
@@ -1570,6 +1571,7 @@ module BayesianTage = struct
                          |> tree ~arity:2 ~f:(reduce ~f:( |: ))
                        in
                        let hots =
+                         let open Dual_counter in
                          [ { With_valid.valid =
                                hit
                                &: ([ bank_used_for_prediction

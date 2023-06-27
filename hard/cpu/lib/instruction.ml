@@ -64,4 +64,4 @@ module All = struct
   [@@deriving sexp_of, compare, enumerate]
 end
 
-include Interface.Make_enums (All)
+include Enum.Make_enums (All)

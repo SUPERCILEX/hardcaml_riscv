@@ -10,7 +10,7 @@ module Size = struct
     [@@deriving sexp_of, compare, enumerate]
   end
 
-  include Interface.Make_enums (Enum)
+  include Hardcaml.Enum.Make_enums (Enum)
 end
 
 module I = struct

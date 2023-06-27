@@ -18,6 +18,9 @@ Hardware dev tools
   . [-verilator-cache-dir <directory>]
                              . Cache directory for verilator. This can only be
                                set when with the -verilator flag.)
+  . [-verilator-file-name <filename>]
+                             . Explicit file name to use for shared library.
+                               This can only be set with the -verilator flag
   . [-verilator]             . <flag> Use the verilator backend
   locate-net                 . Trace the origin of a net to hardcaml
   . -circuit-name CIRCUIT-NAME
@@ -36,6 +39,9 @@ Hardware dev tools
   . [-verilator-cache-dir <directory>]
                              . Cache directory for verilator. This can only be
                                set when with the -verilator flag.)
+  . [-verilator-file-name <filename>]
+                             . Explicit file name to use for shared library.
+                               This can only be set with the -verilator flag
   . [-verilator]             . <flag> Use the verilator backend
   waves                      . Open waveform viewer
   . -program NAME            . Program to simulate (can be: (Sample Atoi),
@@ -52,6 +58,9 @@ Hardware dev tools
   . [-verilator-cache-dir <directory>]
                              . Cache directory for verilator. This can only be
                                set when with the -verilator flag.)
+  . [-verilator-file-name <filename>]
+                             . Explicit file name to use for shared library.
+                               This can only be set with the -verilator flag
   . [-verilator]             . <flag> Use the verilator backend
   version                    . print version information
   . [-build-info]            . print build info for this build

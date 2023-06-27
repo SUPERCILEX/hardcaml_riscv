@@ -8,11 +8,11 @@ let create ~program ~verilator =
   | Hardcaml_verilator.Simulation_backend.Hardcaml ->
     let module Simulator = Cyclesim.With_interface (I) (O) in
     Simulator.create ~config:Cyclesim.Config.trace_all (create scope ~bootloader:program)
-  | Verilator { cache_dir } ->
+  | Verilator cache ->
     let module Simulator = Hardcaml_verilator.With_interface (I) (O) in
     Simulator.create
       ~verbose:true
-      ?cache_dir
+      ~cache
       ~threads:(`With_threads 4)
       ~clock_names:[ "clock" ]
       (create scope ~bootloader:program)
