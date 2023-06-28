@@ -16,7 +16,7 @@ version = "0.0.0"
 publish = false
 
 [dev-dependencies]
-supercilex-tests = "0.3.0"
+supercilex-tests = "0.3.3"
 
 [profile.release]
 lto = true

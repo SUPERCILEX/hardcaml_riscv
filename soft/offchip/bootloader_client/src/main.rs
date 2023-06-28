@@ -8,13 +8,12 @@ use std::{
 
 use bootloader::{encode, Command};
 use clap::{Args, Parser, Subcommand, ValueHint};
-use clap2 as clap;
 use shared::PACKET_SIZE;
 
 #[derive(Parser, Debug)]
 #[command(version, author = "Alex Saveau (@SUPERCILEX)")]
 #[command(infer_subcommands = true, infer_long_args = true)]
-#[command(disable_help_flag = true)]
+#[command(max_term_width = 100)]
 #[cfg_attr(test, command(help_expected = true))]
 struct BootloaderClient {
     #[arg(value_hint = ValueHint::DirPath)]

@@ -7,7 +7,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-libm = "0.2.6"
+libm = "0.2.7"
 slib = { path = "../../slib" }
 
 [profile.release]
