@@ -96,8 +96,8 @@ let is_unaligned_address ~size address =
 ;;
 
 module MakeRam (Params : sig
-  val size : int
-end) =
+    val size : int
+  end) =
 struct
   let address_bits = Signal.address_bits_for Params.size
 
@@ -272,8 +272,8 @@ module Rom = struct
              (List.chunks_of ~length:bytes data
               |> List.transpose_exn
               |> List.map ~f:(fun byte_bank ->
-                   mux (srl address (address_bits_for bytes)) byte_bank
-                   |> reg ~enable spec))
+                mux (srl address (address_bits_for bytes)) byte_bank |> reg ~enable spec)
+             )
            ~size:
              Size.Binary.Of_signal.(
                mux2 load data_size (of_enum Word) |> reg ~enable spec)
@@ -791,11 +791,11 @@ module Tests = struct
         List.init (Parameters.word_width / 8) ~f:(fun i -> s, i))
       |> List.concat
       |> List.iter ~f:(fun (s, offset) ->
-           (inputs.data_address
-              := Parameters.(of_int ~width:word_width (code_bottom + offset)));
-           Size.Binary.sim_set inputs.data_size s;
-           step ();
-           ());
+        (inputs.data_address
+           := Parameters.(of_int ~width:word_width (code_bottom + offset)));
+        Size.Binary.sim_set inputs.data_size s;
+        step ();
+        ());
       ());
     [%expect
       {|
@@ -1224,15 +1224,15 @@ module Tests = struct
       inputs.load := vdd;
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->
-           inputs.data_address := !(inputs.data_address) +:. 1;
-           step ();
-           ());
+        inputs.data_address := !(inputs.data_address) +:. 1;
+        step ();
+        ());
       Stdio.print_endline "--------------------------------------------";
       Size.Binary.sim_set inputs.data_size Half_word;
       List.init 4 ~f:Fn.id
       |> List.iter ~f:(fun _ ->
-           step ();
-           inputs.data_address := !(inputs.data_address) +:. 2);
+        step ();
+        inputs.data_address := !(inputs.data_address) +:. 2);
       ());
     [%expect
       {|

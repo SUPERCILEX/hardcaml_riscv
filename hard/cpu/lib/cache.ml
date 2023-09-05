@@ -2,9 +2,10 @@ open! Core
 open Hardcaml
 
 module Make
-  (M : Interface.S) (Params : sig
-    val address_bits : int
-  end) =
+    (M : Interface.S)
+    (Params : sig
+       val address_bits : int
+     end) =
 struct
   module I = struct
     type 'a t =

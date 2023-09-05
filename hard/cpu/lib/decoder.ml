@@ -299,10 +299,10 @@ module Tests = struct
       (test_instruction_bytes ())
       (test_instructions ())
       ~f:(fun bytes instruction ->
-      inputs.instruction := bytes;
-      Cyclesim.cycle sim;
-      print_state instruction;
-      ())
+        inputs.instruction := bytes;
+        Cyclesim.cycle sim;
+        print_state instruction;
+        ())
   ;;
 
   let sim () =

@@ -352,9 +352,9 @@ let create scope ~bootloader { I.clock; clear; uart } =
       List.map
         bypass_registers
         ~f:(fun { id = _; raw = { valid; ready; data = { rd_address; rd } } } ->
-        { With_valid.valid = valid &: (rd_address ==: target_address)
-        ; value = Bypass.Of_signal.pack { ready; rd }
-        })
+          { With_valid.valid = valid &: (rd_address ==: target_address)
+          ; value = Bypass.Of_signal.pack { ready; rd }
+          })
       |> priority_select_with_default
            ~default:(Bypass.Of_signal.pack { ready = vdd; rd = default })
       |> Bypass.Of_signal.unpack

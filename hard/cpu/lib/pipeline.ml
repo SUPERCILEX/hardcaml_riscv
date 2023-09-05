@@ -459,8 +459,8 @@ module Execute = struct
        |> List.map ~f:(fun (instructions, s) -> List.map instructions ~f:(fun i -> i, s))
        |> List.concat
        |> List.map ~f:(fun (i, s) ->
-            ( Instruction.All.Rv32i i
-            , Memory_controller.Size.Binary.(Of_signal.of_enum s |> to_raw) )))
+         ( Instruction.All.Rv32i i
+         , Memory_controller.Size.Binary.(Of_signal.of_enum s |> to_raw) )))
     |> Memory_controller.Size.Binary.Of_signal.of_raw
   ;;
 
@@ -638,10 +638,11 @@ module Load_memory_and_store = struct
   ;;
 end
 
-module Stage_buffer (Params : sig
-  val capacity : int
-end)
-(M : Interface.S) =
+module Stage_buffer
+    (Params : sig
+       val capacity : int
+     end)
+    (M : Interface.S) =
 struct
   let id_width = Signal.address_bits_for Params.capacity
 
@@ -730,11 +731,11 @@ struct
         |> Fn.flip List.zip_exn entries
         |> List.rev
         |> List.folding_map ~init:gnd ~f:(fun right (next_right, prev) ->
-             ( next_right
-             , Entry.Of_signal.mux2
-                 pop
-                 { prev with raw = { prev.raw with valid = right } }
-                 prev ))
+          ( next_right
+          , Entry.Of_signal.mux2
+              pop
+              { prev with raw = { prev.raw with valid = right } }
+              prev ))
         |> List.rev
       in
       List.folding_map
@@ -753,7 +754,7 @@ struct
         (let head =
            List.rev entries_next
            |> List.reduce_exn ~f:(fun head tail ->
-                Entry.Of_signal.mux2 head.raw.valid head tail)
+             Entry.Of_signal.mux2 head.raw.valid head tail)
          in
          let head_reg = head |> Entry.Of_signal.reg (Reg_spec.create ~clock ()) in
          { head_reg with

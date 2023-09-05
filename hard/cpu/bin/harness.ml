@@ -83,28 +83,26 @@ let sim ~program ~verilator ?cycles ?input_data_file ?output_data_file () =
   let all_signals =
     Cyclesim.internal_ports sim
     |> List.filter_map ~f:(fun (signal_name, signal) ->
-         (if String.is_substring ~substring:"clock" signal_name
-             || String.is_substring ~substring:"clear" signal_name
-          then None
-          else if (String.is_substring ~substring:"memory_controller$i$" signal_name
-                   && String.is_substring
-                        ~substring:"memory_controller$i$uart"
-                        signal_name
-                      |> not)
-                  || String.is_substring ~substring:"register_file$i$" signal_name
-          then Some signal
-          else None)
-         |> Option.map ~f:(fun s -> signal_name, s))
+      (if String.is_substring ~substring:"clock" signal_name
+          || String.is_substring ~substring:"clear" signal_name
+       then None
+       else if (String.is_substring ~substring:"memory_controller$i$" signal_name
+                && String.is_substring ~substring:"memory_controller$i$uart" signal_name
+                   |> not)
+               || String.is_substring ~substring:"register_file$i$" signal_name
+       then Some signal
+       else None)
+      |> Option.map ~f:(fun s -> signal_name, s))
     |> List.sort ~compare:(fun (a, _) (b, _) -> String.compare a b)
   in
   let store_signals =
     Cyclesim.internal_ports sim
     |> List.filter_map ~f:(fun (signal_name, signal) ->
-         if [ "register_file$i$store"; "memory_controller$i$store" ]
-            |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
-            |> reduce ~f:( || )
-         then Some signal
-         else None)
+      if [ "register_file$i$store"; "memory_controller$i$store" ]
+         |> List.map ~f:(fun s -> String.is_substring ~substring:s signal_name)
+         |> reduce ~f:( || )
+      then Some signal
+      else None)
   in
   test_bench sim ?input_data_file ?output_data_file ~step:(fun i ->
     if List.map store_signals ~f:(Fn.compose to_bool ( ! )) |> reduce ~f:( || )

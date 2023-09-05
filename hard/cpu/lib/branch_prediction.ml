@@ -81,10 +81,11 @@ end
 
 module Return_address_stack = struct
   module Overflowable_stack = struct
-    module Make (Params : sig
-      val size : int
-    end)
-    (M : Interface.S) =
+    module Make
+        (Params : sig
+           val size : int
+         end)
+        (M : Interface.S) =
     struct
       module Params = struct
         include Params
@@ -394,23 +395,23 @@ module BayesianTage = struct
   end
 
   module Internal (Params : sig
-    val num_banks : int
-    val num_entries_per_bank : int
-    val counter_width : int
-    val tag_width : int
-    val controlled_allocation_throttler_max : int
-    val controlled_allocation_decay_max : int
-    val max_banks_skipped_on_allocation : int
-    val meta_width : int
-    val num_bimodal_direction_entries : int
-    val num_bimodal_hysteresis_entries : int
-    val bimodal_hysteresis_width : int
-    val smallest_branch_history_length : int
-    val largest_branch_history_length : int
-    val instruction_window_size : int
-    val jump_history_length : int
-    val jump_history_entry_width : int
-  end) =
+      val num_banks : int
+      val num_entries_per_bank : int
+      val counter_width : int
+      val tag_width : int
+      val controlled_allocation_throttler_max : int
+      val controlled_allocation_decay_max : int
+      val max_banks_skipped_on_allocation : int
+      val meta_width : int
+      val num_bimodal_direction_entries : int
+      val num_bimodal_hysteresis_entries : int
+      val bimodal_hysteresis_width : int
+      val smallest_branch_history_length : int
+      val largest_branch_history_length : int
+      val instruction_window_size : int
+      val jump_history_length : int
+      val jump_history_entry_width : int
+    end) =
   struct
     module Params = struct
       include Params
@@ -692,8 +693,8 @@ module BayesianTage = struct
                   ** (of_int i /. of_int Int.(Params.num_banks - 1)))
               |> to_int))
           |> List.folding_map ~init:0 ~f:(fun prev_history_length history_length ->
-               let h = Int.max (prev_history_length + 1) history_length in
-               h, h)
+            let h = Int.max (prev_history_length + 1) history_length in
+            h, h)
           |> List.rev
         in
         List.map history_lengths ~f:(fun history_length ->
@@ -850,11 +851,11 @@ module BayesianTage = struct
                       { With_valid.valid = update &: valid; value = input }))
             |> Fn.flip List.take length
             |> List.map ~f:(fun updates ->
-                 reg_fb
-                   ~width:entry_width
-                   ~f:(fun entry ->
-                     List.rev updates |> priority_select_with_default ~default:entry)
-                   (Reg_spec.create ~clock ())) )
+              reg_fb
+                ~width:entry_width
+                ~f:(fun entry ->
+                  List.rev updates |> priority_select_with_default ~default:entry)
+                (Reg_spec.create ~clock ())) )
         in
         let branch_pointers, branch_history =
           gen_path_history
@@ -946,69 +947,70 @@ module BayesianTage = struct
             in
             List.zip_exn folded_histories restore_from
             |> List.mapi
-                 ~f:(fun
-                      i
-                      ( { Indices_and_tags.branch =
-                            { index = branch_index; tag = branch_tag }
-                        ; jump = { index = jump_index; tag = jump_tag }
-                        }
-                      , { Indices_and_tags.branch =
-                            { index = restore_branch_index; tag = restore_branch_tag }
-                        ; jump = { index = restore_jump_index; tag = restore_jump_tag }
-                        } )
-                    ->
-                 let update ~type_name =
-                   update ~name:(Printf.sprintf "%s%s_%d" name type_name i)
-                 in
-                 { Indices_and_tags.branch =
-                     (let update =
-                        update
-                          ~head_entry:head_branch_entry
-                          ~history:branch_history
-                          ~pointer:branch_pointer
-                      in
-                      { index =
+                 ~f:
+                   (fun
+                     i
+                     ( { Indices_and_tags.branch =
+                           { index = branch_index; tag = branch_tag }
+                       ; jump = { index = jump_index; tag = jump_tag }
+                       }
+                     , { Indices_and_tags.branch =
+                           { index = restore_branch_index; tag = restore_branch_tag }
+                       ; jump = { index = restore_jump_index; tag = restore_jump_tag }
+                       } )
+                   ->
+                   let update ~type_name =
+                     update ~name:(Printf.sprintf "%s%s_%d" name type_name i)
+                   in
+                   { Indices_and_tags.branch =
+                       (let update =
                           update
-                            ~type_name:"branch_index"
-                            ~restore_from:restore_branch_index
-                            branch_index
-                      ; tag =
-                          update
-                            ~type_name:"branch_tag"
-                            ~restore_from:restore_branch_tag
-                            branch_tag
-                      })
-                 ; jump =
-                     (let update
-                        ({ Folded_history_metadata.original_length; _ } as metadata)
-                        =
-                        let update =
-                          if original_length <= Params.jump_history_length
-                          then
-                            update
-                              ~head_entry:head_jump_entry
-                              ~history:jump_history
-                              ~pointer:jump_pointer
-                          else
-                            update
-                              ~head_entry:head_branch_entry
-                              ~history:branch_history
-                              ~pointer:branch_pointer
+                            ~head_entry:head_branch_entry
+                            ~history:branch_history
+                            ~pointer:branch_pointer
                         in
-                        update metadata
-                      in
-                      { index =
-                          update
-                            ~type_name:"jump_index"
-                            ~restore_from:restore_jump_index
-                            jump_index
-                      ; tag =
-                          update
-                            ~type_name:"jump_tag"
-                            ~restore_from:restore_jump_tag
-                            jump_tag
-                      })
-                 })
+                        { index =
+                            update
+                              ~type_name:"branch_index"
+                              ~restore_from:restore_branch_index
+                              branch_index
+                        ; tag =
+                            update
+                              ~type_name:"branch_tag"
+                              ~restore_from:restore_branch_tag
+                              branch_tag
+                        })
+                   ; jump =
+                       (let update
+                          ({ Folded_history_metadata.original_length; _ } as metadata)
+                          =
+                          let update =
+                            if original_length <= Params.jump_history_length
+                            then
+                              update
+                                ~head_entry:head_jump_entry
+                                ~history:jump_history
+                                ~pointer:jump_pointer
+                            else
+                              update
+                                ~head_entry:head_branch_entry
+                                ~history:branch_history
+                                ~pointer:branch_pointer
+                          in
+                          update metadata
+                        in
+                        { index =
+                            update
+                              ~type_name:"jump_index"
+                              ~restore_from:restore_jump_index
+                              jump_index
+                        ; tag =
+                            update
+                              ~type_name:"jump_tag"
+                              ~restore_from:restore_jump_tag
+                              jump_tag
+                        })
+                   })
           in
           let extract_pointers = function
             | [ fetch; decode; retirement ] -> fetch, decode, retirement
@@ -1031,7 +1033,7 @@ module BayesianTage = struct
                    ~f:
                      (Indices_and_tags.map
                         ~f:(fun { Folded_history_metadata.compressed_length; _ } ->
-                        zero compressed_length)))
+                          zero compressed_length)))
               ~head_entry:(retirement_resolved_direction, retirement_branch_target)
               ~branch_pointer:branch_retirement_pointer
               ~jump_pointer:jump_retirement_pointer
@@ -1069,37 +1071,37 @@ module BayesianTage = struct
           List.zip_exn fetch_indices_and_tags retirement_indices_and_tags
           |> List.map ~f:(Tuple2.map ~f:(Indices_and_tags.map ~f:snd))
           |> List.mapi
-               ~f:(fun
-                    i
-                    ( { branch = { index = fetch_branch_index; tag = fetch_branch_tag }
-                      ; jump = { index = fetch_jump_index; tag = fetch_jump_tag }
-                      }
-                    , { branch =
-                          { index = retirement_branch_index; tag = retirement_branch_tag }
-                      ; jump =
-                          { index = retirement_jump_index; tag = retirement_jump_tag }
-                      } )
-                  ->
-               let indices ~pc ~branch ~jump =
-                 pc ^: branch ^: (jump @: zero (width branch - width jump)) ^:. i
-               in
-               let tags ~pc ~branch ~jump =
-                 (pc +:. i) ^: reverse branch ^: jump @: zero (width branch - width jump)
-               in
-               ( ( indices
-                     ~pc:next_fetch_program_counter
-                     ~branch:fetch_branch_index
-                     ~jump:fetch_jump_index
-                 , tags ~pc:next_fetch_tag ~branch:fetch_branch_tag ~jump:fetch_jump_tag
-                 )
-               , ( indices
-                     ~pc:retirement_program_counter
-                     ~branch:retirement_branch_index
-                     ~jump:retirement_jump_index
-                 , tags
-                     ~pc:retirement_tag
-                     ~branch:retirement_branch_tag
-                     ~jump:retirement_jump_tag ) ))
+               ~f:
+                 (fun
+                   i
+                   ( { branch = { index = fetch_branch_index; tag = fetch_branch_tag }
+                     ; jump = { index = fetch_jump_index; tag = fetch_jump_tag }
+                     }
+                   , { branch =
+                         { index = retirement_branch_index; tag = retirement_branch_tag }
+                     ; jump = { index = retirement_jump_index; tag = retirement_jump_tag }
+                     } )
+                 ->
+                 let indices ~pc ~branch ~jump =
+                   pc ^: branch ^: (jump @: zero (width branch - width jump)) ^:. i
+                 in
+                 let tags ~pc ~branch ~jump =
+                   (pc +:. i) ^: reverse branch ^: jump @: zero (width branch - width jump)
+                 in
+                 ( ( indices
+                       ~pc:next_fetch_program_counter
+                       ~branch:fetch_branch_index
+                       ~jump:fetch_jump_index
+                   , tags ~pc:next_fetch_tag ~branch:fetch_branch_tag ~jump:fetch_jump_tag
+                   )
+                 , ( indices
+                       ~pc:retirement_program_counter
+                       ~branch:retirement_branch_index
+                       ~jump:retirement_jump_index
+                   , tags
+                       ~pc:retirement_tag
+                       ~branch:retirement_branch_tag
+                       ~jump:retirement_jump_tag ) ))
           |> List.unzip
           |> Tuple2.map ~f:List.unzip
         in
@@ -1213,9 +1215,9 @@ module BayesianTage = struct
         let select_oldest_hitter ~f hit_vector =
           List.zip_exn hit_vector read_entries
           |> List.mapi ~f:(fun bank (hit, { Entry.tag = _; counters }) ->
-               { With_valid.valid = hit
-               ; value = f bank counters |> Counters_and_metadata.Of_signal.pack
-               })
+            { With_valid.valid = hit
+            ; value = f bank counters |> Counters_and_metadata.Of_signal.pack
+            })
           |> priority_select_with_default
                ~default:
                  (f Params.num_banks base_prediction_counters
@@ -1278,9 +1280,9 @@ module BayesianTage = struct
           let older =
             List.zip_exn hit_vector read_entries
             |> List.mapi ~f:(fun bank (hit, { Entry.tag = _; counters }) ->
-                 { With_valid.valid = hit
-                 ; value = Counters_and_metadata.for_prediction bank counters
-                 })
+              { With_valid.valid = hit
+              ; value = Counters_and_metadata.for_prediction bank counters
+              })
             |> tree
                  ~arity:2
                  ~f:
@@ -1356,45 +1358,42 @@ module BayesianTage = struct
               1
               + (diff * Params.max_banks_skipped_on_allocation / Params.max_counter_value))
             |> List.map ~f:(fun mod_ ->
-                 (if mod_ = 1
-                  then gnd
-                  else if Int.is_pow2 mod_
-                  then sel_bottom random4 (Int.floor_log2 mod_)
-                  else (
-                    let rec non_pow2_const_mod ?(min_reduction = 8) s =
-                      let max_value =
-                        List.init (width s) ~f:(fun i -> Int.shift_left 1 i % mod_)
-                        |> List.sum (module Int) ~f:Fn.id
-                      in
-                      let width = Int.ceil_log2 max_value in
-                      let compressed =
-                        bits_lsb s
-                        |> List.mapi ~f:(fun i bit ->
-                             mux2
-                               bit
-                               (of_int ~width (Int.shift_left 1 i % mod_))
-                               (zero width))
-                        |> tree ~arity:2 ~f:(reduce ~f:( +: ))
-                      in
-                      if max_value / mod_ <= min_reduction
-                      then
-                        List.init
-                          ((max_value / mod_) + if max_value % mod_ = 0 then 0 else 1)
-                          ~f:(fun i ->
-                            { With_valid.valid =
-                                (compressed
-                                 >=:. i * mod_
-                                 &:
-                                 if (i + 1) * mod_ > max_value
-                                 then vdd
-                                 else compressed <:. (i + 1) * mod_)
-                            ; value = compressed -:. (i * mod_)
-                            })
-                        |> onehot_select
-                      else non_pow2_const_mod compressed
-                    in
-                    non_pow2_const_mod random4))
-                 |> Fn.flip uresize Params.counter_width)
+              (if mod_ = 1
+               then gnd
+               else if Int.is_pow2 mod_
+               then sel_bottom random4 (Int.floor_log2 mod_)
+               else (
+                 let rec non_pow2_const_mod ?(min_reduction = 8) s =
+                   let max_value =
+                     List.init (width s) ~f:(fun i -> Int.shift_left 1 i % mod_)
+                     |> List.sum (module Int) ~f:Fn.id
+                   in
+                   let width = Int.ceil_log2 max_value in
+                   let compressed =
+                     bits_lsb s
+                     |> List.mapi ~f:(fun i bit ->
+                       mux2 bit (of_int ~width (Int.shift_left 1 i % mod_)) (zero width))
+                     |> tree ~arity:2 ~f:(reduce ~f:( +: ))
+                   in
+                   if max_value / mod_ <= min_reduction
+                   then
+                     List.init
+                       ((max_value / mod_) + if max_value % mod_ = 0 then 0 else 1)
+                       ~f:(fun i ->
+                         { With_valid.valid =
+                             (compressed
+                              >=:. i * mod_
+                              &:
+                              if (i + 1) * mod_ > max_value
+                              then vdd
+                              else compressed <:. (i + 1) * mod_)
+                         ; value = compressed -:. (i * mod_)
+                         })
+                     |> onehot_select
+                   else non_pow2_const_mod compressed
+                 in
+                 non_pow2_const_mod random4))
+              |> Fn.flip uresize Params.counter_width)
             |> mux (Dual_counter.diff first_hitter_counters)
             |> Fn.flip uresize bank_num_width
           in
@@ -1419,13 +1418,13 @@ module BayesianTage = struct
             (bits_msb end_allocation_bank_mask)
             read_entries
             ~f:(fun active { Entry.tag = _; counters } ->
-            active &: ~:(Dual_counter.is_high_confidence counters))
+              active &: ~:(Dual_counter.is_high_confidence counters))
           |> List.rev
           |> select_oldest_hitter ~f:(fun bank ->
-               Counters_and_metadata.for_positive_hitters
-                 (if bank = Params.num_banks
-                  then Params.num_banks
-                  else Params.num_banks - (bank + 1)))
+            Counters_and_metadata.for_positive_hitters
+              (if bank = Params.num_banks
+               then Params.num_banks
+               else Params.num_banks - (bank + 1)))
         in
         let allocation_bank_mask =
           List.init (Params.num_banks + 1) ~f:(fun banks ->
@@ -1470,9 +1469,9 @@ module BayesianTage = struct
             (bits_msb allocation_decay_range)
             read_entries
             ~f:(fun is_allocation_decay_bank { Entry.tag = _; counters } ->
-            maybe_decay_on_allocation
-            &: is_allocation_decay_bank
-            &: Dual_counter.is_high_confidence counters)
+              maybe_decay_on_allocation
+              &: is_allocation_decay_bank
+              &: Dual_counter.is_high_confidence counters)
         in
         let next_controlled_rate =
           let mhc =
@@ -1553,63 +1552,65 @@ module BayesianTage = struct
              |> List.zip_exn
                   (List.zip_exn (bits_msb hitter_after_prediction_bank_mask) decay_vector)
              |> List.mapi
-                  ~f:(fun
-                       bank
-                       ( (is_hitter_after_prediction_bank, is_allocation_decay_bank)
-                       , (next_tag, (hit, { tag; counters })) )
-                     ->
-                  { Entry.tag =
-                      mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
-                  ; counters =
-                      (let maybe_update_oldest_hitters =
-                         let open Dual_counter in
-                         [ next_meta >=+. 0
-                         ; is_low_confidence counters
-                         ; prediction counters <>: prediction prediction_counters
-                         ; sel_bottom random1 3 ==:. 0
-                         ]
-                         |> tree ~arity:2 ~f:(reduce ~f:( |: ))
-                       in
-                       let hots =
-                         let open Dual_counter in
-                         [ { With_valid.valid =
-                               hit
-                               &: ([ bank_used_for_prediction
-                                     >:. bank
-                                     &: maybe_update_oldest_hitters
-                                   ; bank_used_for_prediction
+                  ~f:
+                    (fun
+                      bank
+                      ( (is_hitter_after_prediction_bank, is_allocation_decay_bank)
+                      , (next_tag, (hit, { tag; counters })) )
+                    ->
+                    { Entry.tag =
+                        mux2 (allocate &: (allocation_bank ==:. bank)) next_tag tag
+                    ; counters =
+                        (let maybe_update_oldest_hitters =
+                           let open Dual_counter in
+                           [ next_meta >=+. 0
+                           ; is_low_confidence counters
+                           ; prediction counters <>: prediction prediction_counters
+                           ; sel_bottom random1 3 ==:. 0
+                           ]
+                           |> tree ~arity:2 ~f:(reduce ~f:( |: ))
+                         in
+                         let hots =
+                           let open Dual_counter in
+                           [ { With_valid.valid =
+                                 hit
+                                 &: ([ bank_used_for_prediction
+                                       >:. bank
+                                       &: maybe_update_oldest_hitters
+                                     ; bank_used_for_prediction
+                                       ==:. bank
+                                       &: maybe_update_hitter
+                                     ; is_hitter_after_prediction_bank
+                                       &: maybe_update_younger_hitter
+                                     ]
+                                     |> tree ~arity:2 ~f:(reduce ~f:( |: )))
+                             ; value = update ~resolved_direction counters
+                             }
+                           ; { With_valid.valid =
+                                 hit
+                                 &: (bank_used_for_prediction
                                      ==:. bank
-                                     &: maybe_update_hitter
-                                   ; is_hitter_after_prediction_bank
-                                     &: maybe_update_younger_hitter
-                                   ]
-                                   |> tree ~arity:2 ~f:(reduce ~f:( |: )))
-                           ; value = update ~resolved_direction counters
-                           }
-                         ; { With_valid.valid =
-                               hit
-                               &: (bank_used_for_prediction
-                                   ==:. bank
-                                   &: maybe_decay_hitter)
-                               |: is_allocation_decay_bank
-                           ; value = decay counters
-                           }
-                         ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
-                           ; value = of_direction resolved_direction
-                           }
-                         ]
-                       in
-                       List.append
-                         hots
-                         [ { With_valid.valid =
-                               ~:(List.map hots ~f:(fun { With_valid.valid; value = _ } ->
-                                    valid)
-                                  |> tree ~arity:2 ~f:(reduce ~f:( |: )))
-                           ; value = counters
-                           }
-                         ]
-                       |> Dual_counter.Of_signal.onehot_select)
-                  }))
+                                     &: maybe_decay_hitter)
+                                 |: is_allocation_decay_bank
+                             ; value = decay counters
+                             }
+                           ; { With_valid.valid = allocate &: (allocation_bank ==:. bank)
+                             ; value = of_direction resolved_direction
+                             }
+                           ]
+                         in
+                         List.append
+                           hots
+                           [ { With_valid.valid =
+                                 ~:(List.map
+                                      hots
+                                      ~f:(fun { With_valid.valid; value = _ } -> valid)
+                                    |> tree ~arity:2 ~f:(reduce ~f:( |: )))
+                             ; value = counters
+                             }
+                           ]
+                         |> Dual_counter.Of_signal.onehot_select)
+                    }))
         ; next_bimodal_entry =
             (let ({ Bimodal_entry.direction = next_direction
                   ; hysteresis = next_hysteresis
@@ -1688,7 +1689,7 @@ module BayesianTage = struct
           let older =
             List.zip_exn read_entries tags
             |> List.map ~f:(fun ({ Entry.tag = entry_tag; counters }, tag) ->
-                 { With_valid.valid = tag ==: entry_tag; value = counters })
+              { With_valid.valid = tag ==: entry_tag; value = counters })
             |> tree ~arity:2 ~f:(reduce ~f:(Dual_counter.select_best_single ~meta))
           in
           (Dual_counter.select_best
@@ -1771,16 +1772,16 @@ module BayesianTage = struct
     Array.iteri
       write_ports
       ~f:(fun i { write_clock = _; write_address; write_enable; write_data } ->
-      write_address -- Printf.sprintf "%s$write_address%d" name i |> ignore;
-      write_enable -- Printf.sprintf "%s$write_enable%d" name i |> ignore;
-      write_data -- Printf.sprintf "%s$write_data%d" name i |> ignore;
-      ());
+        write_address -- Printf.sprintf "%s$write_address%d" name i |> ignore;
+        write_enable -- Printf.sprintf "%s$write_enable%d" name i |> ignore;
+        write_data -- Printf.sprintf "%s$write_data%d" name i |> ignore;
+        ());
     let writes =
       Array.map
         write_ports
         ~f:(fun { write_clock = _; write_address; write_enable; write_data } ->
-        write_address @: write_data
-        |> reg ~enable:write_enable (Reg_spec.create ~clock ()))
+          write_address @: write_data
+          |> reg ~enable:write_enable (Reg_spec.create ~clock ()))
     in
     let outputs =
       Ram.create
@@ -1792,17 +1793,17 @@ module BayesianTage = struct
         ()
       |> Array.zip_exn read_ports
       |> Array.map ~f:(fun ({ read_clock = _; read_address; read_enable }, read_output) ->
-           let read_address =
-             read_address |> reg ~enable:read_enable (Reg_spec.create ~clock ())
-           in
-           Array.to_list writes
-           |> List.map ~f:(fun forwarded ->
-                let forwarded_address = sel_top forwarded (width read_address) in
-                let forwarded_data = drop_top forwarded (width read_address) in
-                { With_valid.valid = forwarded_address ==: read_address
-                ; value = forwarded_data
-                })
-           |> priority_select_with_default ~default:read_output)
+        let read_address =
+          read_address |> reg ~enable:read_enable (Reg_spec.create ~clock ())
+        in
+        Array.to_list writes
+        |> List.map ~f:(fun forwarded ->
+          let forwarded_address = sel_top forwarded (width read_address) in
+          let forwarded_data = drop_top forwarded (width read_address) in
+          { With_valid.valid = forwarded_address ==: read_address
+          ; value = forwarded_data
+          })
+        |> priority_select_with_default ~default:read_output)
     in
     Array.iteri outputs ~f:(fun i data ->
       data -- Printf.sprintf "%s$data%d" name i |> ignore;
@@ -1844,23 +1845,23 @@ module BayesianTage = struct
     =
     let open Signal in
     let open Internal (struct
-      let num_banks = num_banks
-      let num_entries_per_bank = num_entries_per_bank
-      let counter_width = counter_width
-      let tag_width = tag_width
-      let controlled_allocation_throttler_max = controlled_allocation_throttler_max
-      let controlled_allocation_decay_max = controlled_allocation_decay_max
-      let max_banks_skipped_on_allocation = max_banks_skipped_on_allocation
-      let meta_width = meta_width
-      let num_bimodal_direction_entries = num_bimodal_direction_entries
-      let num_bimodal_hysteresis_entries = num_bimodal_hysteresis_entries
-      let bimodal_hysteresis_width = bimodal_hysteresis_width
-      let smallest_branch_history_length = smallest_branch_history_length
-      let largest_branch_history_length = largest_branch_history_length
-      let instruction_window_size = instruction_window_size
-      let jump_history_length = jump_history_length
-      let jump_history_entry_width = jump_history_entry_width
-    end) in
+        let num_banks = num_banks
+        let num_entries_per_bank = num_entries_per_bank
+        let counter_width = counter_width
+        let tag_width = tag_width
+        let controlled_allocation_throttler_max = controlled_allocation_throttler_max
+        let controlled_allocation_decay_max = controlled_allocation_decay_max
+        let max_banks_skipped_on_allocation = max_banks_skipped_on_allocation
+        let meta_width = meta_width
+        let num_bimodal_direction_entries = num_bimodal_direction_entries
+        let num_bimodal_hysteresis_entries = num_bimodal_hysteresis_entries
+        let bimodal_hysteresis_width = bimodal_hysteresis_width
+        let smallest_branch_history_length = smallest_branch_history_length
+        let largest_branch_history_length = largest_branch_history_length
+        let instruction_window_size = instruction_window_size
+        let jump_history_length = jump_history_length
+        let jump_history_entry_width = jump_history_entry_width
+      end) in
     let { Update.valid = retirement_update_valid; _ } = retirement_update in
     let retirement_update =
       { (retirement_update
@@ -1994,37 +1995,36 @@ module BayesianTage = struct
       List.zip_exn prediction_indices retirement_indices
       |> List.zip_exn write_entries
       |> List.mapi ~f:(fun bank (write_entry, (prediction_index, retirement_index)) ->
-           match
-             forwarding_ram
-               scope
-               ~clock
-               ~name:(Printf.sprintf "mems$tage%d" bank)
-               ~collision_mode:Read_before_write
-               ~size:num_entries_per_bank
-               ~write_ports:
-                 [| { write_clock = clock
-                    ; write_address =
-                        retirement_index
-                        |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
-                    ; write_enable
-                    ; write_data = Entry.Of_signal.pack write_entry
-                    }
-                 |]
-               ~read_ports:
-                 [| { read_clock = clock
-                    ; read_address = prediction_index
-                    ; read_enable = vdd
-                    }
-                  ; { read_clock = clock
-                    ; read_address = retirement_index
-                    ; read_enable = retirement_update_valid
-                    }
-                 |]
-               ()
-           with
-           | [| data1; data2 |] ->
-             Entry.Of_signal.unpack data1, Entry.Of_signal.unpack data2
-           | _ -> failwith "Code out of date")
+        match
+          forwarding_ram
+            scope
+            ~clock
+            ~name:(Printf.sprintf "mems$tage%d" bank)
+            ~collision_mode:Read_before_write
+            ~size:num_entries_per_bank
+            ~write_ports:
+              [| { write_clock = clock
+                 ; write_address =
+                     retirement_index
+                     |> reg ~enable:retirement_update_valid (Reg_spec.create ~clock ())
+                 ; write_enable
+                 ; write_data = Entry.Of_signal.pack write_entry
+                 }
+              |]
+            ~read_ports:
+              [| { read_clock = clock
+                 ; read_address = prediction_index
+                 ; read_enable = vdd
+                 }
+               ; { read_clock = clock
+                 ; read_address = retirement_index
+                 ; read_enable = retirement_update_valid
+                 }
+              |]
+            ()
+        with
+        | [| data1; data2 |] -> Entry.Of_signal.unpack data1, Entry.Of_signal.unpack data2
+        | _ -> failwith "Code out of date")
       |> List.unzip
     in
     let { Update_counters.O.next_entries; next_bimodal_entry; meta } =
@@ -2354,41 +2354,41 @@ module BayesianTage = struct
             ~f:(fun updates ->
               List.iter
                 updates
-                ~f:(fun
-                     (( retirement_program_counter
-                      , valid
-                      , resolved_direction
-                      , branch_target ) as model_inputs)
-                   ->
-                inputs.retirement_program_counter
-                  := of_int
-                       ~width:(width !(inputs.retirement_program_counter))
-                       retirement_program_counter;
-                inputs.retirement_update.valid := of_bool valid;
-                inputs.retirement_update.resolved_direction := of_bool resolved_direction;
-                inputs.retirement_update.branch_target
-                  := of_int
-                       ~width:(width !(inputs.retirement_update.branch_target))
-                       branch_target;
-                Cyclesim.cycle sim;
-                let expected_indices, expected_tags = Model.update model_inputs model in
-                let { O.prediction_indices = _
-                    ; prediction_tags = _
-                    ; retirement_indices = indices
-                    ; retirement_tags = tags
-                    }
-                  =
-                  O.map outputs ~f:(( ! ) |> Fn.compose to_int)
-                in
-                try
-                  [%test_result: int list * int list]
-                    ~expect:(expected_indices, expected_tags)
-                    (indices, tags)
-                with
-                | e ->
-                  Stdio.print_s [%message (model : Model.t)];
-                  print_state ();
-                  raise e);
+                ~f:
+                  (fun
+                    ((retirement_program_counter, valid, resolved_direction, branch_target)
+                     as model_inputs)
+                  ->
+                  inputs.retirement_program_counter
+                    := of_int
+                         ~width:(width !(inputs.retirement_program_counter))
+                         retirement_program_counter;
+                  inputs.retirement_update.valid := of_bool valid;
+                  inputs.retirement_update.resolved_direction
+                    := of_bool resolved_direction;
+                  inputs.retirement_update.branch_target
+                    := of_int
+                         ~width:(width !(inputs.retirement_update.branch_target))
+                         branch_target;
+                  Cyclesim.cycle sim;
+                  let expected_indices, expected_tags = Model.update model_inputs model in
+                  let { O.prediction_indices = _
+                      ; prediction_tags = _
+                      ; retirement_indices = indices
+                      ; retirement_tags = tags
+                      }
+                    =
+                    O.map outputs ~f:(( ! ) |> Fn.compose to_int)
+                  in
+                  try
+                    [%test_result: int list * int list]
+                      ~expect:(expected_indices, expected_tags)
+                      (indices, tags)
+                  with
+                  | e ->
+                    Stdio.print_s [%message (model : Model.t)];
+                    print_state ();
+                    raise e);
               ());
           ());
         ()
@@ -3038,94 +3038,97 @@ module BayesianTage = struct
             ~f:(fun updates ->
               List.iter
                 updates
-                ~f:(fun
-                     ( valid
-                     , resolved_direction
-                     , branch_target
-                     , bimodal_direction
-                     , bimodal_hysteresis
-                     , entries )
-                   ->
-                inputs.update.valid := of_bool valid;
-                inputs.update.resolved_direction := of_bool resolved_direction;
-                inputs.update.branch_target
-                  := of_int ~width:(width !(inputs.update.branch_target)) branch_target;
-                inputs.bimodal_entry.direction := of_bool bimodal_direction;
-                inputs.bimodal_entry.hysteresis
-                  := of_int
-                       ~width:(width !(inputs.bimodal_entry.hysteresis))
-                       bimodal_hysteresis;
-                List.iter2_exn
-                  entries
-                  inputs.read_entries
-                  ~f:(fun (num_takens, num_not_takens, hit) entry ->
-                  entry.tag
-                    := if hit
-                       then of_int ~width:Params.tag_width 0
-                       else of_int ~width:Params.tag_width 1;
-                  entry.counters.num_takens
-                    := of_int ~width:Params.counter_width num_takens;
-                  entry.counters.num_not_takens
-                    := of_int ~width:Params.counter_width num_not_takens;
+                ~f:
+                  (fun
+                    ( valid
+                    , resolved_direction
+                    , branch_target
+                    , bimodal_direction
+                    , bimodal_hysteresis
+                    , entries )
+                  ->
+                  inputs.update.valid := of_bool valid;
+                  inputs.update.resolved_direction := of_bool resolved_direction;
+                  inputs.update.branch_target
+                    := of_int ~width:(width !(inputs.update.branch_target)) branch_target;
+                  inputs.bimodal_entry.direction := of_bool bimodal_direction;
+                  inputs.bimodal_entry.hysteresis
+                    := of_int
+                         ~width:(width !(inputs.bimodal_entry.hysteresis))
+                         bimodal_hysteresis;
+                  List.iter2_exn
+                    entries
+                    inputs.read_entries
+                    ~f:(fun (num_takens, num_not_takens, hit) entry ->
+                      entry.tag
+                        := if hit
+                           then of_int ~width:Params.tag_width 0
+                           else of_int ~width:Params.tag_width 1;
+                      entry.counters.num_takens
+                        := of_int ~width:Params.counter_width num_takens;
+                      entry.counters.num_not_takens
+                        := of_int ~width:Params.counter_width num_not_takens;
+                      ());
+                  Cyclesim.cycle sim;
+                  if valid
+                  then (
+                    let ( expected_entries
+                        , expected_bimodal
+                        , expected_meta
+                        , expected_cat
+                        , expected_cd )
+                      =
+                      Model.update
+                        resolved_direction
+                        (List.map entries ~f:(fun (num_takens, num_not_takens, hit) ->
+                           { Dual_counter.Model.num_takens; num_not_takens }, hit))
+                        (bimodal_direction, bimodal_hysteresis)
+                        model
+                    in
+                    let { O.next_entries; next_bimodal_entry; meta = _ } =
+                      O.map outputs ~f:(( ! ) |> Fn.compose to_int)
+                    in
+                    (try
+                       [%test_result:
+                         Dual_counter.Model.t list * (bool * int) * int * int * int]
+                         ~expect:
+                           ( expected_entries
+                           , expected_bimodal
+                           , expected_meta
+                           , expected_cat
+                           , expected_cd )
+                         ( List.map
+                             next_entries
+                             ~f:
+                               (fun
+                                 { Entry.tag = _
+                                 ; counters = { num_takens; num_not_takens }
+                                 }
+                               -> { Dual_counter.Model.num_takens; num_not_takens })
+                         , ( next_bimodal_entry.direction = 1
+                           , next_bimodal_entry.hysteresis )
+                         , Cyclesim.internal_ports sim
+                           |> List.find_map_exn ~f:(fun (name, s) ->
+                             if String.equal name "next_meta"
+                             then Some (to_sint !s)
+                             else None)
+                         , Cyclesim.internal_ports sim
+                           |> List.find_map_exn ~f:(fun (name, s) ->
+                             if String.equal name "next_controlled_allocation_throttler"
+                             then Some (to_int !s)
+                             else None)
+                         , Cyclesim.internal_ports sim
+                           |> List.find_map_exn ~f:(fun (name, s) ->
+                             if String.equal name "next_controlled_allocation_decay"
+                             then Some (to_int !s)
+                             else None) )
+                     with
+                     | e ->
+                       Stdio.print_s [%message (model : Model.t)];
+                       print_state ();
+                       raise e);
+                    ());
                   ());
-                Cyclesim.cycle sim;
-                if valid
-                then (
-                  let ( expected_entries
-                      , expected_bimodal
-                      , expected_meta
-                      , expected_cat
-                      , expected_cd )
-                    =
-                    Model.update
-                      resolved_direction
-                      (List.map entries ~f:(fun (num_takens, num_not_takens, hit) ->
-                         { Dual_counter.Model.num_takens; num_not_takens }, hit))
-                      (bimodal_direction, bimodal_hysteresis)
-                      model
-                  in
-                  let { O.next_entries; next_bimodal_entry; meta = _ } =
-                    O.map outputs ~f:(( ! ) |> Fn.compose to_int)
-                  in
-                  (try
-                     [%test_result:
-                       Dual_counter.Model.t list * (bool * int) * int * int * int]
-                       ~expect:
-                         ( expected_entries
-                         , expected_bimodal
-                         , expected_meta
-                         , expected_cat
-                         , expected_cd )
-                       ( List.map
-                           next_entries
-                           ~f:(fun
-                                { Entry.tag = _
-                                ; counters = { num_takens; num_not_takens }
-                                }
-                              -> { Dual_counter.Model.num_takens; num_not_takens })
-                       , (next_bimodal_entry.direction = 1, next_bimodal_entry.hysteresis)
-                       , Cyclesim.internal_ports sim
-                         |> List.find_map_exn ~f:(fun (name, s) ->
-                              if String.equal name "next_meta"
-                              then Some (to_sint !s)
-                              else None)
-                       , Cyclesim.internal_ports sim
-                         |> List.find_map_exn ~f:(fun (name, s) ->
-                              if String.equal name "next_controlled_allocation_throttler"
-                              then Some (to_int !s)
-                              else None)
-                       , Cyclesim.internal_ports sim
-                         |> List.find_map_exn ~f:(fun (name, s) ->
-                              if String.equal name "next_controlled_allocation_decay"
-                              then Some (to_int !s)
-                              else None) )
-                   with
-                   | e ->
-                     Stdio.print_s [%message (model : Model.t)];
-                     print_state ();
-                     raise e);
-                  ());
-                ());
               ());
           ())
       ;;

@@ -26,8 +26,8 @@ module O = struct
 end
 
 module Make_divider (Params : sig
-  val word_size : Parameters.Word_size.t
-end) =
+    val word_size : Parameters.Word_size.t
+  end) =
 struct
   let bits = Parameters.Word_size.bits Params.word_size
 
@@ -183,8 +183,8 @@ let create scope { I.clock; clear; start; pc; instruction; rs1; rs2; immediate }
            ; Remu, [ rd <-- remainder ]
            ]
            |> List.map ~f:(fun (i, statements) ->
-                ( Instruction.All.Rv32m i
-                , statements @ [ start_divider <-- start; done_ <-- divider_done ] )))
+             ( Instruction.All.Rv32m i
+             , statements @ [ start_divider <-- start; done_ <-- divider_done ] )))
         ]
         |> List.concat
         |> Instruction.Binary.Of_always.match_ ~default:[] instruction
@@ -323,24 +323,24 @@ module Tests = struct
       in
       List.cartesian_product [ 1; -1 ] [ 1; -1 ]
       |> List.map ~f:(fun (a, b) ->
-           [ a * 1028091555 |> bit_num, b * 43 |> bit_num
-           ; a * 42 |> bit_num, b * 69 |> bit_num
-           ])
+        [ a * 1028091555 |> bit_num, b * 43 |> bit_num
+        ; a * 42 |> bit_num, b * 69 |> bit_num
+        ])
       |> List.concat
       |> List.iter ~f:(fun (rs1, rs2) ->
-           run32m Mul ~rs1 ~rs2 ();
-           run32m Mulh ~rs1 ~rs2 ();
-           run32m Mulhsu ~rs1 ~rs2 ();
-           run32m Mulhu ~rs1 ~rs2 ();
-           run32m Div ~rs1 ~rs2 ();
-           check_division ~quotient:(to_sint !(outputs.rd)) to_sint;
-           run32m Divu ~rs1 ~rs2 ();
-           check_division ~quotient:(to_int !(outputs.rd)) to_int;
-           run32m Rem ~rs1 ~rs2 ();
-           check_remainder ~remainder:(to_sint !(outputs.rd)) to_sint;
-           run32m Remu ~rs1 ~rs2 ();
-           check_remainder ~remainder:(to_int !(outputs.rd)) to_int;
-           ());
+        run32m Mul ~rs1 ~rs2 ();
+        run32m Mulh ~rs1 ~rs2 ();
+        run32m Mulhsu ~rs1 ~rs2 ();
+        run32m Mulhu ~rs1 ~rs2 ();
+        run32m Div ~rs1 ~rs2 ();
+        check_division ~quotient:(to_sint !(outputs.rd)) to_sint;
+        run32m Divu ~rs1 ~rs2 ();
+        check_division ~quotient:(to_int !(outputs.rd)) to_int;
+        run32m Rem ~rs1 ~rs2 ();
+        check_remainder ~remainder:(to_sint !(outputs.rd)) to_sint;
+        run32m Remu ~rs1 ~rs2 ();
+        check_remainder ~remainder:(to_int !(outputs.rd)) to_int;
+        ());
       let _overflow =
         let rs1 = sll (one Parameters.word_width) (Parameters.word_width - 1) in
         let rs2 = ones Parameters.word_width in
