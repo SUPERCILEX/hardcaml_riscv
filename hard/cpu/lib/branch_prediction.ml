@@ -1615,7 +1615,8 @@ module BayesianTage = struct
                   ; hysteresis = next_hysteresis
                   } as next_bimodal)
                =
-               Bimodal_entry.Of_always.wire zero
+               Bimodal_entry.map bimodal_entry ~f:(fun default ->
+                 Always.Variable.wire ~default)
              in
              Always.(
                let maybe_update_bimodal =
@@ -1635,8 +1636,7 @@ module BayesianTage = struct
                       [ next_direction <-- resolved_direction ]
                in
                compile
-                 [ Bimodal_entry.Of_always.assign next_bimodal bimodal_entry
-                 ; when_
+                 [ when_
                      (bank_used_for_prediction
                       ==:. Params.num_banks
                       |: (hitter_after_prediction_bank_mask

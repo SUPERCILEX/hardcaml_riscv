@@ -9,7 +9,9 @@
   hardcaml_waveterm.interactive
   hardcaml_verilator)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane))
+ (ocamlopt_flags
+  (:standard -O3)))
 
 (alias
  (name bin)
