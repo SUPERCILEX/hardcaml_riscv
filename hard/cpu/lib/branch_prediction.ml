@@ -416,7 +416,7 @@ module BayesianTage = struct
     module Params = struct
       include Params
 
-      let max_counter_value = Int.shift_left 1 counter_width - 1
+      let max_counter_value = (1 lsl counter_width) - 1
       let bank_address_width = Signal.address_bits_for Params.num_entries_per_bank
       let () = assert (max_banks_skipped_on_allocation <= num_banks)
       let () = assert (instruction_window_size > 0)
@@ -440,13 +440,11 @@ module BayesianTage = struct
       let of_bimodal { Bimodal_entry.direction; hysteresis } =
         let open Signal in
         let f direction =
-          let hysteresis_max_half =
-            Int.shift_left 1 (Params.bimodal_hysteresis_width - 1) - 1
-          in
+          let hysteresis_max_half = (1 lsl (Params.bimodal_hysteresis_width - 1)) - 1 in
           mux2
             direction
             (of_int
-               (hysteresis_max_half + Int.shift_left 1 Params.bimodal_hysteresis_width)
+               (hysteresis_max_half + (1 lsl Params.bimodal_hysteresis_width))
                ~width:Params.counter_width
              -: uresize hysteresis Params.counter_width)
             (of_int ~width:Params.counter_width hysteresis_max_half)
@@ -521,7 +519,7 @@ module BayesianTage = struct
       let is_very_high_confidence { num_takens; num_not_takens } =
         let open Signal in
         let f a b =
-          let max_half = Int.shift_left 1 (Params.counter_width - 1) in
+          let max_half = 1 lsl (Params.counter_width - 1) in
           a ==:. 0 &: (b >=:. max_half)
         in
         f num_takens num_not_takens |: f num_not_takens num_takens
@@ -1258,7 +1256,7 @@ module BayesianTage = struct
                        <>: Dual_counter.prediction second_hitter_counters
                      ]
                      |> tree ~arity:2 ~f:(reduce ~f:( &: )))
-                    [ (let meta_max = Int.shift_left 1 (Params.meta_width - 1) - 1 in
+                    [ (let meta_max = (1 lsl (Params.meta_width - 1)) - 1 in
                        let meta_min = -meta_max - 1 in
                        if_
                          (Dual_counter.prediction first_hitter_counters
@@ -1365,14 +1363,14 @@ module BayesianTage = struct
                else (
                  let rec non_pow2_const_mod ?(min_reduction = 8) s =
                    let max_value =
-                     List.init (width s) ~f:(fun i -> Int.shift_left 1 i % mod_)
+                     List.init (width s) ~f:(fun i -> (1 lsl i) % mod_)
                      |> List.sum (module Int) ~f:Fn.id
                    in
                    let width = Int.ceil_log2 max_value in
                    let compressed =
                      bits_lsb s
                      |> List.mapi ~f:(fun i bit ->
-                       mux2 bit (of_int ~width (Int.shift_left 1 i % mod_)) (zero width))
+                       mux2 bit (of_int ~width ((1 lsl i) % mod_)) (zero width))
                      |> tree ~arity:2 ~f:(reduce ~f:( +: ))
                    in
                    if max_value / mod_ <= min_reduction
@@ -1624,9 +1622,7 @@ module BayesianTage = struct
                  let { Bimodal_entry.direction; hysteresis } = bimodal_entry in
                  if_
                    (direction ==: resolved_direction)
-                   [ (let hysteresis_max =
-                        Int.shift_left 1 Params.bimodal_hysteresis_width - 1
-                      in
+                   [ (let hysteresis_max = (1 lsl Params.bimodal_hysteresis_width) - 1 in
                       when_
                         (hysteresis <:. hysteresis_max)
                         [ next_hysteresis <-- hysteresis +:. 1 ])
@@ -2166,7 +2162,7 @@ module BayesianTage = struct
           then (
             let _update_pointers =
               let update_pointer ~ptr ~max =
-                ptr := !ptr - 1;
+                decr ptr;
                 if !ptr < 0 then ptr := max - 1;
                 ()
               in
@@ -2196,9 +2192,9 @@ module BayesianTage = struct
                   ~out_point
                   =
                   let rotate_left x m =
-                    let y = Int.shift_right_logical x (compressed_length - m) in
-                    let x = Int.shift_left x m |> Int.bit_or y in
-                    Int.bit_and x (Int.shift_left 1 compressed_length - 1)
+                    let y = x lsr (compressed_length - m) in
+                    let x = x lsl m |> ( lor ) y in
+                    x land ((1 lsl compressed_length) - 1)
                   in
                   let get offset =
                     let k = ptr + offset in
@@ -2208,14 +2204,12 @@ module BayesianTage = struct
                     Array.get history k
                   in
                   let new_fold = rotate_left (Array.get fold i) 1 in
-                  let inbits =
-                    get 0 |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
-                  in
+                  let inbits = get 0 |> ( land ) ((1 lsl injected_bits) - 1) in
                   let outbits =
-                    get original_length |> Int.bit_and (Int.shift_left 1 injected_bits - 1)
+                    get original_length |> ( land ) ((1 lsl injected_bits) - 1)
                   in
                   let outbits = rotate_left outbits out_point in
-                  Array.set fold i (Int.bit_xor new_fold inbits |> Int.bit_xor outbits);
+                  Array.set fold i (new_fold lxor inbits |> ( lxor ) outbits);
                   ()
                 in
                 update
@@ -2298,14 +2292,14 @@ module BayesianTage = struct
             in
             ());
           ( List.init Params.num_banks ~f:(fun i ->
-              Int.bit_xor retirement_program_counter i
-              |> Int.bit_and (Int.shift_left 1 Params.bank_address_width - 1)
-              |> Int.bit_xor branch_index_fold.(i)
-              |> Int.bit_xor
-                   (Int.shift_left
-                      jump_index_fold.(i)
-                      ((List.nth_exn folded_histories i).branch.index.compressed_length
-                       - (List.nth_exn folded_histories i).jump.index.compressed_length)))
+              retirement_program_counter lxor i
+              |> ( land ) ((1 lsl Params.bank_address_width) - 1)
+              |> ( lxor ) branch_index_fold.(i)
+              |> ( lxor )
+                   (jump_index_fold.(i)
+                    lsl ((List.nth_exn folded_histories i).branch.index.compressed_length
+                         - (List.nth_exn folded_histories i).jump.index.compressed_length
+                        )))
           , List.init Params.num_banks ~f:(fun i ->
               let reverse x nbits =
                 (* reverse the 16 rightmost bits (Strachey's method) *)
@@ -2318,16 +2312,16 @@ module BayesianTage = struct
                 x lsr (31 - nbits)
               in
               retirement_program_counter + i
-              |> Int.bit_and (Int.shift_left 1 Params.tag_width - 1)
-              |> Int.bit_xor
+              |> ( land ) ((1 lsl Params.tag_width) - 1)
+              |> ( lxor )
                    (reverse
                       branch_tag_fold.(i)
                       (List.nth_exn folded_histories i).branch.tag.compressed_length)
-              |> Int.bit_xor
-                   (Int.shift_left
-                      jump_tag_fold.(i)
-                      ((List.nth_exn folded_histories i).branch.tag.compressed_length
-                       - (List.nth_exn folded_histories i).jump.tag.compressed_length))) )
+              |> ( lxor )
+                   (jump_tag_fold.(i)
+                    lsl ((List.nth_exn folded_histories i).branch.tag.compressed_length
+                         - (List.nth_exn folded_histories i).jump.tag.compressed_length)))
+          )
         ;;
       end
 
@@ -2746,7 +2740,7 @@ module BayesianTage = struct
           ;;
 
           let is_very_high_confidence { num_takens; num_not_takens } =
-            let max_half = Int.shift_left 1 (Params.counter_width - 1) in
+            let max_half = 1 lsl (Params.counter_width - 1) in
             (num_not_takens = 0 && num_takens >= max_half)
             || (num_takens = 0 && num_not_takens >= max_half)
           ;;
@@ -2881,11 +2875,9 @@ module BayesianTage = struct
                && prediction (List.hd_exn s) <> prediction (List.nth_exn s 1)
             then
               if prediction (List.hd_exn s) = if resolved_direction then 1 else 0
-              then (
-                if !meta < Int.shift_left 1 (Params.meta_width - 1) - 1
-                then meta := !meta + 1)
-              else if !meta > -Int.shift_left 1 (Params.meta_width - 1)
-              then meta := !meta - 1;
+              then (if !meta < (1 lsl (Params.meta_width - 1)) - 1 then incr meta)
+              else if !meta > -1 lsl (Params.meta_width - 1)
+              then decr meta;
             ()
           in
           let _update =
@@ -2960,15 +2952,14 @@ module BayesianTage = struct
                             / Params.max_counter_value))))
               in
               let mhc = ref 0 in
-              i := !i - 1;
+              decr i;
               while !i >= 0 do
                 if is_high_confidence result_entries.(!i)
                 then (
                   if !random5 % 8 >= !cd * 8 / (Params.controlled_allocation_decay_max + 1)
                   then Array.set result_entries !i (decay result_entries.(!i));
-                  if not (is_very_high_confidence result_entries.(!i))
-                  then mhc := !mhc + 1;
-                  i := !i - 1;
+                  if not (is_very_high_confidence result_entries.(!i)) then incr mhc;
+                  decr i;
                   ())
                 else (
                   Array.set
@@ -3026,7 +3017,7 @@ module BayesianTage = struct
                   Bool.quickcheck_generator
                   Int.quickcheck_generator
                   Bool.quickcheck_generator
-                  (Int.gen_incl 0 (Int.shift_left 1 Params.bimodal_hysteresis_width - 1))
+                  (Int.gen_incl 0 ((1 lsl Params.bimodal_hysteresis_width) - 1))
                   (List.gen_with_length
                      Params.num_banks
                      (Generator.tuple3
@@ -3200,15 +3191,15 @@ module Branch_direction_predictor = struct
       ~name:"branch_direction_predictor"
       ~params:
         { num_banks = 4
-        ; num_entries_per_bank = Int.shift_left 1 7
+        ; num_entries_per_bank = 1 lsl 7
         ; counter_width = 3
         ; tag_width = 12
-        ; controlled_allocation_throttler_max = Int.shift_left 1 16 - 1
-        ; controlled_allocation_decay_max = Int.shift_left 1 12 - 1
+        ; controlled_allocation_throttler_max = (1 lsl 16) - 1
+        ; controlled_allocation_decay_max = (1 lsl 12) - 1
         ; max_banks_skipped_on_allocation = 1
         ; meta_width = 5
-        ; num_bimodal_direction_entries = Int.shift_left 1 12
-        ; num_bimodal_hysteresis_entries = Int.shift_left 1 10
+        ; num_bimodal_direction_entries = 1 lsl 12
+        ; num_bimodal_hysteresis_entries = 1 lsl 10
         ; bimodal_hysteresis_width = 2
         ; smallest_branch_history_length = 4
         ; largest_branch_history_length = 700

@@ -57,7 +57,7 @@ let choose_bank ~bank ~bank_selector ~size =
   let open Signal in
   List.init
     (width bank_selector + 1)
-    ~f:(fun shift -> srl bank_selector shift ==:. Int.shift_right_logical bank shift)
+    ~f:(fun shift -> srl bank_selector shift ==:. bank lsr shift)
   |> match_on_size ~size
 ;;
 
@@ -65,8 +65,8 @@ let split_data ~bank ~data ~size =
   let open Signal in
   List.init (List.length Size.Enum.all) ~f:(fun shift ->
     List.nth_exn
-      (split_lsb ~part_width:8 (sel_bottom data (Int.shift_left 8 shift)))
-      (bank land (Int.shift_left 1 shift - 1)))
+      (split_lsb ~part_width:8 (sel_bottom data (8 lsl shift)))
+      (bank land ((1 lsl shift) - 1)))
   |> match_on_size ~size
 ;;
 
@@ -76,9 +76,7 @@ let combine_data ~bank_selector ~data ~size ~signed =
     (width bank_selector + 1)
     ~f:(fun shift ->
       let combined =
-        let bytes =
-          List.chunks_of data ~length:(Int.shift_left 1 shift) |> List.map ~f:concat_lsb
-        in
+        let bytes = List.chunks_of data ~length:(1 lsl shift) |> List.map ~f:concat_lsb in
         if width bank_selector = shift
         then single_exn bytes
         else mux (drop_bottom bank_selector shift) bytes
