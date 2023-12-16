@@ -1,26 +1,24 @@
-#import "slides.typ": *
+#import "@preview/polylux:0.3.1": *
+#import themes.clean: *
 
-#show: slides.with(
-  authors: [Alex Saveau],
-  short-authors: [Alex Saveau],
-  title: [Branch prediction and Hardcaml],
+#show: clean-theme.with(
   short-title: [Branch prediction and Hardcaml],
-  date: [May 2023],
 )
 
-#set text(font: "Atkinson Hyperlegible", size: 25pt)
+#set text(font: "Atkinson Hyperlegible", size: 23pt)
 #set text(lang: "en")
 
 #show link: it => text(fill: rgb("#0366d6"), it)
 #show raw: set text(font: "Fira Code")
+#set image(height: 85%)
 
-#slide(theme-variant: "title slide")
+#title-slide(
+  authors: [Alex Saveau],
+  title: [Branch prediction and Hardcaml],
+  date: [May 2023],
+)
 
-#slide(theme-variant: "wake up")[
-  Static branch prediction
-]
-
-#new-section([Branch prediction: static])
+#new-section-slide[Branch prediction: static]
 
 #slide(title: [Participating stages])[
   - Fetch
@@ -39,12 +37,12 @@
 ]
 
 #slide(title: [Decode])[
-  #grid(rows: (50%, auto))[
+  #grid(rows: (auto, 1fr))[
     - Jump: address is hardcoded, always redirect
     - Jump relative: if a return, can make near perfect guess using return address stack
     - Branch: address is hardcoded, choose taken if points backwards, not taken if points forwards
   ][
-    #link("https://riscv.org/wp-content/uploads/2019/12/riscv-spec-20191213.pdf#page=39")[RISC-V control transfer instructions]
+    #align(bottom, pad(bottom: 1em, link("https://riscv.org/wp-content/uploads/2019/12/riscv-spec-20191213.pdf#page=39")[RISC-V control transfer instructions]))
   ]
 ]
 
@@ -114,11 +112,7 @@
   Low power: use accuracy metric to stall when uncertain (e.g. `jalr`).
 ]
 
-#slide(theme-variant: "wake up")[
-  Dynamic branch prediction
-]
-
-#new-section([Branch prediction: dynamic])
+#new-section-slide[Branch prediction: dynamic]
 
 #slide(title: [This talk: BATAGE])[
   The #link("https://inria.hal.science/hal-01799442/document")[paper] includes an analysis of prior art (including perceptron predictors).
@@ -197,11 +191,7 @@
   - #link("https://pages.cs.wisc.edu/~rajwar/papers/cpr_ieeemicro03.pdf")[OoO superscalar recovery]
 ]
 
-#slide(theme-variant: "wake up")[
-  Branch prediction evaluation
-]
-
-#new-section([Branch prediction: evaluation])
+#new-section-slide[Branch prediction: evaluation]
 
 #slide(title: [Sample program jump mispredictions])[
   #image("jump-mispredictions.svg")
@@ -243,11 +233,7 @@
     - Cannot escape spatial dependencies
 ]
 
-#new-section("Hardcaml")
-
-#slide(theme-variant: "wake up")[
-  Hardcaml
-]
+#new-section-slide[Hardcaml]
 
 #slide(title: [But first, Chisel])[
   Chisel #link("https://github.com/chipsalliance/chisel/issues/1163")[does not validate port widths], so I dismissed it.
@@ -355,6 +341,4 @@
   Easy! Just use Ocaml like a normal programming language to read/write files etc.
 ]
 
-#slide(theme-variant: "wake up")[
-  Q&A
-]
+#focus-slide[Q&A]
