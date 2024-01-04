@@ -29,7 +29,7 @@ Minimizing branch mispredictions is therefore a key method for improving process
 
 While the concept of branch prediction is simple, an implementation that takes advantage of all possible control transfer related optimizations requires a myriad of techniques in different pipeline stages.
 Superscalar architectures or strict timing requirements further exacerbate the complexity of accurate branch prediction, for example introducing new opportunities such as predicated instruction inference for short branches @zhao2020sonicboom or requiring pipelined predictions and predictor updates @seznec2007256.
-This paper's implementation primarily focuses on branch prediction accuracy, but does include enough optimizations to run at 50MHz on an Arty A7-100T FPGA.
+#link("https://github.com/SUPERCILEX/hardcaml_riscv")[This paper's implementation] primarily focuses on branch prediction accuracy, but does include enough optimizations to run at 50MHz on an Arty A7-100T FPGA.
 
 To write hardware, the industry primarily uses Verilog or VHDL @cass2022top. While the author is not familiar with VHDL, Hardcaml solves a number of problems with Verilog and introduces new capabilities that are difficult to express in an imperative fashion.
 

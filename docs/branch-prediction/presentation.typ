@@ -15,6 +15,7 @@
 #title-slide(
   authors: [Alex Saveau],
   title: [Branch prediction and Hardcaml],
+  subtitle: link("https://github.com/SUPERCILEX/hardcaml_riscv")[SUPERCILEX/hardcaml_riscv],
   date: [May 2023],
 )
 
